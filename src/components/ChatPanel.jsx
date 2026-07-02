@@ -9,6 +9,7 @@ import { useAgentChat, useChats } from '../agent/socket'
 import { useTrip, useUI, activeTrip } from '../store'
 import Markdown from './Markdown'
 import PlanningStepper from './PlanningStepper'
+import QuestionCard, { QARecord } from './QuestionCard'
 
 const TOOL_META = {
   get_trip: { Icon: Route, label: () => 'Lettura del viaggio' },
@@ -31,6 +32,10 @@ const TOOL_META = {
   toggle_suggestion: { Icon: Sparkles, label: (a, r) => r?.action === 'removed' ? `Consiglio rimosso: ${r.title}` : `Consiglio attivato: ${r?.title ?? ''}` },
   WebSearch: { Icon: Globe, label: (a) => `Ricerca web: ${a.query ?? ''}` },
   WebFetch: { Icon: Globe, label: () => 'Lettura pagina web' },
+  web_search: { Icon: Globe, label: (a) => `Ricerca web: ${a.query ?? ''}` },
+  set_trip_brief: { Icon: ListChecks, label: () => 'Brief del viaggio salvato' },
+  start_planning: { Icon: Sparkles, label: () => 'Apertura del planner' },
+  estimate_travel: { Icon: Route, label: (a) => `Stima spostamento (${a.mode ?? ''})` },
 }
 
 const MODELS = [
@@ -57,7 +62,7 @@ const EXAMPLES = [
 
 export default function ChatPanel({ onClose }) {
   const {
-    connected, thinking, messages, streamText, undoReady, edits, showEdits, model, modelChoice, engine,
+    connected, thinking, messages, streamText, undoReady, edits, showEdits, model, modelChoice, engine, pendingQuestion,
     send, stop, newChat, undoAll, setShowEdits, setModelChoice, setEngine,
   } = useAgentChat()
   const [text, setText] = useState('')
@@ -66,7 +71,7 @@ export default function ChatPanel({ onClose }) {
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
-  }, [messages, thinking, streamText, showEdits])
+  }, [messages, thinking, streamText, showEdits, pendingQuestion])
 
   const submit = () => {
     if (!text.trim()) return
@@ -183,7 +188,8 @@ export default function ChatPanel({ onClose }) {
           </div>
         )}
 
-        {thinking && !streamText && (
+        <QuestionCard />
+        {thinking && !streamText && !pendingQuestion && (
           <div className="mt-2 flex items-center gap-2 text-xs font-semibold text-ink-400">
             <span className="flex gap-1">
               <Dot delay="0ms" /> <Dot delay="150ms" /> <Dot delay="300ms" />
@@ -236,8 +242,8 @@ export default function ChatPanel({ onClose }) {
               if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit() }
             }}
             rows={Math.min(4, Math.max(1, text.split('\n').length))}
-            placeholder="Scrivi all'assistente…"
-            disabled={!connected}
+            placeholder={pendingQuestion ? 'Rispondi alla domanda qui sopra' : "Scrivi all'assistente…"}
+            disabled={!connected || !!pendingQuestion}
             className="max-h-32 min-h-10 w-full resize-none rounded-xl border border-ink-200 bg-ink-50 px-3.5 py-2.5 text-sm text-ink-800 outline-none transition placeholder:text-ink-300 focus:border-brand-400 focus:bg-white focus:ring-2 focus:ring-brand-400/20 disabled:opacity-50"
           />
           {thinking ? (
@@ -474,6 +480,7 @@ function Message({ m }) {
       </div>
     )
   }
+  if (m.role === 'qa') return <QARecord m={m} />
   if (m.role === 'tool') {
     const meta = TOOL_META[m.name] ?? { Icon: Wrench, label: () => m.name }
     return (

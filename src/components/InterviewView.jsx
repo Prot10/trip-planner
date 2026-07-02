@@ -6,6 +6,7 @@ import { useAgentChat } from '../agent/socket'
 import { useTrip } from '../store'
 import Markdown from './Markdown'
 import PlanningStepper from './PlanningStepper'
+import QuestionCard, { QARecord } from './QuestionCard'
 
 const STARTERS = [
   'Un weekend romantico a Parigi a fine settembre, senza auto',
@@ -17,7 +18,7 @@ const STARTERS = [
 /* Full-screen chat: a new trip can only be born through the agent interview */
 export default function InterviewView() {
   const {
-    connected, thinking, messages, streamText, engine, modelChoice,
+    connected, thinking, messages, streamText, engine, modelChoice, pendingQuestion,
     send, stop, setEngine, setModelChoice,
   } = useAgentChat()
   const closeTrip = useTrip((s) => s.closeTrip)
@@ -27,7 +28,7 @@ export default function InterviewView() {
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
-  }, [messages, streamText, thinking])
+  }, [messages, streamText, thinking, pendingQuestion])
 
   const submit = () => {
     if (!text.trim()) return
@@ -127,7 +128,8 @@ export default function InterviewView() {
                 <span className="ml-0.5 inline-block h-3.5 w-[2px] animate-pulse rounded bg-violet-500 align-middle" />
               </div>
             )}
-            {thinking && !streamText && (
+            <QuestionCard />
+            {thinking && !streamText && !pendingQuestion && (
               <div className="flex items-center gap-2 text-xs font-semibold text-ink-400">
                 <span className="flex gap-1">
                   <span className="size-1.5 animate-bounce rounded-full bg-violet-400" />
@@ -152,8 +154,8 @@ export default function InterviewView() {
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit() }
               }}
               rows={Math.min(4, Math.max(1, text.split('\n').length))}
-              placeholder={connected ? 'Descrivi il viaggio che sogni…' : 'Assistente non connesso'}
-              disabled={!connected}
+              placeholder={pendingQuestion ? 'Rispondi alla domanda qui sopra' : connected ? 'Descrivi il viaggio che sogni…' : 'Assistente non connesso'}
+              disabled={!connected || !!pendingQuestion}
               className="max-h-32 min-h-10 w-full resize-none bg-transparent px-2 py-2 text-sm text-ink-800 outline-none placeholder:text-ink-300 disabled:opacity-50"
             />
             {thinking ? (
@@ -204,6 +206,7 @@ function Bubble({ m }) {
       </div>
     )
   }
+  if (m.role === 'qa') return <QARecord m={m} />
   if (m.role === 'tool') {
     return (
       <div className="mb-2 flex">

@@ -17,4 +17,4 @@
 10. Aggiungi 2-4 voci utili alla **checklist** (prenotazioni obbligatorie, pass, biglietti da comprare in anticipo).
 
 ### Chiusura
-11. A fine costruzione: chiudi tutte le step dello stepper, poi scrivi un **riassunto compatto** (giorni, tappe chiave, budget stimato), **chiedi un feedback** esplicito e proponi **2-3 modifiche concrete** tra cui scegliere (es. "vuoi più tempo libero il giorno 3?", "preferisci spostare il museo X al mattino?"). Resta propositivo anche nei turni successivi.
+11. A fine costruzione: chiudi tutte le step dello stepper, poi scrivi un **riassunto compatto** (giorni, tappe chiave, budget stimato) e **chiedi il feedback con `ask_user`** (`single` o `multi`, `allow_other: true`) proponendo come opzioni 2-3 modifiche concrete più "Va benissimo così" (es. "Alleggerisci il giorno 3", "Sposta il museo X al mattino"). Se sceglie una modifica, applicala subito. Resta propositivo anche nei turni successivi; per scelte binarie o multi-opzione preferisci sempre `ask_user` al testo.
