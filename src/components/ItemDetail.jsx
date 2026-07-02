@@ -5,7 +5,7 @@ import {
 } from 'lucide-react'
 import { useTrip, useUI, activeTrip } from '../store'
 import { fmtDur, fmtMoney, gmapsUrl } from '../lib/utils'
-import { TYPE_META } from './typeMeta'
+import { TYPE_META, itemMeta } from './typeMeta'
 import { useItemImages } from './ItemImage'
 import Modal from './Modal'
 
@@ -25,7 +25,7 @@ export default function ItemDetail() {
   const [idx, setIdx] = useState(0)
 
   if (!item) return null
-  const meta = TYPE_META[item.type]
+  const meta = itemMeta(item)
   const img = images[Math.min(idx, images.length - 1)]
 
   const showOnMap = () => {

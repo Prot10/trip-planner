@@ -5,7 +5,7 @@ import {
 } from 'lucide-react'
 import { useTrip, useUI, useRoutes, toast, activeTrip } from '../store'
 import { useAgentChat } from '../agent/socket'
-import { tripStats, fmtDur, fmtKm, fmtMoney, dayDate, fmtDate, fuelCostUsd, costByType } from '../lib/utils'
+import { tripStats, fmtDur, fmtKm, fmtMoney, dayDate, fmtDate, fuelCostUsd, costByType, tripUsesCar } from '../lib/utils'
 import { chainedDayCoords, estimateDayKm } from '../lib/geo'
 import { exportTripImages, internTripImages } from '../lib/imgdb'
 import DatePicker from './DatePicker'
@@ -28,8 +28,9 @@ export default function Header() {
   /* total km: real road distance where OSRM answered, estimate elsewhere */
   const totalKm = chainedDayCoords(trip).reduce(
     (s, l) => s + (roadKmByDay[l.dayId] ?? estimateDayKm(l.coords)), 0)
+  const usesCar = tripUsesCar(trip)
   const costs = costByType(trip)
-  const fuelUsd = fuelCostUsd(totalKm, trip.car)
+  const fuelUsd = usesCar ? fuelCostUsd(totalKm, trip.car) : 0
   const totalUsd = costs.items + fuelUsd
 
   const onExport = async () => {
@@ -64,7 +65,7 @@ export default function Header() {
   }
 
   return (
-    <header className="z-[600] border-b border-ink-200 bg-white lg:mx-3 lg:mt-3 lg:rounded-2xl lg:border lg:shadow-lg">
+    <header className="relative z-[600] border-b border-ink-200 bg-white lg:mx-3 lg:mt-3 lg:rounded-2xl lg:border lg:shadow-lg">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5 sm:px-5">
         {/* back to dashboard + brand + title */}
         <div className="flex min-w-0 items-center gap-2">
@@ -113,7 +114,7 @@ export default function Header() {
             <BudgetBadge costs={costs} fuelUsd={fuelUsd} totalUsd={totalUsd} compact />
           </div>
           <ChatToggle />
-          <CarSettings />
+          {usesCar && <CarSettings />}
           <DatePicker />
           <button
             onClick={() => openDayEditor(null)}

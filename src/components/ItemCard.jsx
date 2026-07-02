@@ -6,10 +6,10 @@ import {
 } from 'lucide-react'
 import { useTrip, useUI, toast } from '../store'
 import { fmtDur, fmtMoney, gmapsUrl } from '../lib/utils'
-import { TYPE_META } from './typeMeta'
+import { TYPE_META, itemMeta } from './typeMeta'
 import { ItemThumb } from './ItemImage'
 
-export default function ItemCard({ item, day, isLast }) {
+export default function ItemCard({ item, day, isLast, stopNumber }) {
   const toggleDone = useTrip((s) => s.toggleDone)
   const removeItem = useTrip((s) => s.removeItem)
   const openEditor = useUI((s) => s.openEditor)
@@ -22,7 +22,7 @@ export default function ItemCard({ item, day, isLast }) {
   const ref = useRef(null)
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id })
-  const meta = TYPE_META[item.type]
+  const meta = itemMeta(item)
 
   /* scroll + flash when a map pin selects this item */
   useEffect(() => {
@@ -52,11 +52,18 @@ export default function ItemCard({ item, day, isLast }) {
         <button
           onClick={() => toggleDone(day.id, item.id)}
           title={item.done ? 'Segna da fare' : 'Segna come fatto'}
+          style={stopNumber && !item.done ? { background: day.color, borderColor: day.color } : undefined}
           className={`grid size-8 shrink-0 place-items-center rounded-full ring-1 transition hover:scale-110 ${
-            item.done ? 'bg-emerald-100 text-emerald-600 ring-emerald-300' : meta.dot
+            item.done
+              ? 'bg-emerald-100 text-emerald-600 ring-emerald-300'
+              : stopNumber
+                ? 'font-display text-[13px] font-extrabold text-white ring-transparent shadow-sm'
+                : meta.dot
           }`}
         >
-          {item.done ? <Check size={15} strokeWidth={3} /> : <meta.Icon size={15} strokeWidth={2.2} />}
+          {item.done
+            ? <Check size={15} strokeWidth={3} />
+            : stopNumber ?? <meta.Icon size={15} strokeWidth={2.2} />}
         </button>
         {!isLast && <div className="mt-1 w-0.5 flex-1 rounded bg-ink-200" />}
       </div>
@@ -195,7 +202,7 @@ export default function ItemCard({ item, day, isLast }) {
 
 /* light clone rendered inside DragOverlay */
 export function ItemCardGhost({ item, color }) {
-  const meta = TYPE_META[item.type]
+  const meta = itemMeta(item)
   return (
     <div
       className="flex max-w-md items-center gap-2.5 rounded-xl border-2 bg-white p-3 shadow-xl"

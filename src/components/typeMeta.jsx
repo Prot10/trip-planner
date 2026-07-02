@@ -1,4 +1,22 @@
-import { MapPin, Car, UtensilsCrossed, BedDouble, Lightbulb } from 'lucide-react'
+import { MapPin, Car, UtensilsCrossed, BedDouble, Lightbulb, Footprints, BusFront, TrainFront, Plane, Ship } from 'lucide-react'
+
+/* transport modes for `drive` items */
+export const MODE_META = {
+  car: { label: 'Auto', Icon: Car },
+  walk: { label: 'A piedi', Icon: Footprints },
+  bus: { label: 'Bus', Icon: BusFront },
+  train: { label: 'Treno', Icon: TrainFront },
+  plane: { label: 'Aereo', Icon: Plane },
+  boat: { label: 'Traghetto', Icon: Ship },
+}
+
+/* effective icon/label for an item, considering the transport mode of drives */
+export function itemMeta(item) {
+  const base = TYPE_META[item.type] ?? TYPE_META.activity
+  if (item.type !== 'drive') return base
+  const mode = MODE_META[item.mode] ?? MODE_META.car
+  return { ...base, Icon: mode.Icon, label: mode.label }
+}
 
 /* Visual identity of each activity type (light theme) */
 export const TYPE_META = {

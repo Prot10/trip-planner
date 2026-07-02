@@ -3,13 +3,13 @@ import {
   X, Search, Crosshair, Trash2, Plus, MapPin, Star, Check, Loader2, ImagePlus, ImageOff, Link2,
 } from 'lucide-react'
 import { useTrip, useUI, toast, activeTrip } from '../store'
-import { TYPE_META } from './typeMeta'
+import { TYPE_META, MODE_META } from './typeMeta'
 import { compressImageFile, putImg, resolveRef } from '../lib/imgdb'
 import Modal from './Modal'
 
 const EMPTY = {
   type: 'activity', title: '', time: '', dur: '', notes: '',
-  links: [], must: false, done: false, lat: null, lng: null, imgs: [], noWiki: false, price: '',
+  links: [], must: false, done: false, lat: null, lng: null, imgs: [], noWiki: false, price: '', mode: 'car',
 }
 
 const PRICE_LABELS = {
@@ -78,6 +78,7 @@ export default function ItemEditor() {
       title: draft.title.trim(),
       dur: parseInt(draft.dur, 10) || 0,
       price: parseFloat(draft.price) || 0,
+      mode: draft.type === 'drive' ? (draft.mode ?? 'car') : null,
       notes: draft.notes.trim(),
       links: draft.links.filter((l) => l.url.trim()).map((l) => ({
         label: l.label.trim() || 'link',
@@ -128,6 +129,26 @@ export default function ItemEditor() {
             ))}
           </div>
         </Field>
+
+        {draft.type === 'drive' && (
+          <Field label="Mezzo di trasporto">
+            <div className="flex flex-wrap gap-1.5">
+              {Object.entries(MODE_META).map(([key, m]) => (
+                <button
+                  key={key}
+                  onClick={() => set({ mode: key })}
+                  className={`flex items-center gap-1.5 rounded-xl border-[1.5px] px-2.5 py-1.5 text-[12.5px] font-semibold transition ${
+                    (draft.mode ?? 'car') === key
+                      ? 'border-sky-500 bg-sky-50 text-sky-700'
+                      : 'border-ink-200 text-ink-500 hover:border-ink-300 hover:text-ink-700'
+                  }`}
+                >
+                  <m.Icon size={14} /> {m.label}
+                </button>
+              ))}
+            </div>
+          </Field>
+        )}
 
         <Field label="Titolo">
           <input

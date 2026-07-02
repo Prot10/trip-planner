@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Map as MapIcon, ListChecks, CalendarRange, Sparkles, Bot } from 'lucide-react'
-import { useUI, useTrip, useRoutes } from './store'
+import { useUI, useTrip, useRoutes, activeTrip } from './store'
 import { connectAgent, useAgentChat } from './agent/socket'
 import ChatPanel from './components/ChatPanel'
+import InterviewView from './components/InterviewView'
 import Header from './components/Header'
 import ItineraryPanel from './components/ItineraryPanel'
 import MapPanel from './components/MapPanel'
@@ -62,22 +63,26 @@ export default function App() {
   }, [setPicking, closeEditor, closeDayEditor])
 
   const leftTab = ['checklist', 'suggestions'].includes(tab) ? tab : 'itinerary'
+  const phase = useTrip((s) => activeTrip(s)?.phase)
 
   if (!activeId) return <Dashboard />
+
+  /* a newborn trip exists only as a conversation until the agent opens the planner */
+  if (phase === 'interview') return <InterviewView />
 
   return (
     <div className="flex h-full flex-col">
       <Header />
 
-      <main className="relative flex min-h-0 flex-1" style={{ '--left-w': `${leftW + 12}px` }}>
-        {/* map — full-bleed background on desktop, its own tab on mobile */}
-        <section className={`relative min-w-0 flex-1 ${tab === 'map' ? 'block' : 'hidden'} lg:block lg:absolute lg:inset-0 lg:flex-none`}>
+      <main className="relative z-10 flex min-h-0 flex-1 lg:pointer-events-none" style={{ '--left-w': `${leftW + 12}px` }}>
+        {/* map — full-viewport background on desktop (under the floating header), its own tab on mobile */}
+        <section className={`relative min-w-0 flex-1 ${tab === 'map' ? 'block' : 'hidden'} lg:pointer-events-auto lg:fixed lg:inset-0 lg:z-0 lg:block lg:flex-none`}>
           <MapPanel />
         </section>
 
         {/* left panel — floating card on desktop (resizable), in-flow on mobile */}
         <section
-          className={`relative z-[540] min-w-0 flex-1 lg:absolute lg:bottom-3 lg:left-3 lg:top-3 lg:w-[calc(var(--left-w)-12px)] lg:flex-none lg:overflow-hidden lg:rounded-3xl lg:border lg:border-ink-200 lg:shadow-2xl ${
+          className={`relative z-[540] min-w-0 flex-1 lg:pointer-events-auto lg:absolute lg:bottom-3 lg:left-3 lg:top-3 lg:w-[calc(var(--left-w)-12px)] lg:flex-none lg:overflow-hidden lg:rounded-3xl lg:border lg:border-ink-200 lg:shadow-2xl ${
             tab === 'map' || tab === 'chat' ? 'hidden lg:flex' : 'flex'
           } flex-col bg-ink-50`}
         >
@@ -113,7 +118,7 @@ export default function App() {
         {chatOpen && (
           <div
             style={{ width: chatW }}
-            className="anim-fade-up absolute bottom-3 right-3 top-3 z-[560] hidden lg:block"
+            className="anim-fade-up absolute bottom-3 right-3 top-3 z-[560] hidden lg:pointer-events-auto lg:block"
           >
             <div className="relative h-full overflow-hidden rounded-3xl border border-ink-200 bg-white shadow-2xl">
               <div

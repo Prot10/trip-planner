@@ -7,7 +7,7 @@ import {
 import { useTrip, useUI, useRoutes, toast, activeTrip } from '../store'
 import { useAgentChat } from '../agent/socket'
 import { fmtDur, fmtKm, gmapsUrl } from '../lib/utils'
-import { fetchRoadRoute, searchPlaces, fetchDirections, bestInsertion } from '../lib/geo'
+import { fetchRoadRoute, searchPlaces, fetchDirections, bestInsertion, haversineKm } from '../lib/geo'
 
 const CA_CENTER = [36.5, -120.5]
 
@@ -78,46 +78,73 @@ export default function MapPanel() {
     })
   }, [days])
 
-  /* one continuous round trip: each day's leg starts where the previous
-     day (with stops) ended, and day 1 starts from the end of the last day */
-  const chained = useMemo(() => {
-    const withPts = layersAll.filter((l) => l.points.length > 0)
-    return layersAll.map((l) => {
-      const pts = l.points.map((p) => [p.item.lat, p.item.lng])
-      const pos = withPts.indexOf(l)
-      if (pos === -1 || withPts.length < 2) return { ...l, coords: pts }
-      const prev = withPts[(pos - 1 + withPts.length) % withPts.length]
-      const prevLast = prev.points[prev.points.length - 1]
-      return { ...l, coords: [[prevLast.item.lat, prevLast.item.lng], ...pts] }
-    })
-  }, [layersAll])
+  /* one continuous round trip broken into LEGS between consecutive located
+     stops; each leg carries the transport mode of the drive item between
+     them (car/bus → real roads, walk → foot routing, train/plane/boat →
+     straight dashed). The wrap leg closes the loop back to the start. */
+  const legs = useMemo(() => {
+    const defaultMode = trip.transport === 'walk' ? 'walk' : 'car'
+    const out = []
+    let first = null
+    let last = null
+    let pendingMode = null
+    for (const day of days) {
+      for (const it of day.items) {
+        if (it.type === 'drive') { pendingMode = it.mode ?? defaultMode; continue }
+        if (it.lat == null) continue
+        const stop = { coord: [it.lat, it.lng], dayId: day.id }
+        if (last) {
+          out.push({ id: `${day.id}|${out.length}`, from: last.coord, to: stop.coord, dayId: day.id, mode: pendingMode ?? defaultMode })
+        } else {
+          first = stop
+        }
+        last = stop
+        pendingMode = null
+      }
+    }
+    if (first && last && out.length > 0 && (first.coord[0] !== last.coord[0] || first.coord[1] !== last.coord[1])) {
+      out.push({ id: `${first.dayId}|wrap`, from: last.coord, to: first.coord, dayId: first.dayId, mode: defaultMode })
+    }
+    return out
+  }, [days, trip.transport])
 
-  /* fetch real driving geometry (free OSRM); falls back to straight lines */
-  const routeSignature = useMemo(
-    () => JSON.stringify(chained.map((l) => [l.day.id, l.coords])),
-    [chained],
-  )
+  const ROAD_MODES = { car: 'driving', bus: 'driving', walk: 'foot' }
+
+  /* fetch real geometry per leg (cached per pair+profile); publish day km */
+  const legSignature = useMemo(() => JSON.stringify(legs.map((l) => [l.from, l.to, l.mode])), [legs])
   useEffect(() => {
     let dead = false
     setRoads({})
-    useRoutes.setState({ byDay: {} })
+    const kmByLeg = {}
+    const publish = () => {
+      const byDay = {}
+      for (const l of legs) {
+        const km = kmByLeg[l.id] ?? haversineKm(l.from, l.to) * (ROAD_MODES[l.mode] ? 1.25 : 1)
+        byDay[l.dayId] = (byDay[l.dayId] ?? 0) + km
+      }
+      useRoutes.setState({ byDay })
+    }
+    publish()
     ;(async () => {
-      for (const l of chained) {
-        if (l.coords.length < 2) continue
-        const road = await fetchRoadRoute(l.coords)
+      for (const l of legs) {
+        const profile = ROAD_MODES[l.mode]
+        if (!profile) continue
+        const road = await fetchRoadRoute([l.from, l.to], profile)
         if (dead) return
         if (road) {
-          setRoads((r) => ({ ...r, [l.day.id]: road.latlngs }))
-          /* publish real road km so the header budget badges use it */
-          useRoutes.setState((s) => ({ byDay: { ...s.byDay, [l.day.id]: road.km } }))
+          kmByLeg[l.id] = road.km
+          setRoads((r) => ({ ...r, [l.id]: road.latlngs }))
+          publish()
         }
       }
     })()
     return () => { dead = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [routeSignature])
+  }, [legSignature])
 
-  const layers = chained.filter((l) => !mapFilter || l.day.id === mapFilter)
+  const layers = layersAll.filter((l) => !mapFilter || l.day.id === mapFilter)
+  const visibleLegs = legs.filter((l) => !mapFilter || l.dayId === mapFilter)
+  const dayColor = useMemo(() => Object.fromEntries(days.map((d) => [d.id, d.color])), [days])
   const allCoords = layers.flatMap((l) => l.points.map((p) => [p.item.lat, p.item.lng]))
 
   /* shift map overlays left while the floating chat covers the right side */
@@ -137,7 +164,12 @@ export default function MapPanel() {
         />
         <MapAutosize />
         <MapRef mapRef={mapRef} />
-        <FitOnChange coords={allCoords} depKey={mapFilter ?? 'all'} />
+        {/* re-fit when the filter changes OR the trip's anchor point moves
+            (e.g. the agent starts building a brand-new destination) */}
+        <FitOnChange
+          coords={allCoords}
+          depKey={`${mapFilter ?? 'all'}|${allCoords[0] ? allCoords[0].map((v) => v.toFixed(1)).join(',') : 'none'}`}
+        />
         <FlyToConsumer markerRefs={markerRefs} />
         <PickConsumer />
         <DirPickConsumer dirPick={dirPick} setDirPick={setDirPick} setDir={setDir} />
@@ -179,36 +211,37 @@ export default function MapPanel() {
         {dir.a && <Marker position={[dir.a.lat, dir.a.lng]} icon={dirIcon('A', '#16a34a')} />}
         {dir.b && <Marker position={[dir.b.lat, dir.b.lng]} icon={dirIcon('B', '#dc2626')} />}
 
-        {layers.map(({ day, dayIndex, points, coords }) => {
-          const road = roads[day.id]
-          return (
-            <div key={day.id}>
-              {coords.length > 1 && (
-                <Polyline
-                  positions={road ?? coords}
-                  pathOptions={
-                    road
-                      /* dashArray must be explicitly nulled: Leaflet's setStyle
-                         merges options and never removes a previous dash */
-                      ? { color: day.color, weight: 4, opacity: 0.75, dashArray: null }
-                      : { color: day.color, weight: 3.5, opacity: 0.55, dashArray: '6 9' }
-                  }
-                />
-              )}
-              {points.map(({ item, n }) => (
-                <PinMarker
-                  key={item.id}
-                  item={item}
-                  n={n}
-                  day={day}
-                  dayIndex={dayIndex}
-                  markerRefs={markerRefs}
-                  onDirTo={directionsTo}
-                />
-              ))}
-            </div>
-          )
+        {/* route legs, styled by transport mode */}
+        {visibleLegs.map((leg) => {
+          const road = roads[leg.id]
+          const color = dayColor[leg.dayId] ?? '#f97316'
+          /* dashArray must be explicitly nulled: Leaflet's setStyle merges
+             options and never removes a previous dash */
+          const style = road
+            ? leg.mode === 'walk'
+              ? { color, weight: 3.5, opacity: 0.85, dashArray: '1 7' }
+              : { color, weight: 4, opacity: 0.75, dashArray: null }
+            : ROAD_MODES[leg.mode]
+              ? { color, weight: 3.5, opacity: 0.55, dashArray: '6 9' }
+              : { color, weight: 3, opacity: 0.55, dashArray: '10 10' } /* train/plane/boat */
+          return <Polyline key={leg.id} positions={road ?? [leg.from, leg.to]} pathOptions={style} />
         })}
+
+        {layers.map(({ day, dayIndex, points }) => (
+          <div key={day.id}>
+            {points.map(({ item, n }) => (
+              <PinMarker
+                key={item.id}
+                item={item}
+                n={n}
+                day={day}
+                dayIndex={dayIndex}
+                markerRefs={markerRefs}
+                onDirTo={directionsTo}
+              />
+            ))}
+          </div>
+        ))}
       </MapContainer>
 
       {/* search + directions (Google-Maps-style) */}
@@ -225,7 +258,7 @@ export default function MapPanel() {
       />
 
       {/* legend / day filter */}
-      <div className="nice-scroll absolute left-3 right-3 top-[60px] z-[500] flex gap-1.5 overflow-x-auto pb-1 transition-[right,left] duration-200 lg:left-[calc(0.75rem+var(--left-w,0px))] lg:right-[calc(21.5rem+var(--chat-w,0px))] lg:top-3 lg:flex-wrap">
+      <div className="nice-scroll absolute left-3 right-3 top-[60px] z-[500] flex gap-1.5 overflow-x-auto pb-1 transition-[right,left] duration-200 lg:left-[calc(0.75rem+var(--left-w,0px))] lg:right-[calc(21.5rem+var(--chat-w,0px))] lg:top-[84px] lg:flex-wrap">
         <LegChip active={!mapFilter} color="#334155" onClick={() => setMapFilter(null)}>
           Tutto il viaggio
         </LegChip>
@@ -459,7 +492,7 @@ function SearchOverlay({ place, setPlace, dir, setDir, route, routing, dirPick, 
   }
 
   return (
-    <div className="absolute right-[calc(0.75rem+var(--chat-w,0px))] top-3 z-[520] w-80 max-w-[calc(100vw-24px)] transition-[right] duration-200">
+    <div className="absolute right-[calc(0.75rem+var(--chat-w,0px))] top-3 z-[520] w-80 max-w-[calc(100vw-24px)] transition-[right] duration-200 lg:top-[84px]">
       <div className="nice-scroll max-h-[calc(100dvh-150px)] overflow-y-auto rounded-2xl border border-ink-200 bg-white shadow-lg">
         {!dir.open ? (
           /* --- simple place search --- */

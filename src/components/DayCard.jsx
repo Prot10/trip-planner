@@ -116,9 +116,19 @@ export default function DayCard({ day, index, total }) {
           >
             <SortableContext items={day.items.map((it) => it.id)} strategy={verticalListSortingStrategy}>
               <ol>
-                {day.items.map((it, j) => (
-                  <ItemCard key={it.id} item={it} day={day} isLast={j === day.items.length - 1} />
-                ))}
+                {(() => {
+                  /* same numbering rule as the map pins: located stops count, hotels keep the bed icon */
+                  let n = 0
+                  return day.items.map((it, j) => (
+                    <ItemCard
+                      key={it.id}
+                      item={it}
+                      day={day}
+                      stopNumber={it.lat != null && it.type !== 'hotel' ? ++n : null}
+                      isLast={j === day.items.length - 1}
+                    />
+                  ))
+                })()}
               </ol>
             </SortableContext>
 
