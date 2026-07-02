@@ -8,6 +8,7 @@ import { tool, createSdkMcpServer } from '@anthropic-ai/claude-agent-sdk'
 import { z } from 'zod'
 
 const ITEM_TYPES = z.enum(['activity', 'drive', 'food', 'hotel', 'info'])
+const TRANSPORT = z.enum(['car', 'walk', 'bus', 'train', 'plane', 'boat'])
 
 export const TOOL_DEFS = [
   {
@@ -34,6 +35,7 @@ export const TOOL_DEFS = [
       lng: z.number().optional(),
       links: z.array(z.object({ label: z.string(), url: z.string() })).optional(),
       must_see: z.boolean().optional(),
+      transport_mode: TRANSPORT.optional().describe('solo per type=drive: mezzo dello spostamento'),
     },
   },
   {
@@ -52,6 +54,7 @@ export const TOOL_DEFS = [
       links: z.array(z.object({ label: z.string(), url: z.string() })).optional(),
       must_see: z.boolean().optional(),
       done: z.boolean().optional(),
+      transport_mode: TRANSPORT.optional().describe('solo per type=drive: mezzo dello spostamento'),
     },
   },
   { name: 'remove_activity', description: "Elimina un'attività dal viaggio.", schema: { item_id: z.string() } },
@@ -68,19 +71,52 @@ export const TOOL_DEFS = [
   { name: 'add_day', description: 'Aggiunge un giorno in coda al viaggio.', schema: { title: z.string(), night: z.string().optional().describe('dove si dorme') } },
   {
     name: 'update_day',
-    description: 'Modifica titolo o luogo della notte di un giorno.',
-    schema: { day_number: z.number().int().min(1), title: z.string().optional(), night: z.string().optional() },
+    description: 'Modifica titolo, luogo della notte o colore (hex) di un giorno.',
+    schema: { day_number: z.number().int().min(1), title: z.string().optional(), night: z.string().optional(), color: z.string().optional().describe('es. #f59e0b') },
   },
   { name: 'remove_day', description: 'Elimina un giorno e tutte le sue attività. Usalo solo su richiesta esplicita.', schema: { day_number: z.number().int().min(1) } },
   { name: 'move_day', description: 'Sposta un giorno su o giù di una posizione.', schema: { day_number: z.number().int().min(1), direction: z.enum(['up', 'down']) } },
   {
     name: 'set_trip_meta',
-    description: 'Imposta i metadati del viaggio: titolo, data di partenza (YYYY-MM-DD, le date dei giorni si ricalcolano), auto (consumo L/100km, prezzo benzina $/gallone).',
+    description: 'Imposta i metadati del viaggio: titolo, sottotitolo, data di partenza (YYYY-MM-DD, le date dei giorni si ricalcolano), mezzo principale, auto (consumo L/100km, prezzo benzina $/gallone).',
     schema: {
       title: z.string().optional(),
+      subtitle: z.string().optional(),
       start_date: z.string().optional(),
+      transport: z.enum(['car', 'walk', 'transit', 'mixed']).optional(),
       car_l_per_100km: z.number().positive().optional(),
       car_gas_usd_per_gal: z.number().positive().optional(),
+    },
+  },
+  {
+    name: 'set_trip_brief',
+    description: "Salva il profilo del viaggio raccolto nell'intervista: chi viaggia, periodo, stile e ritmo, mezzo di trasporto, budget, alloggi, vincoli e interessi. È la memoria delle preferenze: consultalo (via get_trip) prima di ogni scelta di pianificazione.",
+    schema: { brief: z.string() },
+  },
+  {
+    name: 'start_planning',
+    description: "Chiude l'intervista e apre il planner: imposta i metadati e porta il viaggio in fase attiva (l'interfaccia cambia vista). Chiamalo UNA sola volta, dopo che l'utente ha confermato il riassunto del brief; subito dopo prosegui con la pianificazione completa nello stesso turno.",
+    schema: {
+      title: z.string().describe('titolo evocativo del viaggio'),
+      subtitle: z.string().optional().describe('sintesi del percorso, es. "Roma → Firenze → Venezia · 5 giorni"'),
+      transport: z.enum(['car', 'walk', 'transit', 'mixed']),
+      start_date: z.string().optional().describe('YYYY-MM-DD'),
+      car_l_per_100km: z.number().positive().optional(),
+      car_gas_usd_per_gal: z.number().positive().optional(),
+    },
+  },
+  {
+    name: 'report_progress',
+    description: "Aggiorna lo stepper di avanzamento visibile all'utente durante la pianificazione. Chiama con status 'start' quando inizi una macro-fase (titolo breve, max 6 parole, es. 'Ricerca zone e attrazioni') e con status 'done' sulla STESSA step quando la completi. Usalo generosamente: è l'unico feedback visivo durante il lavoro lungo.",
+    schema: { step: z.string(), status: z.enum(['start', 'done', 'error']), detail: z.string().optional() },
+  },
+  {
+    name: 'estimate_travel',
+    description: "Stima realistica di uno spostamento tra due punti: km e minuti su strade reali per auto/bus/piedi (OSRM); per treno/aereo/traghetto solo distanza (la durata va verificata con la ricerca web). USALO per ogni spostamento che crei: mai inventare durate di viaggio.",
+    schema: {
+      from_lat: z.number(), from_lng: z.number(),
+      to_lat: z.number(), to_lng: z.number(),
+      mode: TRANSPORT,
     },
   },
   { name: 'checklist_add', description: 'Aggiunge una voce alla checklist pre-partenza.', schema: { text: z.string() } },

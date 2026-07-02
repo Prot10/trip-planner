@@ -12,12 +12,15 @@ import { dirname, join } from 'node:path'
 import { createTripTools, TRIP_TOOL_NAMES } from './tools.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const SYSTEM_PROMPT = readFileSync(join(__dirname, 'prompts', 'system.md'), 'utf8')
+const read = (f) => readFileSync(join(__dirname, 'prompts', f), 'utf8')
+const PLANNING_RULES = read('planning-rules.md')
+const PLANNER_PROMPT = `${read('system.md')}\n\n${PLANNING_RULES}`
+const INTERVIEW_PROMPT = `${read('interview.md')}\n\n${PLANNING_RULES}`
 const CODEX_WORKSPACE = join(__dirname, 'codex-workspace')
 /* prefer the project-pinned Codex CLI over whatever brew has */
 const LOCAL_CODEX = join(__dirname, '..', 'node_modules', '.bin', 'codex')
 const CODEX_BIN = existsSync(LOCAL_CODEX) ? LOCAL_CODEX : 'codex'
-const MAX_TURNS = 30
+const MAX_TURNS = 100
 const CLAUDE_MODELS = new Set(['sonnet', 'opus', 'haiku'])
 
 export function createAgent(bridge, { mcpPort }) {
@@ -25,14 +28,14 @@ export function createAgent(bridge, { mcpPort }) {
   let active = null // { abort() }
 
   /* ---------- Claude (Agent SDK) ---------- */
-  async function runClaude(text, { model, sessionId }) {
+  async function runClaude(text, { model, sessionId, mode }) {
     const abort = new AbortController()
     active = { abort: () => abort.abort() }
     try {
       const q = query({
         prompt: text,
         options: {
-          systemPrompt: SYSTEM_PROMPT,
+          systemPrompt: mode === 'interview' ? INTERVIEW_PROMPT : PLANNER_PROMPT,
           mcpServers: { trip: tripServer },
           tools: ['WebSearch', 'WebFetch'],
           allowedTools: [...TRIP_TOOL_NAMES, 'WebSearch', 'WebFetch'],
@@ -89,7 +92,12 @@ export function createAgent(bridge, { mcpPort }) {
   }
 
   /* ---------- Codex (ChatGPT subscription) ---------- */
-  function runCodex(text, { sessionId }) {
+  function runCodex(text, { sessionId, mode }) {
+    /* Codex reads AGENTS.md (planner persona); interview rules ride along
+       with the first message of an interview chat */
+    if (mode === 'interview' && !sessionId) {
+      text = `<istruzioni_fase_intervista>\n${INTERVIEW_PROMPT}\n</istruzioni_fase_intervista>\n\nMessaggio dell'utente: ${text}`
+    }
     return new Promise((resolve) => {
       const flags = [
         '--json',

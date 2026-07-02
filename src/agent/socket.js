@@ -6,7 +6,7 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { useTrip, activeTrip, toast } from '../store'
 import { uid } from '../lib/utils'
-import { executeTool, applyUndoOp, WRITE_TOOLS } from './toolExecutors'
+import { executeTool, applyUndoOp, WRITE_TOOLS, hooks } from './toolExecutors'
 
 const WS_URL = `ws://${location.hostname}:5200/agent`
 
@@ -46,6 +46,7 @@ export const useAgentChat = create((set, get) => ({
   chatId: null,                   // active saved-chat id
   sessionId: null,                // engine session/thread to resume
   edits: [],                      // per-turn write log: { id, name, args, result, undo, detail, reverted }
+  progress: [],                   // live planning stepper: { id, step, status, detail }
   undoSnapshot: null,
   undoReady: false,
   showEdits: false,
@@ -73,11 +74,19 @@ export const useAgentChat = create((set, get) => ({
       undoReady: false,
       undoSnapshot: null,
       edits: [],
+      progress: [],
       showEdits: false,
       streamText: '',
     }))
     persistChat()
-    sendWs({ type: 'chat', text: t, model: get().modelChoice, engine: get().engine, sessionId: get().sessionId })
+    const phase = activeTrip(useTrip.getState())?.phase
+    sendWs({
+      type: 'chat', text: t,
+      model: get().modelChoice,
+      engine: get().engine,
+      sessionId: get().sessionId,
+      mode: phase === 'interview' ? 'interview' : 'planner',
+    })
   },
 
   stop: () => sendWs({ type: 'stop' }),
@@ -86,7 +95,7 @@ export const useAgentChat = create((set, get) => ({
     if (get().thinking) sendWs({ type: 'stop' })
     set({
       messages: [], chatId: null, sessionId: null, model: null,
-      undoReady: false, undoSnapshot: null, edits: [], showEdits: false, thinking: false, streamText: '',
+      undoReady: false, undoSnapshot: null, edits: [], progress: [], showEdits: false, thinking: false, streamText: '',
     })
   },
 
@@ -99,7 +108,7 @@ export const useAgentChat = create((set, get) => ({
       engine: chat.engine ?? 'claude',
       modelChoice: ['sonnet', 'opus', 'haiku'].includes(chat.model) ? chat.model : get().modelChoice,
       model: null,
-      undoReady: false, undoSnapshot: null, edits: [], showEdits: false, thinking: false, streamText: '',
+      undoReady: false, undoSnapshot: null, edits: [], progress: [], showEdits: false, thinking: false, streamText: '',
     })
   },
 
@@ -146,6 +155,20 @@ function persistChat() {
     updatedAt: Date.now(),
     messages: s.messages,
   })
+}
+
+/* executor hooks: live stepper + view flip on start_planning */
+hooks.onProgress = (a) => {
+  useAgentChat.setState((s) => {
+    const existing = s.progress.find((p) => p.step === a.step)
+    if (existing) {
+      return { progress: s.progress.map((p) => (p.step === a.step ? { ...p, status: a.status, detail: a.detail ?? p.detail } : p)) }
+    }
+    return { progress: [...s.progress, { id: uid(), step: a.step, status: a.status, detail: a.detail }] }
+  })
+}
+hooks.onStartPlanning = () => {
+  useAgentChat.setState({ open: true })
 }
 
 let ws = null

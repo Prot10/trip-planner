@@ -7,7 +7,7 @@
    - `detail`: humanized field changes for the per-turn edit review list */
 
 import { useTrip, useUI, useRoutes, activeTrip } from '../store'
-import { bestInsertion, searchPlaces, chainedDayCoords, estimateDayKm } from '../lib/geo'
+import { bestInsertion, searchPlaces, chainedDayCoords, estimateDayKm, estimateTravel } from '../lib/geo'
 import { SUGGESTIONS } from '../data/suggestions'
 import { dayDate, fmtDate, costByType, fuelCostUsd, uid } from '../lib/utils'
 import { getPlaceImages } from '../components/ItemImage'
@@ -17,6 +17,9 @@ export const WRITE_TOOLS = new Set([
   'add_day', 'update_day', 'remove_day', 'move_day', 'set_trip_meta',
   'checklist_add', 'checklist_toggle', 'checklist_remove', 'toggle_suggestion',
 ])
+
+/* callbacks registered by socket.js (avoids a module cycle) */
+export const hooks = { onProgress: null, onStartPlanning: null }
 
 const FIELD_LABELS = {
   title: 'titolo', type: 'tipo', time: 'orario', dur: 'durata', price: 'costo',
@@ -75,6 +78,7 @@ const toPatch = (a) => {
   const p = {}
   if (a.title !== undefined) p.title = a.title
   if (a.type !== undefined) p.type = a.type
+  if (a.transport_mode !== undefined) p.mode = a.transport_mode
   if (a.time !== undefined) p.time = a.time
   if (a.duration_min !== undefined) p.dur = a.duration_min
   if (a.price_usd !== undefined) p.price = a.price_usd
@@ -113,6 +117,8 @@ const EXECUTORS = {
     return {
       title: t.title,
       start_date: t.startDate || null,
+      transport: t.transport,
+      brief: t.brief || undefined,
       car: { l_per_100km: t.car.lPer100, gas_usd_per_gal: t.car.gasPerGal },
       budget_usd: { ...costs, fuel: Math.round(fuelCostUsd(km, t.car)), total: Math.round(costs.items + fuelCostUsd(km, t.car)) },
       total_km: Math.round(km),
@@ -148,6 +154,7 @@ const EXECUTORS = {
       noWiki: false,
       sug: null,
       price: a.price_usd ?? 0,
+      mode: (a.type ?? 'activity') === 'drive' ? (a.transport_mode ?? 'car') : null,
     }
     let dayId, index
     const wantsOptimal = a.optimal_placement ?? a.day_number == null
@@ -241,6 +248,7 @@ const EXECUTORS = {
     const patch = {}
     if (a.title !== undefined) patch.title = a.title
     if (a.night !== undefined) patch.night = a.night
+    if (a.color !== undefined) patch.color = a.color
     const prev = Object.fromEntries(Object.keys(patch).map((k) => [k, d[k]]))
     useTrip.getState().updateDay(d.id, patch)
     return {
@@ -274,9 +282,11 @@ const EXECUTORS = {
   set_trip_meta(a) {
     const t = trip()
     const s = useTrip.getState()
-    const prev = { title: t.title, startDate: t.startDate, car: { ...t.car } }
+    const prev = { title: t.title, startDate: t.startDate, car: { ...t.car }, subtitle: t.subtitle, transport: t.transport }
     const detail = []
     if (a.title !== undefined) { detail.push({ field: 'titolo', from: t.title, to: a.title }); s.setTitle(a.title) }
+    if (a.subtitle !== undefined) { detail.push({ field: 'sottotitolo', from: t.subtitle || '—', to: a.subtitle }); s.setSubtitle(a.subtitle) }
+    if (a.transport !== undefined) { detail.push({ field: 'trasporto', from: t.transport, to: a.transport }); s.setTransport(a.transport) }
     if (a.start_date !== undefined) { detail.push({ field: 'partenza', from: t.startDate || '—', to: a.start_date }); s.setStartDate(a.start_date) }
     if (a.car_l_per_100km !== undefined) { detail.push({ field: 'consumo', from: `${t.car.lPer100} L/100km`, to: `${a.car_l_per_100km} L/100km` }); s.setCar({ lPer100: a.car_l_per_100km }) }
     if (a.car_gas_usd_per_gal !== undefined) { detail.push({ field: 'benzina', from: `$${t.car.gasPerGal}/gal`, to: `$${a.car_gas_usd_per_gal}/gal` }); s.setCar({ gasPerGal: a.car_gas_usd_per_gal }) }
@@ -313,6 +323,33 @@ const EXECUTORS = {
       undo: { op: 'check_insert', index, item },
       detail: [{ field: 'checklist', from: item.text, to: '—' }],
     }
+  },
+
+  set_trip_brief(a) {
+    useTrip.getState().setBrief(a.brief)
+    return { ok: true }
+  },
+
+  start_planning(a) {
+    const s = useTrip.getState()
+    if (a.title) s.setTitle(a.title)
+    if (a.subtitle) s.setSubtitle(a.subtitle)
+    if (a.transport) s.setTransport(a.transport)
+    if (a.start_date) s.setStartDate(a.start_date)
+    if (a.car_l_per_100km) s.setCar({ lPer100: a.car_l_per_100km })
+    if (a.car_gas_usd_per_gal) s.setCar({ gasPerGal: a.car_gas_usd_per_gal })
+    s.setPhase('active')
+    hooks.onStartPlanning?.()
+    return { ok: true, note: "Planner aperto: l'utente ora vede itinerario e mappa. Prosegui con la pianificazione completa usando report_progress ad ogni fase." }
+  },
+
+  report_progress(a) {
+    hooks.onProgress?.(a)
+    return { ok: true }
+  },
+
+  async estimate_travel(a) {
+    return await estimateTravel({ lat: a.from_lat, lng: a.from_lng }, { lat: a.to_lat, lng: a.to_lng }, a.mode)
   },
 
   async search_places(a) {
@@ -421,6 +458,8 @@ export function applyUndoOp(u) {
       s.setTitle(u.prev.title)
       s.setStartDate(u.prev.startDate)
       s.setCar(u.prev.car)
+      if (u.prev.subtitle !== undefined) s.setSubtitle(u.prev.subtitle)
+      if (u.prev.transport !== undefined) s.setTransport(u.prev.transport)
       break
     case 'check_remove': s.removeCheck(u.id); break
     case 'check_insert': s.insertCheckAt(u.index, u.item); break
