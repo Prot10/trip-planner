@@ -1,13 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   Bot, X, Send, Square, RotateCcw, Wrench, TriangleAlert, Undo2, MapPin, Trash2,
-  Pencil, CalendarPlus, Search, Sparkles, ListChecks, Route, Settings2, ChevronDown,
+  Pencil, CalendarPlus, Search, Sparkles, ListChecks, Route, Settings2, Camera,
+  ChevronDown, Eye, EyeOff, Crosshair,
 } from 'lucide-react'
 import { useAgentChat } from '../agent/socket'
+import { useUI } from '../store'
+import Markdown from './Markdown'
 
 const TOOL_META = {
   get_trip: { Icon: Route, label: () => 'Lettura del viaggio' },
   get_route_info: { Icon: Route, label: () => 'Lettura percorso e km' },
+  get_place_images: { Icon: Camera, label: () => 'Ricerca foto del luogo' },
   add_activity: { Icon: MapPin, label: (a) => `Aggiunta: ${a.title ?? 'attività'}` },
   update_activity: { Icon: Pencil, label: (a) => `Modifica attività${a.title ? `: ${a.title}` : ''}` },
   remove_activity: { Icon: Trash2, label: () => 'Eliminazione attività' },
@@ -25,6 +29,22 @@ const TOOL_META = {
   toggle_suggestion: { Icon: Sparkles, label: () => 'Tappa consigliata attivata/rimossa' },
 }
 
+const MODELS = [
+  { id: 'default', label: 'Auto' },
+  { id: 'sonnet', label: 'Sonnet' },
+  { id: 'opus', label: 'Opus' },
+  { id: 'haiku', label: 'Haiku' },
+]
+
+const prettyModel = (m) => {
+  if (!m) return null
+  if (m.includes('fable')) return 'Fable'
+  if (m.includes('opus')) return 'Opus'
+  if (m.includes('sonnet')) return 'Sonnet'
+  if (m.includes('haiku')) return 'Haiku'
+  return m
+}
+
 const EXAMPLES = [
   'Aggiungi una cena romantica a Monterey la sera del giorno 2',
   'Il giorno 4 è troppo pieno? Suggerisci cosa tagliare',
@@ -33,13 +53,16 @@ const EXAMPLES = [
 ]
 
 export default function ChatPanel({ onClose }) {
-  const { connected, thinking, messages, undoReady, send, stop, reset, undo } = useAgentChat()
+  const {
+    connected, thinking, messages, streamText, undoReady, edits, showEdits, model, modelChoice,
+    send, stop, reset, undo, setShowEdits, setModelChoice,
+  } = useAgentChat()
   const [text, setText] = useState('')
   const scrollRef = useRef(null)
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
-  }, [messages, thinking])
+  }, [messages, thinking, streamText, showEdits])
 
   const submit = () => {
     if (!text.trim()) return
@@ -62,12 +85,18 @@ export default function ChatPanel({ onClose }) {
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="font-display text-[14px] font-bold text-ink-900">Assistente di viaggio</h3>
-          <button
-            className="flex items-center gap-1 text-[11px] font-semibold text-ink-400"
-            title="Motore: Claude (abbonamento). Codex/ChatGPT in arrivo."
-          >
-            Claude <ChevronDown size={10} /> <span className="text-ink-300">· Codex presto</span>
-          </button>
+          <div className="flex items-center gap-1 text-[11px] font-semibold text-ink-400">
+            <span className="text-ink-500">Claude</span>
+            <select
+              value={modelChoice}
+              onChange={(e) => setModelChoice(e.target.value)}
+              title="Modello (dal tuo abbonamento)"
+              className="cursor-pointer appearance-none rounded bg-transparent font-bold text-violet-600 outline-none hover:text-violet-700"
+            >
+              {MODELS.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
+            </select>
+            {model && <span className="text-ink-300">· in uso: {prettyModel(model)}</span>}
+          </div>
         </div>
         <button
           onClick={reset}
@@ -90,12 +119,12 @@ export default function ChatPanel({ onClose }) {
 
       {/* messages */}
       <div ref={scrollRef} className="nice-scroll min-h-0 flex-1 overflow-y-auto px-4 py-4">
-        {messages.length === 0 && (
+        {messages.length === 0 && !streamText && (
           <div className="mt-2">
             <p className="text-[13px] leading-relaxed text-ink-500">
               Chiedimi qualsiasi cosa sul viaggio: posso <b>aggiungere, spostare e modificare tappe</b>,
-              cercare luoghi, attivare i consigli e ottimizzare il percorso. Ogni modifica appare
-              subito nell'itinerario e puoi annullarla.
+              cercare luoghi e foto, attivare i consigli e ottimizzare il percorso. Ogni modifica appare
+              subito nell'itinerario e puoi rivederla o annullarla.
             </p>
             <div className="mt-4 flex flex-col gap-2">
               {EXAMPLES.map((ex) => (
@@ -114,7 +143,15 @@ export default function ChatPanel({ onClose }) {
 
         {messages.map((m) => <Message key={m.id} m={m} />)}
 
-        {thinking && (
+        {/* live token stream */}
+        {streamText && (
+          <div className="mb-3 max-w-[95%] text-[13px] leading-relaxed text-ink-800">
+            <Markdown text={streamText} />
+            <span className="ml-0.5 inline-block h-3.5 w-[2px] animate-pulse rounded bg-brand-500 align-middle" />
+          </div>
+        )}
+
+        {thinking && !streamText && (
           <div className="mt-2 flex items-center gap-2 text-xs font-semibold text-ink-400">
             <span className="flex gap-1">
               <Dot delay="0ms" /> <Dot delay="150ms" /> <Dot delay="300ms" />
@@ -124,18 +161,31 @@ export default function ChatPanel({ onClose }) {
         )}
       </div>
 
-      {/* undo bar */}
-      {undoReady && (
-        <div className="anim-fade-up flex items-center gap-2.5 border-t border-amber-200 bg-amber-50 px-4 py-2.5">
-          <p className="min-w-0 flex-1 text-[11.5px] font-semibold leading-snug text-amber-800">
-            L'assistente ha modificato l'itinerario in questo turno.
-          </p>
-          <button
-            onClick={undo}
-            className="flex shrink-0 items-center gap-1.5 rounded-lg bg-white px-2.5 py-1.5 text-[11.5px] font-bold text-amber-700 ring-1 ring-amber-300 transition hover:bg-amber-100"
-          >
-            <Undo2 size={12} /> Annulla modifiche
-          </button>
+      {/* per-turn edits: review + undo */}
+      {undoReady && edits.length > 0 && (
+        <div className="anim-fade-up border-t border-amber-200 bg-amber-50">
+          {showEdits && (
+            <div className="nice-scroll max-h-44 overflow-y-auto border-b border-amber-200/70 px-3 py-2">
+              {edits.map((e) => <EditRow key={e.id} edit={e} />)}
+            </div>
+          )}
+          <div className="flex items-center gap-2 px-3.5 py-2.5">
+            <p className="min-w-0 flex-1 text-[11.5px] font-semibold leading-snug text-amber-800">
+              {edits.length === 1 ? '1 modifica' : `${edits.length} modifiche`} in questo turno
+            </p>
+            <button
+              onClick={() => setShowEdits(!showEdits)}
+              className="flex shrink-0 items-center gap-1.5 rounded-lg bg-white px-2.5 py-1.5 text-[11.5px] font-bold text-amber-700 ring-1 ring-amber-300 transition hover:bg-amber-100"
+            >
+              {showEdits ? <EyeOff size={12} /> : <Eye size={12} />} {showEdits ? 'Nascondi' : 'Mostra'}
+            </button>
+            <button
+              onClick={undo}
+              className="flex shrink-0 items-center gap-1.5 rounded-lg bg-white px-2.5 py-1.5 text-[11.5px] font-bold text-rose-600 ring-1 ring-rose-300 transition hover:bg-rose-50"
+            >
+              <Undo2 size={12} /> Annulla
+            </button>
+          </div>
         </div>
       )}
 
@@ -184,6 +234,38 @@ export default function ChatPanel({ onClose }) {
   )
 }
 
+/* one row in the per-turn edit review list */
+function EditRow({ edit }) {
+  const meta = TOOL_META[edit.name] ?? { Icon: Wrench, label: () => edit.name }
+  const setFocusItem = useUI((s) => s.setFocusItem)
+  const setTab = useUI((s) => s.setTab)
+  const itemId = edit.result?.item_id
+  const dayN = edit.result?.day_number ?? edit.args?.day_number
+
+  return (
+    <div className="flex items-center gap-2 py-1">
+      <meta.Icon size={12} className="shrink-0 text-amber-600" />
+      <span className="min-w-0 flex-1 truncate text-[11.5px] font-semibold text-amber-900">
+        {meta.label(edit.args)}
+        {dayN ? <span className="font-medium text-amber-700/70"> · Giorno {dayN}</span> : null}
+      </span>
+      {itemId && (
+        <button
+          onClick={() => {
+            if (window.innerWidth < 1024) setTab('itinerary')
+            setFocusItem(itemId, '#f59e0b')
+          }}
+          title="Mostra nell'itinerario"
+          aria-label="Mostra nell'itinerario"
+          className="grid size-6 shrink-0 place-items-center rounded-md text-amber-600 transition hover:bg-amber-100"
+        >
+          <Crosshair size={12} />
+        </button>
+      )}
+    </div>
+  )
+}
+
 function Message({ m }) {
   if (m.role === 'user') {
     return (
@@ -196,8 +278,8 @@ function Message({ m }) {
   }
   if (m.role === 'assistant') {
     return (
-      <div className="mb-3 max-w-[92%] whitespace-pre-wrap text-[13px] leading-relaxed text-ink-800">
-        {m.text}
+      <div className="mb-3 max-w-[95%] text-[13px] leading-relaxed text-ink-800">
+        <Markdown text={m.text} />
       </div>
     )
   }
