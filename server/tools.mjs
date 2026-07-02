@@ -113,6 +113,12 @@ export function createTripTools(bridge) {
       { query: z.string().describe('es. "Bixby Bridge, California"') },
       call('search_places'),
     ),
+    tool(
+      'get_place_images',
+      "Foto reali di un luogo (articoli Wikipedia geolocalizzati): restituisce fino a 5 URL con titolo. Usale per arricchire le risposte quando descrivi o proponi un posto, incorporandole in markdown ![titolo](url).",
+      { lat: z.number(), lng: z.number() },
+      call('get_place_images'),
+    ),
     tool('list_suggestions', 'Elenca le tappe suggerite del catalogo (con stato attivo/inattivo e giorno ottimale stimato).', {}, call('list_suggestions')),
     tool('toggle_suggestion', 'Attiva o disattiva una tappa suggerita del catalogo (inserimento nel punto ottimale del percorso).', { suggestion_id: z.string() }, call('toggle_suggestion')),
     tool('get_route_info', 'Km su strada per giorno (OSRM) e totali, più tempi di guida dichiarati.', {}, call('get_route_info')),
@@ -125,5 +131,5 @@ export const TRIP_TOOL_NAMES = [
   'get_trip', 'add_activity', 'update_activity', 'remove_activity', 'move_activity',
   'add_day', 'update_day', 'remove_day', 'move_day', 'set_trip_meta',
   'checklist_add', 'checklist_toggle', 'checklist_remove',
-  'search_places', 'list_suggestions', 'toggle_suggestion', 'get_route_info',
+  'search_places', 'get_place_images', 'list_suggestions', 'toggle_suggestion', 'get_route_info',
 ].map((n) => `mcp__trip__${n}`)

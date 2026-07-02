@@ -17,7 +17,7 @@ export function createAgent(bridge) {
   let sessionId = null      // resume token for multi-turn context
   let active = null         // AbortController of the in-flight turn
 
-  async function runTurn(text) {
+  async function runTurn(text, model) {
     if (active) { bridge.broadcast({ type: 'agent_error', error: 'Un turno è già in corso.' }); return }
     const abort = new AbortController()
     active = abort
@@ -34,6 +34,8 @@ export function createAgent(bridge) {
           permissionMode: 'bypassPermissions',
           maxTurns: MAX_TURNS,
           abortController: abort,
+          includePartialMessages: true,
+          ...(model && model !== 'default' ? { model } : {}),
           ...(sessionId ? { resume: sessionId } : {}),
         },
       })
@@ -41,6 +43,15 @@ export function createAgent(bridge) {
       for await (const msg of q) {
         if (msg.type === 'system' && msg.subtype === 'init') {
           sessionId = msg.session_id ?? sessionId
+          if (msg.model) bridge.broadcast({ type: 'model', model: msg.model })
+          continue
+        }
+        /* live text streaming (token deltas) */
+        if (msg.type === 'stream_event') {
+          const ev = msg.event
+          if (ev?.type === 'content_block_delta' && ev.delta?.type === 'text_delta' && ev.delta.text) {
+            bridge.broadcast({ type: 'assistant_delta', text: ev.delta.text })
+          }
           continue
         }
         if (msg.type === 'assistant') {
@@ -78,7 +89,7 @@ export function createAgent(bridge) {
 
   bridge.onChat((msg) => {
     if (msg.type === 'chat' && typeof msg.text === 'string' && msg.text.trim()) {
-      runTurn(msg.text.trim())
+      runTurn(msg.text.trim(), msg.model)
     } else if (msg.type === 'stop') {
       active?.abort()
     } else if (msg.type === 'reset') {
