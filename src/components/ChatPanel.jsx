@@ -8,6 +8,7 @@ import {
 import { useAgentChat, useChats } from '../agent/socket'
 import { useTrip, useUI, activeTrip } from '../store'
 import Markdown from './Markdown'
+import PlanningStepper from './PlanningStepper'
 
 const TOOL_META = {
   get_trip: { Icon: Route, label: () => 'Lettura del viaggio' },
@@ -172,6 +173,7 @@ export default function ChatPanel({ onClose }) {
           </div>
         )}
 
+        <PlanningStepper />
         {messages.map((m) => <Message key={m.id} m={m} />)}
 
         {streamText && (

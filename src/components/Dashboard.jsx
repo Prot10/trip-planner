@@ -22,6 +22,12 @@ export default function Dashboard() {
   const [creating, setCreating] = useState(false)
   const [newTitle, setNewTitle] = useState('')
 
+  /* the primary path: a new trip is born as a conversation with the agent */
+  const onCreateWithAgent = () => {
+    createTrip('Nuovo viaggio', 'interview')
+  }
+
+  /* discreet manual fallback */
   const onCreate = () => {
     createTrip(newTitle.trim())
     setCreating(false)
@@ -67,7 +73,7 @@ export default function Dashboard() {
               <Upload size={15} /> <span className="hidden sm:inline">Importa</span>
             </button>
             <button
-              onClick={() => setCreating(true)}
+              onClick={onCreateWithAgent}
               className="flex items-center gap-1.5 rounded-xl bg-brand-500 px-3.5 py-2 text-sm font-semibold text-white shadow-md shadow-brand-500/30 transition hover:bg-brand-600 active:scale-[.97]"
             >
               <Plus size={16} strokeWidth={2.6} /> Nuovo viaggio
@@ -114,13 +120,24 @@ export default function Dashboard() {
           ))}
 
           <button
-            onClick={() => setCreating(true)}
+            onClick={onCreateWithAgent}
             className="flex min-h-44 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-ink-300 font-display text-sm font-bold text-ink-400 transition hover:border-brand-400 hover:bg-brand-50/40 hover:text-brand-600"
           >
             <Plus size={24} strokeWidth={2.4} />
             Nuovo viaggio
+            <span className="font-sans text-[11px] font-medium text-ink-400">l'assistente lo costruisce con te</span>
           </button>
         </div>
+
+        <p className="mt-6 text-center text-xs text-ink-400">
+          Preferisci partire da zero?{' '}
+          <button
+            onClick={() => setCreating(true)}
+            className="font-semibold text-ink-500 underline decoration-ink-300 underline-offset-2 transition hover:text-ink-700"
+          >
+            crea un viaggio manualmente
+          </button>
+        </p>
       </main>
 
       <ConfirmDialog />
