@@ -95,7 +95,7 @@ export const useTrip = create(
       addItem: (dayId, item) =>
         set((s) => upd(s, (t) => ({
           ...t,
-          days: t.days.map((d) => (d.id === dayId ? { ...d, items: [...d.items, { ...item, id: uid() }] } : d)),
+          days: t.days.map((d) => (d.id === dayId ? { ...d, items: [...d.items, { ...item, id: item.id ?? uid() }] } : d)),
         }))),
       insertItemAt: (dayId, index, item) =>
         set((s) => upd(s, (t) => ({
@@ -103,7 +103,7 @@ export const useTrip = create(
           days: t.days.map((d) => {
             if (d.id !== dayId) return d
             const items = [...d.items]
-            items.splice(Math.max(0, Math.min(index, items.length)), 0, { ...item, id: uid() })
+            items.splice(Math.max(0, Math.min(index, items.length)), 0, { ...item, id: item.id ?? uid() })
             return { ...d, items }
           }),
         }))),
