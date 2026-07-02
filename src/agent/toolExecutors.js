@@ -1,6 +1,10 @@
 /* Executes agent tool calls against the live zustand store — this is what
    makes every agent edit appear instantly in the UI. Runs in the browser,
-   invoked by the WebSocket bridge (see socket.js). */
+   invoked by the WebSocket bridge (see socket.js).
+
+   Every write returns two extra fields, stripped before reaching the model:
+   - `undo`: the inverse operation (applyUndoOp) for single-edit revert
+   - `detail`: humanized field changes for the per-turn edit review list */
 
 import { useTrip, useUI, useRoutes, activeTrip } from '../store'
 import { bestInsertion, searchPlaces, chainedDayCoords, estimateDayKm } from '../lib/geo'
@@ -13,6 +17,13 @@ export const WRITE_TOOLS = new Set([
   'add_day', 'update_day', 'remove_day', 'move_day', 'set_trip_meta',
   'checklist_add', 'checklist_toggle', 'checklist_remove', 'toggle_suggestion',
 ])
+
+const FIELD_LABELS = {
+  title: 'titolo', type: 'tipo', time: 'orario', dur: 'durata', price: 'costo',
+  notes: 'note', links: 'link', must: 'imperdibile', done: 'fatto',
+  lat: 'posizione', lng: 'posizione', night: 'notte', startDate: 'partenza',
+  lPer100: 'consumo', gasPerGal: 'benzina',
+}
 
 const trip = () => {
   const t = activeTrip(useTrip.getState())
@@ -28,13 +39,36 @@ const dayByNumber = (n) => {
 
 const findItem = (itemId) => {
   for (const [di, d] of trip().days.entries()) {
-    const it = d.items.find((i) => i.id === itemId)
-    if (it) return { day: d, dayNumber: di + 1, item: it }
+    const idx = d.items.findIndex((i) => i.id === itemId)
+    if (idx >= 0) return { day: d, dayNumber: di + 1, index: idx, item: d.items[idx] }
   }
   throw new Error(`Attività ${itemId} non trovata: rileggi lo stato con get_trip.`)
 }
 
 const flash = (itemId, color) => useUI.getState().setFocusItem(itemId, color)
+
+const fmtVal = (field, v) => {
+  if (v == null || v === '') return '—'
+  if (field === 'dur') return `${v} min`
+  if (field === 'price') return `$${v}`
+  if (field === 'must' || field === 'done') return v ? 'sì' : 'no'
+  if (field === 'links') return `${v.length} link`
+  if (typeof v === 'number') return String(Math.round(v * 1000) / 1000)
+  return String(v).length > 40 ? String(v).slice(0, 37) + '…' : String(v)
+}
+
+const diffDetail = (prev, patch) => {
+  const rows = []
+  const seen = new Set()
+  for (const k of Object.keys(patch)) {
+    const label = FIELD_LABELS[k] ?? k
+    if (seen.has(label)) continue
+    seen.add(label)
+    if (JSON.stringify(prev[k]) === JSON.stringify(patch[k])) continue
+    rows.push({ field: label, from: fmtVal(k, prev[k]), to: fmtVal(k, patch[k]) })
+  }
+  return rows
+}
 
 /* map agent-facing fields -> store item fields */
 const toPatch = (a) => {
@@ -68,27 +102,31 @@ const itemView = (it) => ({
 })
 
 const EXECUTORS = {
-  get_trip() {
+  get_trip(a) {
     const t = trip()
     const costs = costByType(t)
     const km = chainedDayCoords(t).reduce((s, l) => {
       const road = useRoutes.getState().byDay[l.dayId]
       return s + (road ?? estimateDayKm(l.coords))
     }, 0)
+    const dayFilter = a?.day_number
     return {
       title: t.title,
       start_date: t.startDate || null,
       car: { l_per_100km: t.car.lPer100, gas_usd_per_gal: t.car.gasPerGal },
       budget_usd: { ...costs, fuel: Math.round(fuelCostUsd(km, t.car)), total: Math.round(costs.items + fuelCostUsd(km, t.car)) },
       total_km: Math.round(km),
-      days: t.days.map((d, i) => ({
-        day_number: i + 1,
-        title: d.title,
-        night: d.night || undefined,
-        date: t.startDate ? fmtDate(dayDate(t.startDate, i), { weekday: 'short', day: 'numeric', month: 'short' }) : undefined,
-        items: d.items.map(itemView),
-      })),
-      checklist: t.checklist.map((c) => ({ check_id: c.id, text: c.text, done: c.done })),
+      days: t.days
+        .map((d, i) => ({
+          day_number: i + 1,
+          title: d.title,
+          night: d.night || undefined,
+          date: t.startDate ? fmtDate(dayDate(t.startDate, i), { weekday: 'short', day: 'numeric', month: 'short' }) : undefined,
+          items: dayFilter && dayFilter !== i + 1 ? undefined : d.items.map(itemView),
+          item_count: d.items.length,
+        }))
+        .filter((d) => !dayFilter || d.day_number === dayFilter || true),
+      checklist: dayFilter ? undefined : t.checklist.map((c) => ({ check_id: c.id, text: c.text, done: c.done })),
     }
   },
 
@@ -127,24 +165,44 @@ const EXECUTORS = {
     useTrip.getState().insertItemAt(dayId, index, item)
     const dayNumber = trip().days.findIndex((d) => d.id === dayId) + 1
     flash(item.id, trip().days[dayNumber - 1].color)
-    return { ok: true, item_id: item.id, day_number: dayNumber, index }
+    return {
+      ok: true, item_id: item.id, day_number: dayNumber, index,
+      undo: { op: 'remove_item', dayId, itemId: item.id },
+      detail: [
+        { field: 'tappa', from: '—', to: item.title },
+        ...(item.time ? [{ field: 'orario', from: '—', to: item.time }] : []),
+        ...(item.price ? [{ field: 'costo', from: '—', to: `$${item.price}` }] : []),
+      ],
+    }
   },
 
   update_activity(a) {
-    const { day, item } = findItem(a.item_id)
-    useTrip.getState().updateItem(day.id, item.id, toPatch(a))
+    const { day, dayNumber, item } = findItem(a.item_id)
+    const patch = toPatch(a)
+    const prevPatch = Object.fromEntries(Object.keys(patch).map((k) => [k, item[k]]))
+    useTrip.getState().updateItem(day.id, item.id, patch)
     flash(item.id, day.color)
-    return { ok: true, item: itemView({ ...item, ...toPatch(a) }) }
+    return {
+      ok: true, item_id: item.id, day_number: dayNumber, item: itemView({ ...item, ...patch }),
+      undo: { op: 'update_item', dayId: day.id, itemId: item.id, patch: prevPatch },
+      detail: diffDetail(item, patch),
+      title: item.title,
+    }
   },
 
   remove_activity(a) {
-    const { day, item } = findItem(a.item_id)
+    const { day, dayNumber, index, item } = findItem(a.item_id)
     useTrip.getState().removeItem(day.id, item.id)
-    return { ok: true, removed: item.title }
+    return {
+      ok: true, removed: item.title, day_number: dayNumber,
+      undo: { op: 'insert_item', dayId: day.id, index, item: structuredClone(item) },
+      detail: [{ field: 'rimossa', from: item.title, to: '—' }],
+      lat: item.lat, lng: item.lng,
+    }
   },
 
   move_activity(a) {
-    const { item } = findItem(a.item_id)
+    const { day: fromDay, dayNumber: fromN, index: fromIndex, item } = findItem(a.item_id)
     let dayId, index
     if ((a.optimal_placement ?? a.day_number == null) && item.lat != null) {
       const spot = bestInsertion(trip(), { lat: item.lat, lng: item.lng })
@@ -160,12 +218,22 @@ const EXECUTORS = {
     useTrip.getState().relocateItem(item.id, dayId, index)
     const dn = trip().days.findIndex((d) => d.id === dayId) + 1
     flash(item.id, trip().days[dn - 1].color)
-    return { ok: true, day_number: dn, index }
+    return {
+      ok: true, item_id: item.id, day_number: dn, index, title: item.title,
+      undo: { op: 'relocate_item', itemId: item.id, dayId: fromDay.id, index: fromIndex },
+      detail: [{ field: 'giorno', from: `Giorno ${fromN}`, to: `Giorno ${dn}` }],
+    }
   },
 
   add_day(a) {
     useTrip.getState().addDay({ title: a.title, night: a.night })
-    return { ok: true, day_number: trip().days.length }
+    const t = trip()
+    const day = t.days[t.days.length - 1]
+    return {
+      ok: true, day_number: t.days.length,
+      undo: { op: 'remove_day', dayId: day.id },
+      detail: [{ field: 'giorno', from: '—', to: a.title }],
+    }
   },
 
   update_day(a) {
@@ -173,43 +241,78 @@ const EXECUTORS = {
     const patch = {}
     if (a.title !== undefined) patch.title = a.title
     if (a.night !== undefined) patch.night = a.night
+    const prev = Object.fromEntries(Object.keys(patch).map((k) => [k, d[k]]))
     useTrip.getState().updateDay(d.id, patch)
-    return { ok: true }
+    return {
+      ok: true, day_number: a.day_number,
+      undo: { op: 'update_day', dayId: d.id, patch: prev },
+      detail: diffDetail(d, patch),
+    }
   },
 
   remove_day(a) {
     const d = dayByNumber(a.day_number)
+    const index = a.day_number - 1
     useTrip.getState().removeDay(d.id)
-    return { ok: true, removed: d.title }
+    return {
+      ok: true, removed: d.title,
+      undo: { op: 'insert_day', index, day: structuredClone(d) },
+      detail: [{ field: 'giorno rimosso', from: d.title, to: '—' }],
+    }
   },
 
   move_day(a) {
     const d = dayByNumber(a.day_number)
     useTrip.getState().moveDay(d.id, a.direction === 'up' ? -1 : 1)
-    return { ok: true }
+    return {
+      ok: true,
+      undo: { op: 'move_day', dayId: d.id, dir: a.direction === 'up' ? 1 : -1 },
+      detail: [{ field: 'ordine', from: `posizione ${a.day_number}`, to: a.direction === 'up' ? `posizione ${a.day_number - 1}` : `posizione ${a.day_number + 1}` }],
+    }
   },
 
   set_trip_meta(a) {
+    const t = trip()
     const s = useTrip.getState()
-    if (a.title !== undefined) s.setTitle(a.title)
-    if (a.start_date !== undefined) s.setStartDate(a.start_date)
-    if (a.car_l_per_100km !== undefined) s.setCar({ lPer100: a.car_l_per_100km })
-    if (a.car_gas_usd_per_gal !== undefined) s.setCar({ gasPerGal: a.car_gas_usd_per_gal })
-    return { ok: true }
+    const prev = { title: t.title, startDate: t.startDate, car: { ...t.car } }
+    const detail = []
+    if (a.title !== undefined) { detail.push({ field: 'titolo', from: t.title, to: a.title }); s.setTitle(a.title) }
+    if (a.start_date !== undefined) { detail.push({ field: 'partenza', from: t.startDate || '—', to: a.start_date }); s.setStartDate(a.start_date) }
+    if (a.car_l_per_100km !== undefined) { detail.push({ field: 'consumo', from: `${t.car.lPer100} L/100km`, to: `${a.car_l_per_100km} L/100km` }); s.setCar({ lPer100: a.car_l_per_100km }) }
+    if (a.car_gas_usd_per_gal !== undefined) { detail.push({ field: 'benzina', from: `$${t.car.gasPerGal}/gal`, to: `$${a.car_gas_usd_per_gal}/gal` }); s.setCar({ gasPerGal: a.car_gas_usd_per_gal }) }
+    return { ok: true, undo: { op: 'set_meta', prev }, detail }
   },
 
   checklist_add(a) {
-    useTrip.getState().addCheck(a.text)
-    return { ok: true }
+    const id = uid()
+    useTrip.getState().addCheck(a.text, id)
+    return {
+      ok: true, check_id: id,
+      undo: { op: 'check_remove', id },
+      detail: [{ field: 'checklist', from: '—', to: a.text }],
+    }
   },
   checklist_toggle(a) {
-    if (!trip().checklist.some((c) => c.id === a.check_id)) throw new Error('Voce checklist non trovata.')
+    const c = trip().checklist.find((c) => c.id === a.check_id)
+    if (!c) throw new Error('Voce checklist non trovata.')
     useTrip.getState().toggleCheck(a.check_id)
-    return { ok: true }
+    return {
+      ok: true,
+      undo: { op: 'check_toggle', id: a.check_id },
+      detail: [{ field: c.text.slice(0, 40), from: c.done ? 'fatto' : 'da fare', to: c.done ? 'da fare' : 'fatto' }],
+    }
   },
   checklist_remove(a) {
+    const t = trip()
+    const index = t.checklist.findIndex((c) => c.id === a.check_id)
+    if (index < 0) throw new Error('Voce checklist non trovata.')
+    const item = structuredClone(t.checklist[index])
     useTrip.getState().removeCheck(a.check_id)
-    return { ok: true }
+    return {
+      ok: true,
+      undo: { op: 'check_insert', index, item },
+      detail: [{ field: 'checklist', from: item.text, to: '—' }],
+    }
   },
 
   async search_places(a) {
@@ -251,10 +354,21 @@ const EXECUTORS = {
     const sug = SUGGESTIONS.find((s) => s.id === a.suggestion_id)
     if (!sug) throw new Error(`Suggerimento "${a.suggestion_id}" inesistente: usa list_suggestions.`)
     const t = trip()
-    const existing = t.days.flatMap((d) => d.items).find((i) => i.sug === sug.id)
-    if (existing) {
+    const found = (() => {
+      for (const d of t.days) {
+        const idx = d.items.findIndex((i) => i.sug === sug.id)
+        if (idx >= 0) return { day: d, idx, item: d.items[idx] }
+      }
+      return null
+    })()
+    if (found) {
       useTrip.getState().removeSuggestionItem(sug.id)
-      return { ok: true, action: 'removed', title: sug.title }
+      return {
+        ok: true, action: 'removed', title: sug.title,
+        undo: { op: 'insert_item', dayId: found.day.id, index: found.idx, item: structuredClone(found.item) },
+        detail: [{ field: 'consiglio', from: sug.title, to: '—' }],
+        lat: sug.lat, lng: sug.lng,
+      }
     }
     const spot = bestInsertion(t, sug)
     const item = {
@@ -265,7 +379,11 @@ const EXECUTORS = {
     useTrip.getState().insertItemAt(spot.dayId, spot.index, item)
     const dn = trip().days.findIndex((d) => d.id === spot.dayId) + 1
     flash(item.id, trip().days[dn - 1].color)
-    return { ok: true, action: 'added', title: sug.title, day_number: dn, added_km: spot.addedKm }
+    return {
+      ok: true, action: 'added', title: sug.title, day_number: dn, added_km: spot.addedKm, item_id: item.id,
+      undo: { op: 'remove_item', dayId: spot.dayId, itemId: item.id },
+      detail: [{ field: 'consiglio', from: '—', to: sug.title }],
+    }
   },
 
   get_route_info() {
@@ -285,4 +403,28 @@ export async function executeTool(name, args) {
   const fn = EXECUTORS[name]
   if (!fn) throw new Error(`Tool sconosciuto: ${name}`)
   return await fn(args ?? {})
+}
+
+/* revert one edit using the inverse op captured at execution time */
+export function applyUndoOp(u) {
+  const s = useTrip.getState()
+  switch (u.op) {
+    case 'remove_item': s.removeItem(u.dayId, u.itemId); break
+    case 'insert_item': s.insertItemAt(u.dayId, u.index, u.item); break
+    case 'update_item': s.updateItem(u.dayId, u.itemId, u.patch); break
+    case 'relocate_item': s.relocateItem(u.itemId, u.dayId, u.index); break
+    case 'remove_day': s.removeDay(u.dayId); break
+    case 'insert_day': s.insertDayAt(u.index, u.day); break
+    case 'update_day': s.updateDay(u.dayId, u.patch); break
+    case 'move_day': s.moveDay(u.dayId, u.dir); break
+    case 'set_meta':
+      s.setTitle(u.prev.title)
+      s.setStartDate(u.prev.startDate)
+      s.setCar(u.prev.car)
+      break
+    case 'check_remove': s.removeCheck(u.id); break
+    case 'check_insert': s.insertCheckAt(u.index, u.item); break
+    case 'check_toggle': s.toggleCheck(u.id); break
+    default: throw new Error('Undo non supportato: ' + u.op)
+  }
 }

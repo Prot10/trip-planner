@@ -81,6 +81,12 @@ export const useTrip = create(
         }))),
       removeDay: (dayId) =>
         set((s) => upd(s, (t) => ({ ...t, days: t.days.filter((d) => d.id !== dayId) }))),
+      insertDayAt: (index, day) =>
+        set((s) => upd(s, (t) => {
+          const days = [...t.days]
+          days.splice(Math.max(0, Math.min(index, days.length)), 0, day)
+          return { ...t, days }
+        })),
       moveDay: (dayId, dir) =>
         set((s) => upd(s, (t) => {
           const days = [...t.days]
@@ -146,10 +152,16 @@ export const useTrip = create(
         })),
 
       /* ---------- checklist ---------- */
-      addCheck: (text) =>
+      addCheck: (text, id) =>
         set((s) => upd(s, (t) => ({
-          ...t, checklist: [...t.checklist, { id: uid(), text, done: false, link: '' }],
+          ...t, checklist: [...t.checklist, { id: id ?? uid(), text, done: false, link: '' }],
         }))),
+      insertCheckAt: (index, item) =>
+        set((s) => upd(s, (t) => {
+          const checklist = [...t.checklist]
+          checklist.splice(Math.max(0, Math.min(index, checklist.length)), 0, item)
+          return { ...t, checklist }
+        })),
       toggleCheck: (id) =>
         set((s) => upd(s, (t) => ({
           ...t, checklist: t.checklist.map((c) => (c.id === id ? { ...c, done: !c.done } : c)),
