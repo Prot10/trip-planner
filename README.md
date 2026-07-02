@@ -15,10 +15,11 @@ Ships pre-loaded with a real 7-day / 6-night California loop (Pasadena → Big S
 ## Features
 
 ### AI travel assistant
-- **In-app chat** (side panel on desktop, its own tab on mobile) powered by the **Claude Agent SDK** using your existing Claude Pro/Max subscription — no API key. A custom system prompt turns it into a travel-planning expert, restricted to 17 purpose-built trip tools (no file or shell access).
+- **In-app chat** (floating panel over the map on desktop, its own tab on mobile) with **two subscription-powered engines**: Claude (Agent SDK, Pro/Max login — model selectable: Sonnet default, Opus, Haiku) and **Codex** (OpenAI Codex CLI, ChatGPT sign-in). No API keys. A custom system prompt turns them into travel-planning experts, restricted to 18 purpose-built trip tools plus web search for fresh info (no file or shell access).
 - The agent can read the whole trip, **add / edit / move / remove activities and days**, set dates and budgets, search real places (never inventing coordinates), toggle curated suggestions, and place new stops at the **route-optimal position**.
-- Every tool call is executed **in the browser against the live store**, so each edit appears instantly in the timeline (with a highlight flash) — and a per-turn **Undo** reverts everything the agent just did.
-- Architecture: a small local Node server (`server/`) bridges the Agent SDK to the open tab over WebSocket; the browser stays the source of truth. The tool layer is reusable for a future Codex/ChatGPT engine and external MCP access.
+- Every tool call is executed **in the browser against the live store**, so each edit appears instantly in the timeline (with a highlight flash). The per-turn review panel lists **every single change with a field-level diff and a mini route-map preview**, each individually revertible — or undo the whole turn at once.
+- **Conversations are saved per trip** and can be reopened later with their full agent context (session resume), streamed token-by-token with markdown and photo carousels in replies.
+- Architecture: a small local Node server (`server/`) bridges both engines to the open tab over WebSocket; the browser stays the source of truth. The same 18 tools are also exposed as a standard **MCP server over HTTP** (`/mcp`) — Codex consumes it today, and any MCP client (Claude Desktop, ChatGPT connectors) can use it tomorrow.
 
 ### Itinerary
 - **Multi-trip dashboard** — create, duplicate, delete and import trips; each card shows a cover photo, dates, stop count and estimated distance and budget.
@@ -71,7 +72,7 @@ npm run build    # production build in dist/
 
 On macOS you can also double-click `Avvia Trip Planner.command`, which serves the production build, starts the agent server and opens the browser.
 
-**AI assistant prerequisite**: install [Claude Code](https://claude.com/claude-code) and log in once with your Claude subscription (`claude` → `/login`). The agent server reuses that local login — a personal, self-hosted setup; usage counts against your plan's limits. Without it, the whole app works normally and the chat shows a connection notice.
+**AI assistant prerequisites**: for the Claude engine, install [Claude Code](https://claude.com/claude-code) and log in once with your subscription (`claude` → `/login`); for the Codex engine, log in with `codex login` (the project pins its own Codex CLI via npm). The agent server reuses those local logins — a personal, self-hosted setup; usage counts against your plans' limits. Without them, the whole app works normally and the chat reports what's missing.
 
 ## Project structure
 

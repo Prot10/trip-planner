@@ -31,6 +31,7 @@ export default function App() {
   useEffect(() => {
     useRoutes.setState({ byDay: {} })
     useUI.setState({ tab: 'itinerary', mapFilter: null, detail: null, editor: null, dayEditor: null, picking: false })
+    useAgentChat.getState().newChat()
   }, [activeId])
 
   /* agent bridge: keep the WebSocket to the local agent server alive */
@@ -68,11 +69,15 @@ export default function App() {
     <div className="flex h-full flex-col">
       <Header />
 
-      <main className="relative flex min-h-0 flex-1">
-        {/* left column — itinerary / checklist (resizable on desktop) */}
+      <main className="relative flex min-h-0 flex-1" style={{ '--left-w': `${leftW + 12}px` }}>
+        {/* map — full-bleed background on desktop, its own tab on mobile */}
+        <section className={`relative min-w-0 flex-1 ${tab === 'map' ? 'block' : 'hidden'} lg:block lg:absolute lg:inset-0 lg:flex-none`}>
+          <MapPanel />
+        </section>
+
+        {/* left panel — floating card on desktop (resizable), in-flow on mobile */}
         <section
-          style={{ '--left-w': `${leftW}px` }}
-          className={`relative min-w-0 flex-1 lg:w-[var(--left-w)] lg:max-w-none lg:flex-none lg:border-r lg:border-ink-200 ${
+          className={`relative z-[540] min-w-0 flex-1 lg:absolute lg:bottom-3 lg:left-3 lg:top-3 lg:w-[calc(var(--left-w)-12px)] lg:flex-none lg:overflow-hidden lg:rounded-3xl lg:border lg:border-ink-200 lg:shadow-2xl ${
             tab === 'map' || tab === 'chat' ? 'hidden lg:flex' : 'flex'
           } flex-col bg-ink-50`}
         >
@@ -93,13 +98,8 @@ export default function App() {
           <div
             onMouseDown={startLeftDrag}
             title="Trascina per ridimensionare"
-            className="absolute -right-[3px] top-0 z-10 hidden h-full w-1.5 cursor-col-resize rounded transition-colors hover:bg-brand-400/60 active:bg-brand-500 lg:block"
+            className="absolute right-0 top-0 z-10 hidden h-full w-1.5 cursor-col-resize transition-colors hover:bg-brand-400/60 active:bg-brand-500 lg:block"
           />
-        </section>
-
-        {/* right column — map (desktop always, mobile when tab==='map') */}
-        <section className={`relative min-w-0 flex-1 ${tab === 'map' ? 'block' : 'hidden lg:block'} ${tab === 'chat' ? '!hidden lg:!block' : ''}`}>
-          <MapPanel />
         </section>
 
         {/* AI chat — mobile full tab */}

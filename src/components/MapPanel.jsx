@@ -225,7 +225,7 @@ export default function MapPanel() {
       />
 
       {/* legend / day filter */}
-      <div className="nice-scroll absolute left-3 right-3 top-[60px] z-[500] flex gap-1.5 overflow-x-auto pb-1 transition-[right] duration-200 lg:right-[calc(21.5rem+var(--chat-w,0px))] lg:top-3 lg:flex-wrap">
+      <div className="nice-scroll absolute left-3 right-3 top-[60px] z-[500] flex gap-1.5 overflow-x-auto pb-1 transition-[right,left] duration-200 lg:left-[calc(0.75rem+var(--left-w,0px))] lg:right-[calc(21.5rem+var(--chat-w,0px))] lg:top-3 lg:flex-wrap">
         <LegChip active={!mapFilter} color="#334155" onClick={() => setMapFilter(null)}>
           Tutto il viaggio
         </LegChip>
@@ -246,7 +246,7 @@ export default function MapPanel() {
       <button
         onClick={() => setMapFilter(null)}
         title="Inquadra tutto il viaggio"
-        className="absolute bottom-6 left-3 z-[500] flex items-center gap-2 rounded-xl border border-ink-200 bg-white/95 px-3.5 py-2.5 text-xs font-bold text-ink-700 shadow-lg backdrop-blur transition hover:border-brand-400 hover:text-brand-600"
+        className="absolute bottom-6 left-3 z-[500] flex items-center gap-2 rounded-xl border border-ink-200 bg-white/95 px-3.5 py-2.5 text-xs font-bold text-ink-700 shadow-lg backdrop-blur transition hover:border-brand-400 hover:text-brand-600 lg:left-[calc(0.75rem+var(--left-w,0px))]"
       >
         <Maximize2 size={14} />
         <span className="hidden sm:inline">Inquadra viaggio</span>
