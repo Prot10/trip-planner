@@ -1,23 +1,51 @@
-/* WebSocket client to the local agent server: receives streamed chat events,
-   executes tool calls against the live store, tracks per-turn edits, undo. */
+/* WebSocket client to the local agent server: streamed chat events, tool
+   execution against the live store, per-edit undo, and persistent chats
+   tied to each trip (localStorage). */
 
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import { useTrip, activeTrip, toast } from '../store'
 import { uid } from '../lib/utils'
-import { executeTool, WRITE_TOOLS } from './toolExecutors'
+import { executeTool, applyUndoOp, WRITE_TOOLS } from './toolExecutors'
 
 const WS_URL = `ws://${location.hostname}:5200/agent`
+
+/* ---------- saved conversations, per trip ---------- */
+export const useChats = create(
+  persist(
+    (set) => ({
+      byTrip: {},
+      saveChat: (tripId, chat) =>
+        set((s) => {
+          const list = s.byTrip[tripId] ?? []
+          const i = list.findIndex((c) => c.id === chat.id)
+          const next = i >= 0 ? list.map((c) => (c.id === chat.id ? chat : c)) : [chat, ...list]
+          return { byTrip: { ...s.byTrip, [tripId]: next.slice(0, 40) } }
+        }),
+      deleteChat: (tripId, chatId) =>
+        set((s) => ({
+          byTrip: { ...s.byTrip, [tripId]: (s.byTrip[tripId] ?? []).filter((c) => c.id !== chatId) },
+        })),
+    }),
+    { name: 'tripplanner.chats.v1', storage: createJSONStorage(() => localStorage) },
+  ),
+)
+
+const storedModel = localStorage.getItem('agent.model')
 
 export const useAgentChat = create((set, get) => ({
   connected: false,
   thinking: false,
   open: false,
-  panelW: 0,              // floating panel width when open (map overlays shift left)
-  messages: [],           // { id, role: 'user'|'assistant'|'tool'|'error', text, name, args }
-  streamText: '',         // live token stream of the in-progress assistant block
-  model: null,            // model id reported by the SDK (e.g. claude-sonnet-5)
-  modelChoice: localStorage.getItem('agent.model') || 'default',
-  edits: [],              // per-turn write log: { id, name, args, result }
+  panelW: 0,
+  messages: [],
+  streamText: '',
+  model: null,                    // model id reported by the engine
+  modelChoice: ['sonnet', 'opus', 'haiku'].includes(storedModel) ? storedModel : 'sonnet',
+  engine: localStorage.getItem('agent.engine') === 'codex' ? 'codex' : 'claude',
+  chatId: null,                   // active saved-chat id
+  sessionId: null,                // engine session/thread to resume
+  edits: [],                      // per-turn write log: { id, name, args, result, undo, detail, reverted }
   undoSnapshot: null,
   undoReady: false,
   showEdits: false,
@@ -28,11 +56,19 @@ export const useAgentChat = create((set, get) => ({
     localStorage.setItem('agent.model', modelChoice)
     set({ modelChoice })
   },
+  setEngine(engine) {
+    if (engine === get().engine) return
+    localStorage.setItem('agent.engine', engine)
+    get().newChat()
+    set({ engine, model: null })
+  },
 
   send(text) {
     const t = text.trim()
     if (!t || !get().connected || get().thinking) return
+    const chatId = get().chatId ?? uid()
     set((s) => ({
+      chatId,
       messages: [...s.messages, { id: uid(), role: 'user', text: t }],
       undoReady: false,
       undoSnapshot: null,
@@ -40,24 +76,77 @@ export const useAgentChat = create((set, get) => ({
       showEdits: false,
       streamText: '',
     }))
-    sendWs({ type: 'chat', text: t, model: get().modelChoice })
+    persistChat()
+    sendWs({ type: 'chat', text: t, model: get().modelChoice, engine: get().engine, sessionId: get().sessionId })
   },
 
   stop: () => sendWs({ type: 'stop' }),
 
-  reset() {
-    sendWs({ type: 'reset' })
-    set({ messages: [], undoReady: false, undoSnapshot: null, edits: [], showEdits: false, thinking: false, streamText: '' })
+  newChat() {
+    if (get().thinking) sendWs({ type: 'stop' })
+    set({
+      messages: [], chatId: null, sessionId: null, model: null,
+      undoReady: false, undoSnapshot: null, edits: [], showEdits: false, thinking: false, streamText: '',
+    })
   },
 
-  undo() {
+  openChat(chat) {
+    if (get().thinking) sendWs({ type: 'stop' })
+    set({
+      messages: chat.messages ?? [],
+      chatId: chat.id,
+      sessionId: chat.sessionId ?? null,
+      engine: chat.engine ?? 'claude',
+      modelChoice: ['sonnet', 'opus', 'haiku'].includes(chat.model) ? chat.model : get().modelChoice,
+      model: null,
+      undoReady: false, undoSnapshot: null, edits: [], showEdits: false, thinking: false, streamText: '',
+    })
+  },
+
+  undoAll() {
     const snap = get().undoSnapshot
     if (!snap) return
     useTrip.getState().importTrip(snap)
-    set({ undoReady: false, undoSnapshot: null, edits: [], showEdits: false })
+    set((s) => ({
+      undoReady: false, undoSnapshot: null,
+      edits: s.edits.map((e) => ({ ...e, reverted: true })),
+    }))
     toast('Modifiche del turno annullate')
   },
+
+  undoOne(editId) {
+    const edit = get().edits.find((e) => e.id === editId)
+    if (!edit || edit.reverted || !edit.undo) return
+    try {
+      applyUndoOp(edit.undo)
+      set((s) => {
+        const edits = s.edits.map((e) => (e.id === editId ? { ...e, reverted: true } : e))
+        const anyLeft = edits.some((e) => !e.reverted)
+        return { edits, undoReady: anyLeft && !!s.undoSnapshot }
+      })
+      toast('Modifica annullata')
+    } catch (e) {
+      toast(`Impossibile annullare: ${e?.message ?? e}`)
+    }
+  },
 }))
+
+/* write the working conversation into the saved-chats store */
+function persistChat() {
+  const s = useAgentChat.getState()
+  const tripId = useTrip.getState().activeId
+  if (!s.chatId || !tripId) return
+  const firstUser = s.messages.find((m) => m.role === 'user')
+  useChats.getState().saveChat(tripId, {
+    id: s.chatId,
+    engine: s.engine,
+    model: s.modelChoice,
+    sessionId: s.sessionId,
+    title: (firstUser?.text ?? 'Conversazione').slice(0, 70),
+    updatedAt: Date.now(),
+    messages: s.messages,
+  })
+}
 
 let ws = null
 let retryTimer = null
@@ -69,7 +158,6 @@ function sendWs(obj) {
 const push = (msg) => useAgentChat.setState((s) => ({ messages: [...s.messages, { id: uid(), ...msg }] }))
 
 async function handleToolCall(msg) {
-  /* snapshot the trip before the first write of the turn, for undo */
   if (WRITE_TOOLS.has(msg.name) && !useAgentChat.getState().undoSnapshot) {
     const t = activeTrip(useTrip.getState())
     if (t) useAgentChat.setState({ undoSnapshot: structuredClone(t) })
@@ -77,8 +165,9 @@ async function handleToolCall(msg) {
   try {
     const result = await executeTool(msg.name, msg.args)
     if (WRITE_TOOLS.has(msg.name)) {
+      const { undo, detail, ...rest } = result ?? {}
       useAgentChat.setState((s) => ({
-        edits: [...s.edits, { id: uid(), name: msg.name, args: msg.args ?? {}, result }],
+        edits: [...s.edits, { id: uid(), name: msg.name, args: msg.args ?? {}, result: rest, undo, detail, reverted: false }],
       }))
     }
     sendWs({ type: 'tool_result', id: msg.id, result })
@@ -96,9 +185,9 @@ function handleEvent(msg) {
       useAgentChat.setState((s) => ({ streamText: s.streamText + msg.text }))
       break
     case 'assistant_text':
-      /* the authoritative full block replaces the accumulated stream */
       useAgentChat.setState({ streamText: '' })
       push({ role: 'assistant', text: msg.text })
+      persistChat()
       break
     case 'agent_tool':
       push({ role: 'tool', name: msg.name, args: msg.args })
@@ -109,6 +198,10 @@ function handleEvent(msg) {
     case 'model':
       useAgentChat.setState({ model: msg.model })
       break
+    case 'session':
+      useAgentChat.setState({ sessionId: msg.sessionId })
+      persistChat()
+      break
     case 'turn_start':
       useAgentChat.setState({ thinking: true })
       break
@@ -117,13 +210,12 @@ function handleEvent(msg) {
         const leftovers = s.streamText.trim()
         return {
           thinking: false,
-          undoReady: !!s.undoSnapshot,
+          undoReady: s.edits.some((e) => !e.reverted) && !!s.undoSnapshot,
           streamText: '',
           messages: leftovers ? [...s.messages, { id: uid(), role: 'assistant', text: leftovers }] : s.messages,
         }
       })
-      break
-    case 'session_reset':
+      persistChat()
       break
   }
 }
