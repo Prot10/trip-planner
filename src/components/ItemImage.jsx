@@ -40,6 +40,17 @@ async function fetchWikiImages(lat, lng) {
     .map((p) => ({ url: p.thumbnail.source, title: p.title }))
 }
 
+/* cached place-photo lookup, also used by the AI agent's get_place_images tool */
+export async function getPlaceImages(lat, lng) {
+  const key = `${lat.toFixed(3)},${lng.toFixed(3)}`
+  const c = loadCache()
+  if (c[key] !== undefined) return c[key]
+  const imgs = await enqueue(() => fetchWikiImages(lat, lng))
+  c[key] = imgs
+  saveCache()
+  return imgs
+}
+
 function useOnScreen(ref) {
   const [visible, setVisible] = useState(false)
   useEffect(() => {

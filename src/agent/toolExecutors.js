@@ -6,6 +6,7 @@ import { useTrip, useUI, useRoutes, activeTrip } from '../store'
 import { bestInsertion, searchPlaces, chainedDayCoords, estimateDayKm } from '../lib/geo'
 import { SUGGESTIONS } from '../data/suggestions'
 import { dayDate, fmtDate, costByType, fuelCostUsd, uid } from '../lib/utils'
+import { getPlaceImages } from '../components/ItemImage'
 
 export const WRITE_TOOLS = new Set([
   'add_activity', 'update_activity', 'remove_activity', 'move_activity',
@@ -215,6 +216,12 @@ const EXECUTORS = {
     const results = await searchPlaces(a.query)
     if (!results.length) return { results: [], hint: 'Nessun risultato: prova ad aggiungere città o stato.' }
     return { results: results.slice(0, 5) }
+  },
+
+  async get_place_images(a) {
+    const imgs = await getPlaceImages(a.lat, a.lng)
+    if (!imgs.length) return { images: [], hint: 'Nessuna foto trovata per queste coordinate.' }
+    return { images: imgs.slice(0, 5) }
   },
 
   list_suggestions() {

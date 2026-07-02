@@ -1,5 +1,5 @@
 /* WebSocket client to the local agent server: receives streamed chat events,
-   executes tool calls against the live store, manages per-turn undo. */
+   executes tool calls against the live store, tracks per-turn edits, undo. */
 
 import { create } from 'zustand'
 import { useTrip, activeTrip, toast } from '../store'
@@ -12,11 +12,22 @@ export const useAgentChat = create((set, get) => ({
   connected: false,
   thinking: false,
   open: false,
+  panelW: 0,              // floating panel width when open (map overlays shift left)
   messages: [],           // { id, role: 'user'|'assistant'|'tool'|'error', text, name, args }
-  undoSnapshot: null,     // trip snapshot taken before the first write of the current turn
-  undoReady: false,       // a finished turn has edits that can be reverted
+  streamText: '',         // live token stream of the in-progress assistant block
+  model: null,            // model id reported by the SDK (e.g. claude-sonnet-5)
+  modelChoice: localStorage.getItem('agent.model') || 'default',
+  edits: [],              // per-turn write log: { id, name, args, result }
+  undoSnapshot: null,
+  undoReady: false,
+  showEdits: false,
 
   setOpen: (open) => set({ open }),
+  setShowEdits: (showEdits) => set({ showEdits }),
+  setModelChoice: (modelChoice) => {
+    localStorage.setItem('agent.model', modelChoice)
+    set({ modelChoice })
+  },
 
   send(text) {
     const t = text.trim()
@@ -25,22 +36,25 @@ export const useAgentChat = create((set, get) => ({
       messages: [...s.messages, { id: uid(), role: 'user', text: t }],
       undoReady: false,
       undoSnapshot: null,
+      edits: [],
+      showEdits: false,
+      streamText: '',
     }))
-    sendWs({ type: 'chat', text: t })
+    sendWs({ type: 'chat', text: t, model: get().modelChoice })
   },
 
   stop: () => sendWs({ type: 'stop' }),
 
   reset() {
     sendWs({ type: 'reset' })
-    set({ messages: [], undoReady: false, undoSnapshot: null, thinking: false })
+    set({ messages: [], undoReady: false, undoSnapshot: null, edits: [], showEdits: false, thinking: false, streamText: '' })
   },
 
   undo() {
     const snap = get().undoSnapshot
     if (!snap) return
     useTrip.getState().importTrip(snap)
-    set({ undoReady: false, undoSnapshot: null })
+    set({ undoReady: false, undoSnapshot: null, edits: [], showEdits: false })
     toast('Modifiche del turno annullate')
   },
 }))
@@ -62,6 +76,11 @@ async function handleToolCall(msg) {
   }
   try {
     const result = await executeTool(msg.name, msg.args)
+    if (WRITE_TOOLS.has(msg.name)) {
+      useAgentChat.setState((s) => ({
+        edits: [...s.edits, { id: uid(), name: msg.name, args: msg.args ?? {}, result }],
+      }))
+    }
     sendWs({ type: 'tool_result', id: msg.id, result })
   } catch (e) {
     sendWs({ type: 'tool_result', id: msg.id, error: String(e?.message ?? e) })
@@ -73,20 +92,36 @@ function handleEvent(msg) {
     case 'tool_call':
       handleToolCall(msg)
       break
+    case 'assistant_delta':
+      useAgentChat.setState((s) => ({ streamText: s.streamText + msg.text }))
+      break
+    case 'assistant_text':
+      /* the authoritative full block replaces the accumulated stream */
+      useAgentChat.setState({ streamText: '' })
+      push({ role: 'assistant', text: msg.text })
+      break
     case 'agent_tool':
       push({ role: 'tool', name: msg.name, args: msg.args })
       break
-    case 'assistant_text':
-      push({ role: 'assistant', text: msg.text })
-      break
     case 'agent_error':
       push({ role: 'error', text: msg.error })
+      break
+    case 'model':
+      useAgentChat.setState({ model: msg.model })
       break
     case 'turn_start':
       useAgentChat.setState({ thinking: true })
       break
     case 'turn_end':
-      useAgentChat.setState((s) => ({ thinking: false, undoReady: !!s.undoSnapshot }))
+      useAgentChat.setState((s) => {
+        const leftovers = s.streamText.trim()
+        return {
+          thinking: false,
+          undoReady: !!s.undoSnapshot,
+          streamText: '',
+          messages: leftovers ? [...s.messages, { id: uid(), role: 'assistant', text: leftovers }] : s.messages,
+        }
+      })
       break
     case 'session_reset':
       break
