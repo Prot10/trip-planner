@@ -1,5 +1,11 @@
 # Trip Planner
 
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
+[![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)](https://react.dev)
+[![Vite](https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=white)](https://vite.dev)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38bdf8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Free APIs only](https://img.shields.io/badge/APIs-100%25_free-22c55e)](#tech-stack)
+
 A polished, fully client-side road-trip planner. Build day-by-day itineraries with a drag-and-drop timeline, see the whole route as one continuous loop on an interactive map, track your budget per category, and get Google-Maps-style directions — all powered exclusively by **free APIs**, with no accounts and no keys.
 
 Ships pre-loaded with a real 7-day / 6-night California loop (Pasadena → Big Sur → San Francisco → Yosemite → Sequoia → Pasadena), complete with timings, drive legs, nightly hotels, entry fees, practical warnings and official booking links.
@@ -92,3 +98,16 @@ src/
 
 - The itinerary and all edits live entirely in your browser. Use **Export** for backups or to share a trip; the recipient imports the file and sees exactly your plan, photos included.
 - Road distances and the fuel estimate refine themselves progressively as OSRM answers; straight dashed lines are shown as a fallback if routing is unavailable.
+
+## Support
+
+If this project is useful to you, consider supporting its development:
+
+- ☕ [Buy Me a Coffee](https://buymeacoffee.com/prot10)
+- 💛 [PayPal](https://paypal.me/andreaprotani99)
+
+## License
+
+This project is licensed under the **GNU Affero General Public License v3.0** — see [LICENSE](LICENSE).
+
+In short: you are free to use, study, modify and share it, but any distributed or network-served derivative **must remain open source under the same license**. This deliberately prevents closed-source commercial repackaging.
