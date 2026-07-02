@@ -4,10 +4,16 @@
 import { createServer } from 'node:http'
 import { createBridge } from './bridge.mjs'
 import { createAgent } from './agent.mjs'
+import { createMcpHandler } from './mcp-http.mjs'
 
 const PORT = Number(process.env.AGENT_PORT || 5200)
+let mcpHandler = null
 
 const http = createServer((req, res) => {
+  if (req.url === '/mcp') {
+    mcpHandler?.(req, res)
+    return
+  }
   if (req.url === '/health') {
     res.writeHead(200, { 'content-type': 'application/json' })
     res.end(JSON.stringify({ ok: true, tabs: bridge?.tabCount ?? 0 }))
@@ -35,8 +41,9 @@ const http = createServer((req, res) => {
 })
 
 const bridge = createBridge(http)
-createAgent(bridge)
+mcpHandler = createMcpHandler(bridge)
+createAgent(bridge, { mcpPort: PORT })
 
 http.listen(PORT, '127.0.0.1', () => {
-  console.log(`[agent-server] pronto su ws://localhost:${PORT}/agent`)
+  console.log(`[agent-server] pronto su ws://localhost:${PORT}/agent (MCP: http://localhost:${PORT}/mcp)`)
 })
