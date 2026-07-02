@@ -60,6 +60,12 @@ export function fuelCostUsd(km, car) {
   return (liters / 3.78541) * (car?.gasPerGal || 0)
 }
 
+/* does this trip involve driving at all? (controls fuel badge + car settings) */
+export function tripUsesCar(trip) {
+  if (trip.transport === 'car' || trip.transport === 'mixed') return true
+  return trip.days.some((d) => d.items.some((i) => i.type === 'drive' && (i.mode ?? 'car') === 'car'))
+}
+
 /* item costs grouped by category: hotel, food, activity, extra (drive tolls + info fees) */
 export function costByType(trip) {
   const acc = { hotel: 0, food: 0, activity: 0, extra: 0 }
@@ -77,12 +83,17 @@ export function costByType(trip) {
   return acc
 }
 
+export const TRANSPORT_MODES = ['car', 'walk', 'bus', 'train', 'plane', 'boat']
+
 export function normalizeTrip(raw) {
   const t = structuredClone(raw)
   t.id ||= uid()
   t.title ||= 'Il mio viaggio'
   t.subtitle ||= ''
   t.startDate ||= ''
+  t.phase = t.phase === 'interview' ? 'interview' : 'active'
+  t.brief ||= ''
+  t.transport = ['car', 'walk', 'transit', 'mixed'].includes(t.transport) ? t.transport : 'car'
   t.car = {
     lPer100: Number(t.car?.lPer100) || 8.5,
     gasPerGal: Number(t.car?.gasPerGal) || 4.8,
@@ -105,6 +116,7 @@ export function normalizeTrip(raw) {
       it.links = Array.isArray(it.links) ? it.links.filter((l) => l && l.url) : []
       it.must = !!it.must
       it.done = !!it.done
+      it.mode = it.type === 'drive' ? (TRANSPORT_MODES.includes(it.mode) ? it.mode : 'car') : null
       /* legacy single `img` → gallery array `imgs` */
       it.imgs = Array.isArray(it.imgs) ? it.imgs.filter((x) => typeof x === 'string') : []
       if (it.img && !it.imgs.length) it.imgs = [it.img]

@@ -5,12 +5,13 @@ import { normalizeTrip, uid, DAY_COLORS } from './lib/utils'
 
 const seed = () => normalizeTrip(structuredClone(seedData))
 
-const blankTrip = (title) =>
+const blankTrip = (title, phase = 'active') =>
   normalizeTrip({
     title: title || 'Nuovo viaggio',
     subtitle: '',
     startDate: '',
-    days: [{ title: 'Giorno 1', night: '', color: DAY_COLORS[0], items: [] }],
+    phase,
+    days: phase === 'interview' ? [] : [{ title: 'Giorno 1', night: '', color: DAY_COLORS[0], items: [] }],
     checklist: [],
   })
 
@@ -31,11 +32,15 @@ export const useTrip = create(
       /* ---------- trips (dashboard) ---------- */
       openTrip: (id) => set({ activeId: id }),
       closeTrip: () => set({ activeId: null }),
-      createTrip: (title) => {
-        const t = blankTrip(title)
+      createTrip: (title, phase = 'active') => {
+        const t = blankTrip(title, phase)
         set((s) => ({ trips: [...s.trips, t], activeId: t.id }))
         return t.id
       },
+      setPhase: (phase) => set((s) => upd(s, (t) => ({ ...t, phase }))),
+      setBrief: (brief) => set((s) => upd(s, (t) => ({ ...t, brief }))),
+      setTransport: (transport) => set((s) => upd(s, (t) => ({ ...t, transport }))),
+      setSubtitle: (subtitle) => set((s) => upd(s, (t) => ({ ...t, subtitle }))),
       deleteTrip: (id) =>
         set((s) => ({
           trips: s.trips.filter((t) => t.id !== id),
@@ -185,7 +190,7 @@ export const useTrip = create(
     }),
     {
       name: 'tripplanner.v2',
-      version: 5,
+      version: 6,
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({ trips: s.trips, activeId: s.activeId }),
       migrate: (persisted, fromVersion) => {

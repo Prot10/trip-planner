@@ -83,6 +83,30 @@ export function estimateDayKm(coords) {
   return km * 1.25
 }
 
+/* per-leg travel estimate for the agent: real routing for car/bus/walk,
+   great-circle distance for train/plane/boat (times must be web-verified) */
+export async function estimateTravel(from, to, mode) {
+  const pair = [[from.lat, from.lng], [to.lat, to.lng]]
+  if (mode === 'car' || mode === 'bus') {
+    const r = await fetchRoadRoute(pair, 'driving')
+    if (r) return { mode, km: Math.round(r.km * 10) / 10, minutes: Math.round(r.min), source: 'osrm-driving' }
+  }
+  if (mode === 'walk') {
+    const r = await fetchRoadRoute(pair, 'foot')
+    if (r) return { mode, km: Math.round(r.km * 10) / 10, minutes: Math.round(r.min), source: 'osrm-foot' }
+    const km = haversineKm(pair[0], pair[1]) * 1.3
+    return { mode, km: Math.round(km * 10) / 10, minutes: Math.round((km / 4.7) * 60), source: 'stima-4.7km/h' }
+  }
+  const km = haversineKm(pair[0], pair[1])
+  return {
+    mode,
+    km: Math.round(km),
+    minutes: null,
+    source: 'distanza in linea d’aria',
+    note: 'Durata non stimabile senza orari reali: verifica con una ricerca web (treni/voli/traghetti).',
+  }
+}
+
 /* ---------- place search (Nominatim, free) ---------- */
 
 export async function searchPlaces(q) {
@@ -175,20 +199,26 @@ function saveCache() {
 
 let queue = Promise.resolve()
 
+/* OSRM endpoints per profile: driving on the official demo, walking on FOSSGIS */
+const OSRM_BASES = {
+  driving: 'https://router.project-osrm.org/route/v1/driving',
+  foot: 'https://routing.openstreetmap.de/routed-foot/route/v1/driving',
+}
+
 /**
  * Road-following route through the given [lat,lng] waypoints.
- * Returns { latlngs, km } or null on failure (caller falls back to straight lines).
- * Cached in localStorage; requests are queued to be gentle with the demo server.
+ * Returns { latlngs, km, min } or null on failure (caller falls back to straight lines).
+ * Cached in localStorage; requests are queued to be gentle with the demo servers.
  */
-export function fetchRoadRoute(coords) {
+export function fetchRoadRoute(coords, profile = 'driving') {
   if (coords.length < 2) return Promise.resolve(null)
-  const key = coords.map((c) => `${c[0].toFixed(4)},${c[1].toFixed(4)}`).join(';')
+  const key = `${profile === 'foot' ? 'f:' : ''}` + coords.map((c) => `${c[0].toFixed(4)},${c[1].toFixed(4)}`).join(';')
   const cache = loadCache()
   if (cache[key]) return Promise.resolve(cache[key])
 
   const run = async () => {
     const path = coords.map(([lat, lng]) => `${lng},${lat}`).join(';')
-    const url = `https://router.project-osrm.org/route/v1/driving/${path}?overview=full&geometries=geojson&steps=false`
+    const url = `${OSRM_BASES[profile] ?? OSRM_BASES.driving}/${path}?overview=full&geometries=geojson&steps=false`
     const r = await fetch(url)
     if (!r.ok) return null
     const data = await r.json()
@@ -197,6 +227,7 @@ export function fetchRoadRoute(coords) {
     const result = {
       latlngs: route.geometry.coordinates.map(([lng, lat]) => [lat, lng]),
       km: route.distance / 1000,
+      min: route.duration / 60,
     }
     cache[key] = result
     saveCache()
