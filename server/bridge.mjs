@@ -5,6 +5,7 @@
 import { WebSocketServer } from 'ws'
 
 const TOOL_TIMEOUT_MS = 20000
+const INTERACTIVE_TIMEOUT_MS = 15 * 60 * 1000 // ask_user waits for a human
 
 export function createBridge(httpServer) {
   const wss = new WebSocketServer({ server: httpServer, path: '/agent' })
@@ -46,10 +47,11 @@ export function createBridge(httpServer) {
         return
       }
       const id = nextId++
+      const timeoutMs = name === 'ask_user' ? INTERACTIVE_TIMEOUT_MS : TOOL_TIMEOUT_MS
       const timer = setTimeout(() => {
         pending.delete(id)
-        resolve({ ok: false, error: 'Timeout: il browser non ha risposto alla tool call.' })
-      }, TOOL_TIMEOUT_MS)
+        resolve({ ok: false, error: name === 'ask_user' ? "L'utente non ha risposto alla domanda." : 'Timeout: il browser non ha risposto alla tool call.' })
+      }, timeoutMs)
       pending.set(id, { resolve: (msg) => resolve({ ok: !msg.error, result: msg.result, error: msg.error }), timer })
       tab.send(JSON.stringify({ type: 'tool_call', id, name, args }))
     })

@@ -47,6 +47,7 @@ export const useAgentChat = create((set, get) => ({
   sessionId: null,                // engine session/thread to resume
   edits: [],                      // per-turn write log: { id, name, args, result, undo, detail, reverted }
   progress: [],                   // live planning stepper: { id, step, status, detail }
+  pendingQuestion: null,          // interactive ask_user card: { question, kind, options, allowOther, resolve }
   undoSnapshot: null,
   undoReady: false,
   showEdits: false,
@@ -123,6 +124,19 @@ export const useAgentChat = create((set, get) => ({
     toast('Modifiche del turno annullate')
   },
 
+  /* answer the agent's interactive question; unblocks its tool call */
+  answerQuestion(answer) {
+    const q = get().pendingQuestion
+    if (!q) return
+    const text = Array.isArray(answer) ? answer.join(' · ') : answer
+    set((s) => ({
+      pendingQuestion: null,
+      messages: [...s.messages, { id: uid(), role: 'qa', question: q.question, text }],
+    }))
+    persistChat()
+    q.resolve({ ok: true, answer })
+  },
+
   undoOne(editId) {
     const edit = get().edits.find((e) => e.id === editId)
     if (!edit || edit.reverted || !edit.undo) return
@@ -170,6 +184,19 @@ hooks.onProgress = (a) => {
 hooks.onStartPlanning = () => {
   useAgentChat.setState({ open: true })
 }
+hooks.onAskUser = (a, resolve) => {
+  /* only one live question at a time: cancel a stale one */
+  useAgentChat.getState().pendingQuestion?.resolve({ ok: false, error: 'Domanda sostituita da una nuova.' })
+  useAgentChat.setState({
+    pendingQuestion: {
+      question: a.question,
+      kind: a.kind ?? 'open',
+      options: a.options ?? [],
+      allowOther: !!a.allow_other,
+      resolve,
+    },
+  })
+}
 
 let ws = null
 let retryTimer = null
@@ -213,7 +240,10 @@ function handleEvent(msg) {
       persistChat()
       break
     case 'agent_tool':
-      push({ role: 'tool', name: msg.name, args: msg.args })
+      /* ask_user renders as the interactive card, report_progress as the stepper */
+      if (msg.name !== 'ask_user' && msg.name !== 'report_progress') {
+        push({ role: 'tool', name: msg.name, args: msg.args })
+      }
       break
     case 'agent_error':
       push({ role: 'error', text: msg.error })
@@ -229,10 +259,12 @@ function handleEvent(msg) {
       useAgentChat.setState({ thinking: true })
       break
     case 'turn_end':
+      useAgentChat.getState().pendingQuestion?.resolve({ ok: false, error: 'Turno terminato.' })
       useAgentChat.setState((s) => {
         const leftovers = s.streamText.trim()
         return {
           thinking: false,
+          pendingQuestion: null,
           undoReady: s.edits.some((e) => !e.reverted) && !!s.undoSnapshot,
           streamText: '',
           messages: leftovers ? [...s.messages, { id: uid(), role: 'assistant', text: leftovers }] : s.messages,

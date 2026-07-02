@@ -44,6 +44,8 @@ export function createAgent(bridge, { mcpPort }) {
           maxTurns: MAX_TURNS,
           abortController: abort,
           includePartialMessages: true,
+          /* ask_user blocks on human input: give MCP tools generous timeouts */
+          env: { ...process.env, MCP_TOOL_TIMEOUT: '900000', MCP_TIMEOUT: '900000' },
           ...(sessionId ? { resume: sessionId } : {}),
         },
       })
@@ -105,6 +107,7 @@ export function createAgent(bridge, { mcpPort }) {
         '--sandbox', 'read-only',
         '--cd', CODEX_WORKSPACE,
         '-c', `mcp_servers.trip.url="http://127.0.0.1:${mcpPort}/mcp"`,
+        '-c', 'mcp_servers.trip.tool_timeout_sec=900',
         '-c', 'tools.web_search=true',
       ]
       const args = sessionId

@@ -19,7 +19,7 @@ export const WRITE_TOOLS = new Set([
 ])
 
 /* callbacks registered by socket.js (avoids a module cycle) */
-export const hooks = { onProgress: null, onStartPlanning: null }
+export const hooks = { onProgress: null, onStartPlanning: null, onAskUser: null }
 
 const FIELD_LABELS = {
   title: 'titolo', type: 'tipo', time: 'orario', dur: 'durata', price: 'costo',
@@ -346,6 +346,12 @@ const EXECUTORS = {
   report_progress(a) {
     hooks.onProgress?.(a)
     return { ok: true }
+  },
+
+  /* interactive question card: resolves when the user answers in the UI */
+  ask_user(a) {
+    if (!hooks.onAskUser) throw new Error('Interfaccia domande non disponibile.')
+    return new Promise((resolve) => hooks.onAskUser(a, resolve))
   },
 
   async estimate_travel(a) {

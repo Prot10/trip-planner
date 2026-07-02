@@ -89,6 +89,17 @@ export const TOOL_DEFS = [
     },
   },
   {
+    name: 'ask_user',
+    description:
+      "Fai UNA domanda all'utente tramite una card interattiva e ATTENDI la sua risposta (il tool blocca finché non risponde). kind: 'single' = sceglie una sola opzione, 'multi' = può sceglierne più di una, 'open' = risposta libera. Per single/multi fornisci 2-5 opzioni concrete (label breve + description opzionale) e metti allow_other=true se ha senso una risposta fuori lista. Fai le domande UNA ALLA VOLTA e usa ogni risposta per rendere più mirata la successiva: mai elenchi di domande nel testo.",
+    schema: {
+      question: z.string(),
+      kind: z.enum(['single', 'multi', 'open']),
+      options: z.array(z.object({ label: z.string(), description: z.string().optional() })).max(5).optional(),
+      allow_other: z.boolean().optional(),
+    },
+  },
+  {
     name: 'set_trip_brief',
     description: "Salva il profilo del viaggio raccolto nell'intervista: chi viaggia, periodo, stile e ritmo, mezzo di trasporto, budget, alloggi, vincoli e interessi. È la memoria delle preferenze: consultalo (via get_trip) prima di ogni scelta di pianificazione.",
     schema: { brief: z.string() },
