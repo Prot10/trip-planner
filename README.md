@@ -14,6 +14,12 @@ Ships pre-loaded with a real 7-day / 6-night California loop (Pasadena → Big S
 
 ## Features
 
+### AI travel assistant
+- **In-app chat** (side panel on desktop, its own tab on mobile) powered by the **Claude Agent SDK** using your existing Claude Pro/Max subscription — no API key. A custom system prompt turns it into a travel-planning expert, restricted to 17 purpose-built trip tools (no file or shell access).
+- The agent can read the whole trip, **add / edit / move / remove activities and days**, set dates and budgets, search real places (never inventing coordinates), toggle curated suggestions, and place new stops at the **route-optimal position**.
+- Every tool call is executed **in the browser against the live store**, so each edit appears instantly in the timeline (with a highlight flash) — and a per-turn **Undo** reverts everything the agent just did.
+- Architecture: a small local Node server (`server/`) bridges the Agent SDK to the open tab over WebSocket; the browser stays the source of truth. The tool layer is reusable for a future Codex/ChatGPT engine and external MCP access.
+
 ### Itinerary
 - **Multi-trip dashboard** — create, duplicate, delete and import trips; each card shows a cover photo, dates, stop count and estimated distance and budget.
 - **Day-by-day timeline** with five activity types (stop, drive, food, hotel, info), times, durations, notes, multiple links, must-see flags and check-off during the trip.
@@ -59,11 +65,13 @@ Ships pre-loaded with a real 7-day / 6-night California loop (Pasadena → Big S
 
 ```sh
 npm install
-npm run dev      # development server on http://localhost:5199
+npm run dev      # web app (http://localhost:5199) + AI agent server together
 npm run build    # production build in dist/
 ```
 
-On macOS you can also double-click `Avvia Trip Planner.command`, which serves the production build and opens the browser.
+On macOS you can also double-click `Avvia Trip Planner.command`, which serves the production build, starts the agent server and opens the browser.
+
+**AI assistant prerequisite**: install [Claude Code](https://claude.com/claude-code) and log in once with your Claude subscription (`claude` → `/login`). The agent server reuses that local login — a personal, self-hosted setup; usage counts against your plan's limits. Without it, the whole app works normally and the chat shows a connection notice.
 
 ## Project structure
 
