@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Map as MapIcon, ListChecks, CalendarRange, Sparkles, Bot } from 'lucide-react'
 import { useUI, useTrip, useRoutes } from './store'
 import { connectAgent, useAgentChat } from './agent/socket'
@@ -38,6 +38,13 @@ export default function App() {
   const setChatOpen = useAgentChat((s) => s.setOpen)
   useEffect(() => { connectAgent() }, [])
 
+  /* resizable panels (desktop): itinerary column + floating chat */
+  const [leftW, startLeftDrag] = useDragWidth('ui.leftW', 600, 440, 820, false)
+  const [chatW, startChatDrag] = useDragWidth('ui.chatW', 420, 340, 640, true)
+  useEffect(() => {
+    useAgentChat.setState({ panelW: chatOpen ? chatW : 0 })
+  }, [chatOpen, chatW])
+
   /* global Escape: cancel picking, then close modals */
   useEffect(() => {
     const onKey = (e) => {
@@ -61,10 +68,11 @@ export default function App() {
     <div className="flex h-full flex-col">
       <Header />
 
-      <main className="flex min-h-0 flex-1">
-        {/* left column — itinerary / checklist */}
+      <main className="relative flex min-h-0 flex-1">
+        {/* left column — itinerary / checklist (resizable on desktop) */}
         <section
-          className={`min-w-0 flex-1 lg:max-w-[620px] lg:border-r lg:border-ink-200 ${
+          style={{ '--left-w': `${leftW}px` }}
+          className={`relative min-w-0 flex-1 lg:w-[var(--left-w)] lg:max-w-none lg:flex-none lg:border-r lg:border-ink-200 ${
             tab === 'map' || tab === 'chat' ? 'hidden lg:flex' : 'flex'
           } flex-col bg-ink-50`}
         >
@@ -80,6 +88,13 @@ export default function App() {
             {leftTab === 'suggestions' && <Suggestions />}
             {leftTab === 'checklist' && <Checklist />}
           </div>
+
+          {/* drag handle to resize the itinerary column */}
+          <div
+            onMouseDown={startLeftDrag}
+            title="Trascina per ridimensionare"
+            className="absolute -right-[3px] top-0 z-10 hidden h-full w-1.5 cursor-col-resize rounded transition-colors hover:bg-brand-400/60 active:bg-brand-500 lg:block"
+          />
         </section>
 
         {/* right column — map (desktop always, mobile when tab==='map') */}
@@ -87,16 +102,29 @@ export default function App() {
           <MapPanel />
         </section>
 
-        {/* AI chat — desktop side column, mobile full tab */}
-        <section
-          className={`min-w-0 border-l border-ink-200 ${
-            tab === 'chat' ? 'flex flex-1 lg:flex-none' : 'hidden'
-          } ${chatOpen ? 'lg:flex' : 'lg:hidden'} lg:w-[400px] lg:shrink-0`}
-        >
-          <div className="h-full min-h-0 w-full pb-14 lg:pb-0">
-            <ChatPanel onClose={() => setChatOpen(false)} />
+        {/* AI chat — mobile full tab */}
+        <section className={`min-w-0 lg:hidden ${tab === 'chat' ? 'flex flex-1' : 'hidden'}`}>
+          <div className="h-full min-h-0 w-full pb-14">
+            <ChatPanel />
           </div>
         </section>
+
+        {/* AI chat — desktop floating panel over the map (resizable) */}
+        {chatOpen && (
+          <div
+            style={{ width: chatW }}
+            className="anim-fade-up absolute bottom-3 right-3 top-3 z-[560] hidden lg:block"
+          >
+            <div className="relative h-full overflow-hidden rounded-3xl border border-ink-200 bg-white shadow-2xl">
+              <div
+                onMouseDown={startChatDrag}
+                title="Trascina per ridimensionare"
+                className="absolute left-0 top-0 z-10 h-full w-1.5 cursor-col-resize transition-colors hover:bg-brand-400/60 active:bg-brand-500"
+              />
+              <ChatPanel onClose={() => setChatOpen(false)} />
+            </div>
+          </div>
+        )}
       </main>
 
       {/* mobile bottom nav */}
@@ -129,6 +157,36 @@ export default function App() {
       <Toast />
     </div>
   )
+}
+
+/* draggable-width hook for the resizable panels, persisted per key */
+function useDragWidth(key, def, min, max, invert) {
+  const [w, setW] = useState(() => {
+    const v = Number(localStorage.getItem(key))
+    return v >= min && v <= max ? v : def
+  })
+  const start = (e) => {
+    e.preventDefault()
+    const x0 = e.clientX
+    const w0 = w
+    let cur = w0
+    const move = (ev) => {
+      cur = Math.min(max, Math.max(min, w0 + (invert ? x0 - ev.clientX : ev.clientX - x0)))
+      setW(cur)
+    }
+    const up = () => {
+      localStorage.setItem(key, String(Math.round(cur)))
+      document.removeEventListener('mousemove', move)
+      document.removeEventListener('mouseup', up)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+    document.addEventListener('mousemove', move)
+    document.addEventListener('mouseup', up)
+  }
+  return [w, start]
 }
 
 function TabBtn({ active, onClick, Icon, label }) {

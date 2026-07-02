@@ -82,6 +82,8 @@ body {
 .leaflet-popup-content { margin: 12px 16px !important; font-family: var(--font-sans) !important; font-size: 13px !important; }
 .leaflet-container { font-family: var(--font-sans) !important; background: #e8edf3; }
 .leaflet-control-attribution { font-size: 9.5px !important; background: rgba(255,255,255,.7) !important; }
+/* keep zoom/attribution visible when the floating chat covers the right edge */
+.leaflet-right { margin-right: var(--chat-w, 0px); transition: margin-right .2s ease; }
 
 /* ---------- small animations ---------- */
 @keyframes fade-up { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }

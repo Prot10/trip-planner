@@ -5,6 +5,7 @@ import {
   Maximize2, Search, X, Navigation, ArrowUpDown, Crosshair, Loader2, ChevronDown, Plus,
 } from 'lucide-react'
 import { useTrip, useUI, useRoutes, toast, activeTrip } from '../store'
+import { useAgentChat } from '../agent/socket'
 import { fmtDur, fmtKm, gmapsUrl } from '../lib/utils'
 import { fetchRoadRoute, searchPlaces, fetchDirections, bestInsertion } from '../lib/geo'
 
@@ -119,8 +120,14 @@ export default function MapPanel() {
   const layers = chained.filter((l) => !mapFilter || l.day.id === mapFilter)
   const allCoords = layers.flatMap((l) => l.points.map((p) => [p.item.lat, p.item.lng]))
 
+  /* shift map overlays left while the floating chat covers the right side */
+  const chatShift = useAgentChat((s) => (s.open ? s.panelW : 0))
+
   return (
-    <div className={`relative h-full w-full ${picking ? '[&_.leaflet-container]:cursor-crosshair' : ''}`}>
+    <div
+      style={{ '--chat-w': `${chatShift ? chatShift + 12 : 0}px` }}
+      className={`relative h-full w-full ${picking ? '[&_.leaflet-container]:cursor-crosshair' : ''}`}
+    >
       <MapContainer center={CA_CENTER} zoom={6} zoomControl={false} className="h-full w-full">
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
@@ -218,7 +225,7 @@ export default function MapPanel() {
       />
 
       {/* legend / day filter */}
-      <div className="nice-scroll absolute left-3 right-3 top-[60px] z-[500] flex gap-1.5 overflow-x-auto pb-1 lg:right-[344px] lg:top-3 lg:flex-wrap">
+      <div className="nice-scroll absolute left-3 right-3 top-[60px] z-[500] flex gap-1.5 overflow-x-auto pb-1 transition-[right] duration-200 lg:right-[calc(21.5rem+var(--chat-w,0px))] lg:top-3 lg:flex-wrap">
         <LegChip active={!mapFilter} color="#334155" onClick={() => setMapFilter(null)}>
           Tutto il viaggio
         </LegChip>
@@ -452,7 +459,7 @@ function SearchOverlay({ place, setPlace, dir, setDir, route, routing, dirPick, 
   }
 
   return (
-    <div className="absolute right-3 top-3 z-[520] w-80 max-w-[calc(100vw-24px)]">
+    <div className="absolute right-[calc(0.75rem+var(--chat-w,0px))] top-3 z-[520] w-80 max-w-[calc(100vw-24px)] transition-[right] duration-200">
       <div className="nice-scroll max-h-[calc(100dvh-150px)] overflow-y-auto rounded-2xl border border-ink-200 bg-white shadow-lg">
         {!dir.open ? (
           /* --- simple place search --- */
