@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
-import { Map as MapIcon, ListChecks, CalendarRange, Sparkles } from 'lucide-react'
+import { Map as MapIcon, ListChecks, CalendarRange, Sparkles, Bot } from 'lucide-react'
 import { useUI, useTrip, useRoutes } from './store'
+import { connectAgent, useAgentChat } from './agent/socket'
+import ChatPanel from './components/ChatPanel'
 import Header from './components/Header'
 import ItineraryPanel from './components/ItineraryPanel'
 import MapPanel from './components/MapPanel'
@@ -31,6 +33,11 @@ export default function App() {
     useUI.setState({ tab: 'itinerary', mapFilter: null, detail: null, editor: null, dayEditor: null, picking: false })
   }, [activeId])
 
+  /* agent bridge: keep the WebSocket to the local agent server alive */
+  const chatOpen = useAgentChat((s) => s.open)
+  const setChatOpen = useAgentChat((s) => s.setOpen)
+  useEffect(() => { connectAgent() }, [])
+
   /* global Escape: cancel picking, then close modals */
   useEffect(() => {
     const onKey = (e) => {
@@ -58,7 +65,7 @@ export default function App() {
         {/* left column — itinerary / checklist */}
         <section
           className={`min-w-0 flex-1 lg:max-w-[620px] lg:border-r lg:border-ink-200 ${
-            tab === 'map' ? 'hidden lg:flex' : 'flex'
+            tab === 'map' || tab === 'chat' ? 'hidden lg:flex' : 'flex'
           } flex-col bg-ink-50`}
         >
           {/* desktop tabs */}
@@ -76,8 +83,19 @@ export default function App() {
         </section>
 
         {/* right column — map (desktop always, mobile when tab==='map') */}
-        <section className={`relative min-w-0 flex-1 ${tab === 'map' ? 'block' : 'hidden lg:block'}`}>
+        <section className={`relative min-w-0 flex-1 ${tab === 'map' ? 'block' : 'hidden lg:block'} ${tab === 'chat' ? '!hidden lg:!block' : ''}`}>
           <MapPanel />
+        </section>
+
+        {/* AI chat — desktop side column, mobile full tab */}
+        <section
+          className={`min-w-0 border-l border-ink-200 ${
+            tab === 'chat' ? 'flex flex-1 lg:flex-none' : 'hidden'
+          } ${chatOpen ? 'lg:flex' : 'lg:hidden'} lg:w-[400px] lg:shrink-0`}
+        >
+          <div className="h-full min-h-0 w-full pb-14 lg:pb-0">
+            <ChatPanel onClose={() => setChatOpen(false)} />
+          </div>
         </section>
       </main>
 
@@ -85,6 +103,7 @@ export default function App() {
       <nav className="fixed inset-x-0 bottom-0 z-[700] flex border-t border-ink-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
         <MobileTab active={tab === 'itinerary'} onClick={() => setTab('itinerary')} Icon={CalendarRange} label="Itinerario" />
         <MobileTab active={tab === 'map'} onClick={() => setTab('map')} Icon={MapIcon} label="Mappa" />
+        <MobileTab active={tab === 'chat'} onClick={() => setTab('chat')} Icon={Bot} label="AI" />
         <MobileTab active={tab === 'suggestions'} onClick={() => setTab('suggestions')} Icon={Sparkles} label="Consigli" />
         <MobileTab active={tab === 'checklist'} onClick={() => setTab('checklist')} Icon={ListChecks} label="Checklist" />
       </nav>

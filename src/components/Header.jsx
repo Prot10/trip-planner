@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   Palmtree, PlaneTakeoff, Download, Upload, RotateCcw, Plus, CarFront, MapPin,
-  CalendarDays, Route, BedDouble, Fuel, Wallet, ChevronLeft, ChevronDown, Settings2, UtensilsCrossed, Ticket, Receipt,
+  CalendarDays, Route, BedDouble, Fuel, Wallet, ChevronLeft, ChevronDown, Settings2, UtensilsCrossed, Ticket, Receipt, Bot,
 } from 'lucide-react'
 import { useTrip, useUI, useRoutes, toast, activeTrip } from '../store'
+import { useAgentChat } from '../agent/socket'
 import { tripStats, fmtDur, fmtKm, fmtMoney, dayDate, fmtDate, fuelCostUsd, costByType } from '../lib/utils'
 import { chainedDayCoords, estimateDayKm } from '../lib/geo'
 import { exportTripImages, internTripImages } from '../lib/imgdb'
@@ -111,6 +112,7 @@ export default function Header() {
           <div className="xl:hidden">
             <BudgetBadge costs={costs} fuelUsd={fuelUsd} totalUsd={totalUsd} compact />
           </div>
+          <ChatToggle />
           <CarSettings />
           <DatePicker />
           <button
@@ -220,6 +222,28 @@ function BudgetBadge({ costs, fuelUsd, totalUsd, compact }) {
         </div>
       )}
     </div>
+  )
+}
+
+/* toggle for the AI chat side panel (desktop) */
+function ChatToggle() {
+  const open = useAgentChat((s) => s.open)
+  const setOpen = useAgentChat((s) => s.setOpen)
+  const connected = useAgentChat((s) => s.connected)
+  return (
+    <button
+      onClick={() => setOpen(!open)}
+      title="Assistente AI"
+      aria-label="Assistente AI"
+      className={`relative hidden size-9 place-items-center rounded-xl transition lg:grid ${
+        open ? 'bg-violet-50 text-violet-600' : 'text-ink-400 hover:bg-ink-100 hover:text-ink-700'
+      }`}
+    >
+      <Bot size={18} />
+      <span
+        className={`absolute right-1.5 top-1.5 size-1.5 rounded-full ${connected ? 'bg-emerald-500' : 'bg-ink-300'}`}
+      />
+    </button>
   )
 }
 
