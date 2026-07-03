@@ -8,6 +8,7 @@ import { useTrip, useUI, useRoutes, toast, activeTrip } from '../store'
 import { useAgentChat } from '../agent/socket'
 import { fmtDur, fmtKm, gmapsUrl } from '../lib/utils'
 import { fetchRoadRoute, searchPlaces, fetchDirections, bestInsertion, haversineKm } from '../lib/geo'
+import { MODE_META } from './typeMeta'
 
 const CA_CENTER = [36.5, -120.5]
 
@@ -88,22 +89,28 @@ export default function MapPanel() {
     let first = null
     let last = null
     let pendingMode = null
-    for (const day of days) {
+    days.forEach((day, dayIndex) => {
       for (const it of day.items) {
         if (it.type === 'drive') { pendingMode = it.mode ?? defaultMode; continue }
         if (it.lat == null) continue
-        const stop = { coord: [it.lat, it.lng], dayId: day.id }
+        const stop = { coord: [it.lat, it.lng], dayId: day.id, title: it.title }
         if (last) {
-          out.push({ id: `${day.id}|${out.length}`, from: last.coord, to: stop.coord, dayId: day.id, mode: pendingMode ?? defaultMode })
+          out.push({
+            id: `${day.id}|${out.length}`, from: last.coord, to: stop.coord, dayId: day.id,
+            dayN: dayIndex + 1, mode: pendingMode ?? defaultMode, fromTitle: last.title, toTitle: stop.title,
+          })
         } else {
           first = stop
         }
         last = stop
         pendingMode = null
       }
-    }
+    })
     if (first && last && out.length > 0 && (first.coord[0] !== last.coord[0] || first.coord[1] !== last.coord[1])) {
-      out.push({ id: `${first.dayId}|wrap`, from: last.coord, to: first.coord, dayId: first.dayId, mode: defaultMode })
+      out.push({
+        id: `${first.dayId}|wrap`, from: last.coord, to: first.coord, dayId: first.dayId,
+        dayN: 1, mode: defaultMode, fromTitle: last.title, toTitle: first.title, wrap: true,
+      })
     }
     return out
   }, [days, trip.transport])
@@ -133,7 +140,7 @@ export default function MapPanel() {
         if (dead) return
         if (road) {
           kmByLeg[l.id] = road.km
-          setRoads((r) => ({ ...r, [l.id]: road.latlngs }))
+          setRoads((r) => ({ ...r, [l.id]: road }))
           publish()
         }
       }
@@ -211,7 +218,7 @@ export default function MapPanel() {
         {dir.a && <Marker position={[dir.a.lat, dir.a.lng]} icon={dirIcon('A', '#16a34a')} />}
         {dir.b && <Marker position={[dir.b.lat, dir.b.lng]} icon={dirIcon('B', '#dc2626')} />}
 
-        {/* route legs, styled by transport mode */}
+        {/* route legs, styled by transport mode — click one for the details */}
         {visibleLegs.map((leg) => {
           const road = roads[leg.id]
           const color = dayColor[leg.dayId] ?? '#f97316'
@@ -224,7 +231,13 @@ export default function MapPanel() {
             : ROAD_MODES[leg.mode]
               ? { color, weight: 3.5, opacity: 0.55, dashArray: '6 9' }
               : { color, weight: 3, opacity: 0.55, dashArray: '10 10' } /* train/plane/boat */
-          return <Polyline key={leg.id} positions={road ?? [leg.from, leg.to]} pathOptions={style} />
+          return (
+            <Polyline key={leg.id} positions={road?.latlngs ?? [leg.from, leg.to]} pathOptions={style}>
+              <Popup>
+                <LegPopup leg={leg} road={road} color={color} />
+              </Popup>
+            </Polyline>
+          )
         })}
 
         {layers.map(({ day, dayIndex, points }) => (
@@ -258,7 +271,7 @@ export default function MapPanel() {
       />
 
       {/* legend / day filter */}
-      <div className="nice-scroll absolute left-3 right-3 top-[60px] z-[500] flex gap-1.5 overflow-x-auto pb-1 transition-[right,left] duration-200 lg:left-[calc(0.75rem+var(--left-w,0px))] lg:right-[calc(21.5rem+var(--chat-w,0px))] lg:top-[84px] lg:flex-wrap">
+      <div className="nice-scroll absolute left-3 right-3 top-[60px] z-[500] flex gap-1.5 overflow-x-auto pb-1 transition-[right,left] duration-200 lg:left-[calc(0.75rem+var(--left-w,0px))] lg:right-[calc(21.5rem+var(--chat-w,0px))] lg:top-[var(--hdr-b,96px)] lg:flex-wrap">
         <LegChip active={!mapFilter} color="#334155" onClick={() => setMapFilter(null)}>
           Tutto il viaggio
         </LegChip>
@@ -284,6 +297,35 @@ export default function MapPanel() {
         <Maximize2 size={14} />
         <span className="hidden sm:inline">Inquadra viaggio</span>
       </button>
+    </div>
+  )
+}
+
+/* click details for a route leg: mode, stops, real distance and duration */
+function LegPopup({ leg, road, color }) {
+  const meta = MODE_META[leg.mode] ?? MODE_META.car
+  const km = road?.km ?? haversineKm(leg.from, leg.to)
+  return (
+    <div className="min-w-44 max-w-60">
+      <div className="flex items-center gap-1.5">
+        <span className="grid size-6 shrink-0 place-items-center rounded-lg text-white" style={{ background: color }}>
+          <meta.Icon size={13} />
+        </span>
+        <span className="font-display text-[13px] font-bold text-ink-900">
+          {meta.label} · Giorno {leg.dayN}
+        </span>
+      </div>
+      <div className="mt-1.5 text-[11.5px] leading-snug text-ink-600">
+        <span className="font-semibold text-ink-800">{leg.fromTitle}</span>
+        {' → '}
+        <span className="font-semibold text-ink-800">{leg.toTitle}</span>
+        {leg.wrap && <span className="block text-[10.5px] text-ink-400">Chiusura dell'anello verso il punto di partenza</span>}
+      </div>
+      <div className="mt-1.5 text-[12px] font-bold text-ink-900">
+        {fmtKm(km)}
+        {road?.min ? <span className="font-semibold text-ink-500"> · ~{fmtMin(road.min)}</span> : null}
+        {!road && <span className="font-medium text-ink-400"> in linea d'aria</span>}
+      </div>
     </div>
   )
 }
