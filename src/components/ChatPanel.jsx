@@ -10,6 +10,7 @@ import { useTrip, useUI, activeTrip } from '../store'
 import Markdown from './Markdown'
 import PlanningStepper from './PlanningStepper'
 import QuestionCard, { QARecord } from './QuestionCard'
+import MentionInput from './MentionInput'
 import { TOOL_META, groupMessages, ToolChipGroup, SetupCard, ModelPicker, AgentAvatar } from './chatShared'
 
 const EXAMPLES = [
@@ -24,19 +25,16 @@ export default function ChatPanel({ onClose }) {
     connected, thinking, messages, streamText, undoReady, edits, showEdits, pendingQuestion,
     send, stop, newChat, undoAll, setShowEdits,
   } = useAgentChat()
-  const [text, setText] = useState('')
+  const [composerEmpty, setComposerEmpty] = useState(true)
   const [showHistory, setShowHistory] = useState(false)
+  const inputRef = useRef(null)
   const scrollRef = useRef(null)
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages, thinking, streamText, showEdits, pendingQuestion])
 
-  const submit = () => {
-    if (!text.trim()) return
-    send(text)
-    setText('')
-  }
+  const submit = () => inputRef.current?.send()
 
   const visibleEdits = edits.filter((e) => e.detail?.length || e.undo)
 
@@ -162,16 +160,12 @@ export default function ChatPanel({ onClose }) {
           </p>
         )}
         <div className="flex items-end gap-2">
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit() }
-            }}
-            rows={Math.min(4, Math.max(1, text.split('\n').length))}
-            placeholder={pendingQuestion ? 'Rispondi alla domanda qui sopra' : "Scrivi all'assistente…"}
+          <MentionInput
+            ref={inputRef}
+            onSend={send}
+            onEmptyChange={setComposerEmpty}
+            placeholder={pendingQuestion ? 'Rispondi alla domanda qui sopra' : "Scrivi all'assistente… (@ per taggare un'attività)"}
             disabled={!connected || !!pendingQuestion}
-            className="max-h-32 min-h-10 w-full resize-none rounded-xl border border-ink-200 bg-ink-50 px-3.5 py-2.5 text-sm text-ink-800 outline-none transition placeholder:text-ink-300 focus:border-brand-400 focus:bg-white focus:ring-2 focus:ring-brand-400/20 disabled:opacity-50"
           />
           {thinking ? (
             <button
@@ -185,7 +179,7 @@ export default function ChatPanel({ onClose }) {
           ) : (
             <button
               onClick={submit}
-              disabled={!connected || !text.trim()}
+              disabled={!connected || composerEmpty}
               title="Invia"
               aria-label="Invia"
               className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-500 text-white shadow-md shadow-brand-500/30 transition hover:bg-brand-600 active:scale-95 disabled:opacity-40 disabled:shadow-none"

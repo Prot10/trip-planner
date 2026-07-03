@@ -87,6 +87,31 @@ body {
 
 /* ---------- small animations ---------- */
 @keyframes fade-up { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+@keyframes globe-orbit { to { transform: rotate(360deg) } }
+@keyframes globe-route-dash { to { stroke-dashoffset: -56 } }
+.globe-orbit { animation: globe-orbit 7s linear infinite; }
+.globe-orbit-slow { animation: globe-orbit 40s linear infinite reverse; }
+.globe-route { animation: globe-route-dash 1.6s linear infinite; }
+.poi-pin {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background: var(--poi);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.35);
+}
+.mention-chip {
+  display: inline;
+  padding: 0.06em 0.4em;
+  margin: 0 0.1em;
+  border-radius: 0.5em;
+  background: #ede9fe;
+  color: #6d28d9;
+  font-weight: 600;
+  white-space: nowrap;
+}
 @keyframes fade-in { from { opacity: 0 } to { opacity: 1 } }
 @keyframes flash-ring {
   0%, 55% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--flash-c, #f97316) 45%, transparent); background: color-mix(in srgb, var(--flash-c, #f97316) 8%, #fff); }
