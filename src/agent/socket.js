@@ -31,18 +31,25 @@ export const useChats = create(
   ),
 )
 
-const storedModel = localStorage.getItem('agent.model')
+const CLAUDE_MODELS = ['sonnet', 'opus', 'haiku']
+const CODEX_MODELS = ['gpt-5.1-codex-max', 'gpt-5.1-codex', 'gpt-5.1-codex-mini']
+const storedFor = (engine, fallback, valid) => {
+  const v = localStorage.getItem(`agent.model.${engine}`)
+  return valid.includes(v) ? v : fallback
+}
 
 export const useAgentChat = create((set, get) => ({
   connected: false,
   thinking: false,
-  open: false,
+  open: true,
   panelW: 0,
   messages: [],
   streamText: '',
-  model: null,                    // model id reported by the engine
-  modelChoice: ['sonnet', 'opus', 'haiku'].includes(storedModel) ? storedModel : 'sonnet',
   engine: localStorage.getItem('agent.engine') === 'codex' ? 'codex' : 'claude',
+  models: {
+    claude: storedFor('claude', 'sonnet', CLAUDE_MODELS),
+    codex: storedFor('codex', 'gpt-5.1-codex', CODEX_MODELS),
+  },
   chatId: null,                   // active saved-chat id
   sessionId: null,                // engine session/thread to resume
   edits: [],                      // per-turn write log: { id, name, args, result, undo, detail, reverted }
@@ -54,15 +61,14 @@ export const useAgentChat = create((set, get) => ({
 
   setOpen: (open) => set({ open }),
   setShowEdits: (showEdits) => set({ showEdits }),
-  setModelChoice: (modelChoice) => {
-    localStorage.setItem('agent.model', modelChoice)
-    set({ modelChoice })
-  },
-  setEngine(engine) {
-    if (engine === get().engine) return
+  /* explicit engine+model selection: nothing is ever picked at random */
+  select(engine, model) {
+    const valid = engine === 'codex' ? CODEX_MODELS : CLAUDE_MODELS
+    const m = valid.includes(model) ? model : valid.includes(get().models[engine]) ? get().models[engine] : valid[1] ?? valid[0]
     localStorage.setItem('agent.engine', engine)
-    get().newChat()
-    set({ engine, model: null })
+    localStorage.setItem(`agent.model.${engine}`, m)
+    if (engine !== get().engine && get().messages.length) get().newChat()
+    set((s) => ({ engine, models: { ...s.models, [engine]: m } }))
   },
 
   send(text) {
@@ -81,12 +87,14 @@ export const useAgentChat = create((set, get) => ({
     }))
     persistChat()
     const phase = activeTrip(useTrip.getState())?.phase
+    const trip = activeTrip(useTrip.getState())
     sendWs({
       type: 'chat', text: t,
-      model: get().modelChoice,
+      model: get().models[get().engine],
       engine: get().engine,
       sessionId: get().sessionId,
       mode: phase === 'interview' ? 'interview' : 'planner',
+      notes: trip?.notes ?? '',
     })
   },
 
@@ -95,7 +103,7 @@ export const useAgentChat = create((set, get) => ({
   newChat() {
     if (get().thinking) sendWs({ type: 'stop' })
     set({
-      messages: [], chatId: null, sessionId: null, model: null,
+      messages: [], chatId: null, sessionId: null,
       undoReady: false, undoSnapshot: null, edits: [], progress: [], showEdits: false, thinking: false, streamText: '',
     })
   },
@@ -107,8 +115,6 @@ export const useAgentChat = create((set, get) => ({
       chatId: chat.id,
       sessionId: chat.sessionId ?? null,
       engine: chat.engine ?? 'claude',
-      modelChoice: ['sonnet', 'opus', 'haiku'].includes(chat.model) ? chat.model : get().modelChoice,
-      model: null,
       undoReady: false, undoSnapshot: null, edits: [], progress: [], showEdits: false, thinking: false, streamText: '',
     })
   },
@@ -128,10 +134,10 @@ export const useAgentChat = create((set, get) => ({
   answerQuestion(answer) {
     const q = get().pendingQuestion
     if (!q) return
-    const text = Array.isArray(answer) ? answer.join(' · ') : answer
+    const answers = Array.isArray(answer) ? answer : [answer]
     set((s) => ({
       pendingQuestion: null,
-      messages: [...s.messages, { id: uid(), role: 'qa', question: q.question, text }],
+      messages: [...s.messages, { id: uid(), role: 'qa', question: q.question, text: answers.join(' · '), answers }],
     }))
     persistChat()
     q.resolve({ ok: true, answer })
@@ -163,7 +169,7 @@ function persistChat() {
   useChats.getState().saveChat(tripId, {
     id: s.chatId,
     engine: s.engine,
-    model: s.modelChoice,
+    model: s.models[s.engine],
     sessionId: s.sessionId,
     title: (firstUser?.text ?? 'Conversazione').slice(0, 70),
     updatedAt: Date.now(),
@@ -183,6 +189,9 @@ hooks.onProgress = (a) => {
 }
 hooks.onStartPlanning = () => {
   useAgentChat.setState({ open: true })
+}
+hooks.onNotebook = () => {
+  useAgentChat.setState({ notebookFlash: Date.now() })
 }
 hooks.onAskUser = (a, resolve) => {
   /* only one live question at a time: cancel a stale one */
@@ -246,10 +255,10 @@ function handleEvent(msg) {
       }
       break
     case 'agent_error':
-      push({ role: 'error', text: msg.error })
+      if (msg.auth) push({ role: 'setup', engine: msg.auth, text: msg.error })
+      else push({ role: 'error', text: msg.error })
       break
     case 'model':
-      useAgentChat.setState({ model: msg.model })
       break
     case 'session':
       useAgentChat.setState({ sessionId: msg.sessionId })

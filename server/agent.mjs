@@ -22,20 +22,25 @@ const LOCAL_CODEX = join(__dirname, '..', 'node_modules', '.bin', 'codex')
 const CODEX_BIN = existsSync(LOCAL_CODEX) ? LOCAL_CODEX : 'codex'
 const MAX_TURNS = 100
 const CLAUDE_MODELS = new Set(['sonnet', 'opus', 'haiku'])
+const CODEX_MODELS = new Set(['gpt-5.1-codex-max', 'gpt-5.1-codex', 'gpt-5.1-codex-mini'])
+
+/* the trip notebook rides along on every turn: it's the agent's memory */
+const withNotes = (prompt, notes) =>
+  notes?.trim() ? `${prompt}\n\n## Il tuo taccuino per questo viaggio (memoria corrente)\n${notes}` : prompt
 
 export function createAgent(bridge, { mcpPort }) {
   const tripServer = createTripTools(bridge)
   let active = null // { abort() }
 
   /* ---------- Claude (Agent SDK) ---------- */
-  async function runClaude(text, { model, sessionId, mode }) {
+  async function runClaude(text, { model, sessionId, mode, notes }) {
     const abort = new AbortController()
     active = { abort: () => abort.abort() }
     try {
       const q = query({
         prompt: text,
         options: {
-          systemPrompt: mode === 'interview' ? INTERVIEW_PROMPT : PLANNER_PROMPT,
+          systemPrompt: withNotes(mode === 'interview' ? INTERVIEW_PROMPT : PLANNER_PROMPT, notes),
           mcpServers: { trip: tripServer },
           tools: ['WebSearch', 'WebFetch'],
           allowedTools: [...TRIP_TOOL_NAMES, 'WebSearch', 'WebFetch'],
@@ -85,26 +90,28 @@ export function createAgent(bridge, { mcpPort }) {
       }
     } catch (e) {
       if (!abort.signal.aborted) {
-        const hint = /login|auth|credential/i.test(String(e?.message))
-          ? " Verifica l'accesso con `claude` (abbonamento) sul terminale."
-          : ''
-        bridge.broadcast({ type: 'agent_error', error: `${e?.message ?? e}${hint}` })
+        const isAuth = /login|auth|credential|api key/i.test(String(e?.message))
+        bridge.broadcast({ type: 'agent_error', error: String(e?.message ?? e), ...(isAuth ? { auth: 'claude' } : {}) })
       }
     }
   }
 
   /* ---------- Codex (ChatGPT subscription) ---------- */
-  function runCodex(text, { sessionId, mode }) {
+  function runCodex(text, { model, sessionId, mode, notes }) {
     /* Codex reads AGENTS.md (planner persona); interview rules ride along
-       with the first message of an interview chat */
+       with the first message of an interview chat, the notebook every turn */
     if (mode === 'interview' && !sessionId) {
       text = `<istruzioni_fase_intervista>\n${INTERVIEW_PROMPT}\n</istruzioni_fase_intervista>\n\nMessaggio dell'utente: ${text}`
+    }
+    if (notes?.trim()) {
+      text = `<taccuino_viaggio>\n${notes}\n</taccuino_viaggio>\n\n${text}`
     }
     return new Promise((resolve) => {
       const flags = [
         '--json',
         '--skip-git-repo-check',
         '--sandbox', 'read-only',
+        '-m', CODEX_MODELS.has(model) ? model : 'gpt-5.1-codex',
         '--cd', CODEX_WORKSPACE,
         '-c', `mcp_servers.trip.url="http://127.0.0.1:${mcpPort}/mcp"`,
         '-c', 'mcp_servers.trip.tool_timeout_sec=900',
@@ -173,14 +180,16 @@ export function createAgent(bridge, { mcpPort }) {
           if (/retrying \d/.test(ev.message)) return // transient retries: stay quiet
           lastError = fmtCodexError(ev.message)
           sawMessage = true
-          bridge.broadcast({ type: 'agent_error', error: lastError })
+          const isAuth = /login|not supported.*ChatGPT|auth/i.test(ev.message)
+          bridge.broadcast({ type: 'agent_error', error: lastError, ...(isAuth ? { auth: 'codex' } : {}) })
           return
         }
         if (ev.type === 'turn.failed') {
           const msg = fmtCodexError(ev.error?.message ?? 'turno fallito')
           if (msg !== lastError) {
             sawMessage = true
-            bridge.broadcast({ type: 'agent_error', error: msg })
+            const isAuth = /login|not supported.*ChatGPT|auth/i.test(msg)
+            bridge.broadcast({ type: 'agent_error', error: msg, ...(isAuth ? { auth: 'codex' } : {}) })
           }
           return
         }

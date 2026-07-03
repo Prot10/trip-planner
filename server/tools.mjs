@@ -100,6 +100,27 @@ export const TOOL_DEFS = [
     },
   },
   {
+    name: 'update_notes',
+    description:
+      "Il tuo TACCUINO per questo viaggio (memoria persistente, markdown, sostituisce il contenuto precedente). Aggiornalo dopo OGNI risposta dell'utente in intervista (sezioni: Destinazione, Date, Viaggiatori, Mezzo, Stile e interessi, Budget, Alloggi, Vincoli) e dopo ogni decisione importante in pianificazione. Ti viene sempre re-iniettato: è la tua memoria tra i turni.",
+    schema: { notes: z.string().describe('contenuto completo del taccuino in markdown') },
+  },
+  {
+    name: 'add_suggestion',
+    description:
+      "Aggiunge un'idea al pannello Consigli del viaggio: tappe extra valide che NON hai inserito nell'itinerario (l'utente può attivarle con un click, inserite nel punto ottimale). Usale a fine pianificazione per le idee avanzate. Servono coordinate reali da search_places.",
+    schema: {
+      title: z.string(),
+      type: z.enum(['activity', 'food', 'hotel']).optional(),
+      duration_min: z.number().int().min(0).optional(),
+      notes: z.string().describe('perché vale la pena, in 1-2 frasi'),
+      lat: z.number(),
+      lng: z.number(),
+      recommended: z.boolean().optional(),
+    },
+  },
+  { name: 'remove_suggestion', description: 'Elimina un consiglio dal pannello (id da list_suggestions).', schema: { suggestion_id: z.string() } },
+  {
     name: 'set_trip_brief',
     description: "Salva il profilo del viaggio raccolto nell'intervista: chi viaggia, periodo, stile e ritmo, mezzo di trasporto, budget, alloggi, vincoli e interessi. È la memoria delle preferenze: consultalo (via get_trip) prima di ogni scelta di pianificazione.",
     schema: { brief: z.string() },

@@ -8,7 +8,6 @@
 
 import { useTrip, useUI, useRoutes, activeTrip } from '../store'
 import { bestInsertion, searchPlaces, chainedDayCoords, estimateDayKm, estimateTravel } from '../lib/geo'
-import { SUGGESTIONS } from '../data/suggestions'
 import { dayDate, fmtDate, costByType, fuelCostUsd, uid } from '../lib/utils'
 import { getPlaceImages } from '../components/ItemImage'
 
@@ -16,10 +15,11 @@ export const WRITE_TOOLS = new Set([
   'add_activity', 'update_activity', 'remove_activity', 'move_activity',
   'add_day', 'update_day', 'remove_day', 'move_day', 'set_trip_meta',
   'checklist_add', 'checklist_toggle', 'checklist_remove', 'toggle_suggestion',
+  'add_suggestion', 'remove_suggestion',
 ])
 
 /* callbacks registered by socket.js (avoids a module cycle) */
-export const hooks = { onProgress: null, onStartPlanning: null, onAskUser: null }
+export const hooks = { onProgress: null, onStartPlanning: null, onAskUser: null, onNotebook: null }
 
 const FIELD_LABELS = {
   title: 'titolo', type: 'tipo', time: 'orario', dur: 'durata', price: 'costo',
@@ -119,6 +119,7 @@ const EXECUTORS = {
       start_date: t.startDate || null,
       transport: t.transport,
       brief: t.brief || undefined,
+      notes: t.notes || undefined,
       car: { l_per_100km: t.car.lPer100, gas_usd_per_gal: t.car.gasPerGal },
       budget_usd: { ...costs, fuel: Math.round(fuelCostUsd(km, t.car)), total: Math.round(costs.items + fuelCostUsd(km, t.car)) },
       total_km: Math.round(km),
@@ -330,6 +331,45 @@ const EXECUTORS = {
     return { ok: true }
   },
 
+  /* the agent's per-trip notebook: full-replace markdown memory */
+  update_notes(a) {
+    useTrip.getState().setNotes(a.notes ?? '')
+    hooks.onNotebook?.()
+    return { ok: true }
+  },
+
+  add_suggestion(a) {
+    const sug = {
+      id: uid(),
+      title: a.title,
+      type: ['activity', 'food', 'hotel'].includes(a.type) ? a.type : 'activity',
+      dur: a.duration_min ?? 60,
+      notes: a.notes ?? '',
+      lat: a.lat ?? null,
+      lng: a.lng ?? null,
+      must: !!a.recommended,
+      links: [],
+    }
+    useTrip.getState().addSuggestion(sug)
+    return {
+      ok: true, suggestion_id: sug.id,
+      undo: { op: 'remove_suggestion', id: sug.id },
+      detail: [{ field: 'consiglio', from: '—', to: sug.title }],
+    }
+  },
+
+  remove_suggestion(a) {
+    const t = trip()
+    const sug = t.suggestions.find((s) => s.id === a.suggestion_id)
+    if (!sug) throw new Error('Consiglio non trovato: usa list_suggestions.')
+    useTrip.getState().removeSuggestion(sug.id)
+    return {
+      ok: true,
+      undo: { op: 'add_suggestion', sug: structuredClone(sug) },
+      detail: [{ field: 'consiglio', from: sug.title, to: '—' }],
+    }
+  },
+
   start_planning(a) {
     const s = useTrip.getState()
     if (a.title) s.setTitle(a.title)
@@ -375,7 +415,7 @@ const EXECUTORS = {
     const active = new Map()
     t.days.forEach((d, di) => d.items.forEach((it) => { if (it.sug) active.set(it.sug, di + 1) }))
     return {
-      suggestions: SUGGESTIONS.map((s) => {
+      suggestions: t.suggestions.map((s) => {
         const isOn = active.has(s.id)
         const spot = isOn ? null : bestInsertion(t, s)
         return {
@@ -394,7 +434,7 @@ const EXECUTORS = {
   },
 
   toggle_suggestion(a) {
-    const sug = SUGGESTIONS.find((s) => s.id === a.suggestion_id)
+    const sug = trip().suggestions.find((s) => s.id === a.suggestion_id)
     if (!sug) throw new Error(`Suggerimento "${a.suggestion_id}" inesistente: usa list_suggestions.`)
     const t = trip()
     const found = (() => {
@@ -468,6 +508,8 @@ export function applyUndoOp(u) {
       if (u.prev.transport !== undefined) s.setTransport(u.prev.transport)
       break
     case 'check_remove': s.removeCheck(u.id); break
+    case 'add_suggestion': s.addSuggestion(u.sug); break
+    case 'remove_suggestion': s.removeSuggestion(u.id); break
     case 'check_insert': s.insertCheckAt(u.index, u.item); break
     case 'check_toggle': s.toggleCheck(u.id); break
     default: throw new Error('Undo non supportato: ' + u.op)
