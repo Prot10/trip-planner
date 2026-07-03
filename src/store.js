@@ -193,7 +193,7 @@ export const useTrip = create(
     }),
     {
       name: 'tripplanner.v2',
-      version: 7,
+      version: 8,
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({ trips: s.trips, activeId: s.activeId }),
       migrate: (persisted, fromVersion) => {

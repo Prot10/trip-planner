@@ -78,14 +78,18 @@ export const TOOL_DEFS = [
   { name: 'move_day', description: 'Sposta un giorno su o giù di una posizione.', schema: { day_number: z.number().int().min(1), direction: z.enum(['up', 'down']) } },
   {
     name: 'set_trip_meta',
-    description: 'Imposta i metadati del viaggio: titolo, sottotitolo, data di partenza (YYYY-MM-DD, le date dei giorni si ricalcolano), mezzo principale, auto (consumo L/100km, prezzo benzina $/gallone).',
+    description:
+      "Imposta i metadati del viaggio: titolo, sottotitolo, data di partenza (YYYY-MM-DD, le date dei giorni si ricalcolano), mezzo principale, auto. Per l'auto: car_model (marca e modello, es. 'Dacia Duster'), car_l_per_100km (consumo), car_gas_price + car_gas_unit (prezzo del carburante NELL'UNITÀ LOCALE della destinazione: eur_l in Europa, usd_gal negli USA — cerca sul web il prezzo medio attuale).",
     schema: {
       title: z.string().optional(),
       subtitle: z.string().optional(),
       start_date: z.string().optional(),
       transport: z.enum(['car', 'walk', 'transit', 'mixed']).optional(),
+      car_model: z.string().optional(),
       car_l_per_100km: z.number().positive().optional(),
-      car_gas_usd_per_gal: z.number().positive().optional(),
+      car_gas_price: z.number().positive().optional(),
+      car_gas_unit: z.enum(['usd_gal', 'usd_l', 'eur_l']).optional(),
+      car_gas_usd_per_gal: z.number().positive().optional().describe('deprecato: usa car_gas_price + car_gas_unit'),
     },
   },
   {

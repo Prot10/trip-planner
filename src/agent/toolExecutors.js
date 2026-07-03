@@ -8,7 +8,7 @@
 
 import { useTrip, useUI, useRoutes, activeTrip } from '../store'
 import { bestInsertion, searchPlaces, chainedDayCoords, estimateDayKm, estimateTravel } from '../lib/geo'
-import { dayDate, fmtDate, costByType, fuelCostUsd, uid } from '../lib/utils'
+import { dayDate, fmtDate, costByType, fuelCostUsd, uid, GAS_UNITS } from '../lib/utils'
 import { getPlaceImages } from '../components/ItemImage'
 
 export const WRITE_TOOLS = new Set([
@@ -25,7 +25,7 @@ const FIELD_LABELS = {
   title: 'titolo', type: 'tipo', time: 'orario', dur: 'durata', price: 'costo',
   notes: 'note', links: 'link', must: 'imperdibile', done: 'fatto',
   lat: 'posizione', lng: 'posizione', night: 'notte', startDate: 'partenza',
-  lPer100: 'consumo', gasPerGal: 'benzina',
+  lPer100: 'consumo', gasPrice: 'carburante', gasUnit: 'unità carburante', model: 'auto',
 }
 
 const trip = () => {
@@ -120,7 +120,7 @@ const EXECUTORS = {
       transport: t.transport,
       brief: t.brief || undefined,
       notes: t.notes || undefined,
-      car: { l_per_100km: t.car.lPer100, gas_usd_per_gal: t.car.gasPerGal },
+      car: { model: t.car.model || undefined, l_per_100km: t.car.lPer100, gas_price: t.car.gasPrice, gas_unit: t.car.gasUnit },
       budget_usd: { ...costs, fuel: Math.round(fuelCostUsd(km, t.car)), total: Math.round(costs.items + fuelCostUsd(km, t.car)) },
       total_km: Math.round(km),
       days: t.days
@@ -290,7 +290,15 @@ const EXECUTORS = {
     if (a.transport !== undefined) { detail.push({ field: 'trasporto', from: t.transport, to: a.transport }); s.setTransport(a.transport) }
     if (a.start_date !== undefined) { detail.push({ field: 'partenza', from: t.startDate || '—', to: a.start_date }); s.setStartDate(a.start_date) }
     if (a.car_l_per_100km !== undefined) { detail.push({ field: 'consumo', from: `${t.car.lPer100} L/100km`, to: `${a.car_l_per_100km} L/100km` }); s.setCar({ lPer100: a.car_l_per_100km }) }
-    if (a.car_gas_usd_per_gal !== undefined) { detail.push({ field: 'benzina', from: `$${t.car.gasPerGal}/gal`, to: `$${a.car_gas_usd_per_gal}/gal` }); s.setCar({ gasPerGal: a.car_gas_usd_per_gal }) }
+    if (a.car_model !== undefined) { detail.push({ field: 'auto', from: t.car.model || '—', to: a.car_model }); s.setCar({ model: a.car_model }) }
+    if (a.car_gas_price !== undefined) {
+      const unit = GAS_UNITS[a.car_gas_unit] ? a.car_gas_unit : t.car.gasUnit
+      detail.push({ field: 'carburante', from: `${t.car.gasPrice} ${GAS_UNITS[t.car.gasUnit].short}`, to: `${a.car_gas_price} ${GAS_UNITS[unit].short}` })
+      s.setCar({ gasPrice: a.car_gas_price, gasUnit: unit })
+    } else if (a.car_gas_usd_per_gal !== undefined) {
+      detail.push({ field: 'carburante', from: `${t.car.gasPrice} ${GAS_UNITS[t.car.gasUnit].short}`, to: `${a.car_gas_usd_per_gal} $/gal` })
+      s.setCar({ gasPrice: a.car_gas_usd_per_gal, gasUnit: 'usd_gal' })
+    }
     return { ok: true, undo: { op: 'set_meta', prev }, detail }
   },
 
@@ -377,7 +385,7 @@ const EXECUTORS = {
     if (a.transport) s.setTransport(a.transport)
     if (a.start_date) s.setStartDate(a.start_date)
     if (a.car_l_per_100km) s.setCar({ lPer100: a.car_l_per_100km })
-    if (a.car_gas_usd_per_gal) s.setCar({ gasPerGal: a.car_gas_usd_per_gal })
+    if (a.car_gas_usd_per_gal) s.setCar({ gasPrice: a.car_gas_usd_per_gal, gasUnit: 'usd_gal' })
     s.setPhase('active')
     hooks.onStartPlanning?.()
     return { ok: true, note: "Planner aperto: l'utente ora vede itinerario e mappa. Prosegui con la pianificazione completa usando report_progress ad ogni fase." }

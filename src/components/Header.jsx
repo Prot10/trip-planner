@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   Palmtree, PlaneTakeoff, Download, Upload, RotateCcw, Plus, CarFront, MapPin,
-  CalendarDays, Route, BedDouble, Fuel, Wallet, ChevronLeft, ChevronDown, Settings2, UtensilsCrossed, Ticket, Receipt, Bot,
+  CalendarDays, Route, BedDouble, Fuel, Wallet, ChevronLeft, ChevronDown, UtensilsCrossed, Ticket, Receipt, Bot,
 } from 'lucide-react'
 import { useTrip, useUI, useRoutes, toast, activeTrip } from '../store'
 import { useAgentChat } from '../agent/socket'
-import { tripStats, fmtDur, fmtKm, fmtMoney, dayDate, fmtDate, fuelCostUsd, costByType, tripUsesCar } from '../lib/utils'
+import { tripStats, fmtDur, fmtKm, fmtMoney, dayDate, fmtDate, fuelCostUsd, costByType, tripUsesCar, GAS_UNITS } from '../lib/utils'
+import { refreshFx } from '../lib/fx'
+import { getTitleImage } from './ItemImage'
 import { chainedDayCoords, estimateDayKm } from '../lib/geo'
 import { exportTripImages, internTripImages } from '../lib/imgdb'
 import DatePicker from './DatePicker'
@@ -20,6 +22,10 @@ export default function Header() {
   const ask = useUI((s) => s.ask)
   const roadKmByDay = useRoutes((s) => s.byDay)
   const fileRef = useRef(null)
+
+  /* €/L prices convert through a live rate: re-render once it's fetched */
+  const [, setFxReady] = useState(false)
+  useEffect(() => { refreshFx().then(() => setFxReady(true)) }, [])
 
   const stats = tripStats(trip)
   const d0 = dayDate(trip.startDate, 0)
@@ -218,7 +224,7 @@ function BudgetBadge({ costs, fuelUsd, totalUsd, compact }) {
             <span className="font-display text-[15px] font-extrabold tabular-nums text-emerald-700">{fmtMoney(totalUsd)}</span>
           </div>
           <p className="mt-2 text-[10.5px] leading-snug text-ink-400">
-            Benzina stimata dai km reali del percorso e dai dati della tua auto (icona ingranaggio).
+            Carburante stimato dai km reali del percorso e dai dati della tua auto (icona auto qui sopra).
           </p>
         </div>
       )}
@@ -248,11 +254,13 @@ function ChatToggle() {
   )
 }
 
-/* popover to set car consumption and fuel price used for the estimate */
+/* popover to set the car (model with photo, consumption, fuel price in the
+   local unit) driving the fuel estimate */
 function CarSettings() {
   const car = useTrip((s) => activeTrip(s).car)
   const setCar = useTrip((s) => s.setCar)
   const [open, setOpen] = useState(false)
+  const [photo, setPhoto] = useState(null)
   const ref = useRef(null)
 
   useEffect(() => {
@@ -264,6 +272,29 @@ function CarSettings() {
     return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey) }
   }, [open])
 
+  /* live EUR→USD rate for €/L prices, refreshed once per day */
+  useEffect(() => { if (open) refreshFx() }, [open])
+
+  /* photo of the user's car model, debounced while typing */
+  const model = car.model?.trim() ?? ''
+  useEffect(() => {
+    if (!open || model.length < 4) { setPhoto(null); return }
+    let dead = false
+    const t = setTimeout(() => {
+      getTitleImage(model).then((img) => { if (!dead) setPhoto(img) })
+    }, 600)
+    return () => { dead = true; clearTimeout(t) }
+  }, [model, open])
+
+  const askAgent = () => {
+    setOpen(false)
+    const chat = useAgentChat.getState()
+    chat.setOpen(true)
+    chat.send(
+      'Cerca sul web il prezzo medio attuale del carburante nella zona di questo viaggio e aggiorna le impostazioni auto con set_trip_meta (usa l’unità locale). Se conosci il consumo tipico della mia auto, aggiorna anche quello.',
+    )
+  }
+
   return (
     <div ref={ref} className="relative">
       <button
@@ -274,14 +305,33 @@ function CarSettings() {
           open ? 'bg-brand-50 text-brand-600' : 'text-ink-400 hover:bg-ink-100 hover:text-ink-700'
         }`}
       >
-        <Settings2 size={17} />
+        <CarFront size={18} />
       </button>
       {open && (
-        <div className="anim-fade-up absolute right-0 top-[calc(100%+8px)] z-[950] w-72 rounded-2xl border border-ink-200 bg-white p-4 shadow-xl">
+        <div className="anim-fade-up absolute right-0 top-[calc(100%+8px)] z-[950] w-80 rounded-2xl border border-ink-200 bg-white p-4 shadow-xl">
           <div className="mb-3 flex items-center gap-2">
             <CarFront size={16} className="text-brand-500" />
             <h4 className="font-display text-sm font-bold text-ink-900">La tua auto</h4>
           </div>
+
+          <label className="mb-3 block">
+            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-ink-400">Marca e modello</span>
+            <input
+              type="text"
+              value={car.model}
+              onChange={(e) => setCar({ model: e.target.value })}
+              placeholder="es. Dacia Duster, Toyota RAV4…"
+              spellCheck={false}
+              className="w-full rounded-xl border border-ink-200 px-3 py-2 text-sm outline-none transition placeholder:text-ink-300 focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
+            />
+          </label>
+          {photo && (
+            <div className="anim-fade-in mb-3 overflow-hidden rounded-xl border border-ink-100">
+              <img src={photo.url} alt={photo.title} className="h-32 w-full object-cover" />
+              <p className="bg-ink-50 px-2.5 py-1 text-[10px] font-medium text-ink-400">{photo.title} · Wikipedia</p>
+            </div>
+          )}
+
           <label className="mb-3 block">
             <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-ink-400">Consumo (L/100 km)</span>
             <input
@@ -291,18 +341,42 @@ function CarSettings() {
               className="w-full rounded-xl border border-ink-200 px-3 py-2 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
             />
           </label>
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-ink-400">Benzina regular 87 ($/gallone)</span>
-            <input
-              type="number" min="1" max="10" step="0.05"
-              value={car.gasPerGal}
-              onChange={(e) => setCar({ gasPerGal: parseFloat(e.target.value) || 0 })}
-              className="w-full rounded-xl border border-ink-200 px-3 py-2 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
-            />
-            <span className="mt-1.5 block text-[11px] leading-snug text-ink-400">
-              Media California per la benzina 87 (regular): ~$4,80/gal. Un gallone = 3,785 L.
-            </span>
-          </label>
+
+          <div className="block">
+            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-ink-400">Prezzo carburante</span>
+            <div className="flex gap-2">
+              <input
+                type="number" min="0.5" max="15" step="0.05"
+                value={car.gasPrice}
+                aria-label="Prezzo carburante"
+                onChange={(e) => setCar({ gasPrice: parseFloat(e.target.value) || 0 })}
+                className="min-w-0 flex-1 rounded-xl border border-ink-200 px-3 py-2 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
+              />
+              <select
+                value={car.gasUnit}
+                aria-label="Unità del prezzo carburante"
+                onChange={(e) => setCar({ gasUnit: e.target.value })}
+                className="rounded-xl border border-ink-200 bg-white px-2.5 py-2 text-sm font-semibold text-ink-700 outline-none transition focus:border-brand-400"
+              >
+                {Object.entries(GAS_UNITS).map(([k, u]) => (
+                  <option key={k} value={k}>{u.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="mt-3 rounded-xl bg-ink-50 p-2.5">
+            <p className="text-[11px] leading-snug text-ink-500">
+              Il prezzo giusto dipende da dove viaggi e cambia nel tempo: chiedi all'assistente
+              di cercare la media aggiornata a destinazione.
+            </p>
+            <button
+              onClick={askAgent}
+              className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-violet-600 py-1.5 text-[11.5px] font-bold text-white transition hover:bg-violet-700"
+            >
+              <Bot size={13} /> Cerca il prezzo aggiornato
+            </button>
+          </div>
         </div>
       )}
     </div>

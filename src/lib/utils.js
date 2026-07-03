@@ -1,3 +1,5 @@
+import { eurUsd } from './fx'
+
 export const DAY_COLORS = [
   '#f59e0b', '#f43f5e', '#8b5cf6', '#0ea5e9', '#10b981',
   '#ea580c', '#d946ef', '#22c55e', '#3b82f6', '#e11d48',
@@ -54,10 +56,18 @@ export function fmtKm(v) {
   return Math.round(v).toLocaleString('it-IT') + ' km'
 }
 
-/* fuel cost from car settings: L/100km consumption, price per US gallon */
+/* fuel price units: how the user (or the agent) expressed the pump price */
+export const GAS_UNITS = {
+  usd_gal: { label: '$ / gallone', short: '$/gal', toUsdPerLiter: (p) => p / 3.78541 },
+  usd_l: { label: '$ / litro', short: '$/L', toUsdPerLiter: (p) => p },
+  eur_l: { label: '€ / litro', short: '€/L', toUsdPerLiter: (p) => p * eurUsd() },
+}
+
+/* fuel cost from car settings: L/100km consumption + pump price in any unit */
 export function fuelCostUsd(km, car) {
   const liters = (km / 100) * (car?.lPer100 || 0)
-  return (liters / 3.78541) * (car?.gasPerGal || 0)
+  const unit = GAS_UNITS[car?.gasUnit] ?? GAS_UNITS.usd_gal
+  return liters * unit.toUsdPerLiter(car?.gasPrice || 0)
 }
 
 /* does this trip involve driving at all? (controls fuel badge + car settings) */
@@ -108,9 +118,12 @@ export function normalizeTrip(raw) {
         links: Array.isArray(s.links) ? s.links : [],
       }))
     : []
+  /* legacy gasPerGal → gasPrice + explicit unit */
   t.car = {
     lPer100: Number(t.car?.lPer100) || 8.5,
-    gasPerGal: Number(t.car?.gasPerGal) || 4.8,
+    gasPrice: Number(t.car?.gasPrice) || Number(t.car?.gasPerGal) || 4.8,
+    gasUnit: Object.keys(GAS_UNITS).includes(t.car?.gasUnit) ? t.car.gasUnit : 'usd_gal',
+    model: typeof t.car?.model === 'string' ? t.car.model : '',
   }
   t.days = Array.isArray(t.days) ? t.days : []
   t.checklist = Array.isArray(t.checklist) ? t.checklist : []

@@ -40,6 +40,29 @@ async function fetchWikiImages(lat, lng) {
     .map((p) => ({ url: p.thumbnail.source, title: p.title }))
 }
 
+/* one photo by article title (e.g. a car model), cached like the geo lookup */
+export async function getTitleImage(query) {
+  const key = `t:${query.trim().toLowerCase()}`
+  const c = loadCache()
+  if (c[key] !== undefined) return c[key]
+  const img = await enqueue(async () => {
+    const url =
+      `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*` +
+      `&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrlimit=3` +
+      `&prop=pageimages&piprop=thumbnail&pithumbsize=640`
+    const r = await fetch(url)
+    if (!r.ok) return null
+    const data = await r.json()
+    const pages = Object.values(data?.query?.pages ?? {}).sort((a, b) => a.index - b.index)
+    const hit = pages.find((p) => p.thumbnail?.source)
+    return hit ? { url: hit.thumbnail.source, title: hit.title } : null
+  })
+  const val = img?.url ? img : null /* enqueue's error fallback is [] */
+  c[key] = val
+  saveCache()
+  return val
+}
+
 /* cached place-photo lookup, also used by the AI agent's get_place_images tool */
 export async function getPlaceImages(lat, lng) {
   const key = `${lat.toFixed(3)},${lng.toFixed(3)}`
