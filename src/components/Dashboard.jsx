@@ -11,6 +11,7 @@ import { useItemImages } from './ItemImage'
 import ConfirmDialog from './ConfirmDialog'
 import Toast from './Toast'
 import LanguageSwitcher from './LanguageSwitcher'
+import { StorageSetupCard, StorageSettingsRow } from './StorageCard'
 
 export default function Dashboard() {
   const { t } = useTranslation()
@@ -88,6 +89,7 @@ export default function Dashboard() {
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+        <StorageSetupCard />
         {creating && (
           <div className="anim-fade-up mb-5 flex flex-wrap items-center gap-2 rounded-2xl border border-brand-200 bg-white p-4 shadow-sm">
             <input
@@ -142,6 +144,8 @@ export default function Dashboard() {
             {t('dashboard.createManually')}
           </button>
         </p>
+
+        <StorageSettingsRow />
       </main>
 
       <ConfirmDialog />

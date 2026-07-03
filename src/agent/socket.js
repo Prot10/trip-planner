@@ -343,6 +343,10 @@ function handleEvent(msg) {
     case 'turn_start':
       useAgentChat.setState({ thinking: true })
       break
+    case 'storage_changed':
+      /* files touched by hand on disk; storageSync listens (no import: cycle) */
+      window.dispatchEvent(new CustomEvent('ulisse:storage-changed', { detail: msg }))
+      break
     case 'turn_end':
       useAgentChat.getState().pendingQuestion?.resolve({ ok: false, error: 'Turno terminato.' })
       useAgentChat.setState((s) => {

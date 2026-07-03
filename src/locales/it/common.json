@@ -525,5 +525,28 @@
     "notebookEmpty": "Il blocco note di Ulisse si compilerà qui, risposta dopo risposta",
     "writing": "sta scrivendo…",
     "notebookClose": "Chiudi blocco note"
+  },
+  "storage": {
+    "setupTitle": "Salva i tuoi viaggi su disco",
+    "setupBody": "Viaggi, foto e conversazioni diventano file veri in una cartella tua: facili da trovare, backuppare e cancellare. Il browser resta come copia veloce.",
+    "pathAria": "Percorso della cartella dati",
+    "enable": "Attiva",
+    "enabledToast": "Cartella dati attivata",
+    "migrateBody_one": "Ho trovato {{count}} viaggio in questo browser: lo sposto in {{path}}? La copia nel browser resta.",
+    "migrateBody_other": "Ho trovato {{count}} viaggi in questo browser: li sposto in {{path}}? La copia nel browser resta.",
+    "migrateGo": "Sposta su disco",
+    "migratedToast_one": "{{count}} viaggio salvato su disco",
+    "migratedToast_other": "{{count}} viaggi salvati su disco",
+    "offlineBanner": "Server locale non raggiungibile: le modifiche restano nel browser e finiranno su disco appena torna.",
+    "dataAt": "Dati:",
+    "syncPending": "salvataggio su disco in attesa…",
+    "changeFolder": "Cambia cartella…",
+    "apply": "Applica",
+    "changeHint": "Se la cartella scelta contiene già dei viaggi viene adottata così com'è; se è vuota, i dati attuali vengono copiati lì (la vecchia cartella resta come backup).",
+    "changedToast": "Cartella dati aggiornata",
+    "gcButton": "Pulisci immagini inutilizzate",
+    "gcToast_one": "{{count}} immagine rimossa",
+    "gcToast_other": "{{count}} immagini rimosse",
+    "errorToast": "Errore: {{error}}"
   }
 }

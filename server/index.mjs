@@ -11,6 +11,7 @@ import { createBridge } from './bridge.mjs'
 import { createAgent, CODEX_BIN } from './agent.mjs'
 import { createAuth } from './auth.mjs'
 import { createMcpHandler } from './mcp-http.mjs'
+import { createStorage } from './storage.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const PORT = Number(process.env.AGENT_PORT || 5200)
@@ -41,7 +42,12 @@ function serveStatic(req, res) {
   createReadStream(file).pipe(res)
 }
 
-const http = createServer((req, res) => {
+/* storage broadcasts through the bridge, which is created after the server:
+   route through a late-bound proxy */
+const storage = createStorage({ broadcast: (o) => bridge?.broadcast(o) })
+
+const http = createServer(async (req, res) => {
+  if (await storage.handle(req, res)) return
   if (req.url === '/mcp') {
     mcpHandler?.(req, res)
     return
@@ -73,7 +79,7 @@ const http = createServer((req, res) => {
 
 const bridge = createBridge(http)
 mcpHandler = createMcpHandler(bridge)
-const auth = createAuth(bridge, { codexBin: process.env.CODEX_BIN || CODEX_BIN })
+const auth = createAuth(bridge, { codexBin: process.env.CODEX_BIN || CODEX_BIN, getAuthPath: storage.getAuthPath })
 createAgent(bridge, { mcpPort: PORT, auth })
 
 http.on('error', (e) => {

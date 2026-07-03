@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Map as MapIcon, ListChecks, CalendarRange, Sparkles, Bot } from 'lucide-react'
 import { useUI, useTrip, useRoutes, activeTrip } from './store'
 import { connectAgent, useAgentChat } from './agent/socket'
+import { startStorageSync } from './lib/storageSync'
 import ChatPanel from './components/ChatPanel'
 import InterviewView from './components/InterviewView'
 import Header from './components/Header'
@@ -40,7 +41,7 @@ export default function App() {
   /* agent bridge: keep the WebSocket to the local agent server alive */
   const chatOpen = useAgentChat((s) => s.open)
   const setChatOpen = useAgentChat((s) => s.setOpen)
-  useEffect(() => { connectAgent() }, [])
+  useEffect(() => { connectAgent(); startStorageSync() }, [])
 
   /* the floating header's real bottom edge drives map-overlay offsets */
   const hdrRef = useRef(null)

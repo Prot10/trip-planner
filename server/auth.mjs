@@ -13,8 +13,13 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const AUTH_FILE = process.env.AUTH_FILE || join(__dirname, '.auth.json')
 const FLOW_TIMEOUT_MS = 5 * 60 * 1000
+
+/* token location, resolved lazily on every access: env override, else the
+   user's data folder (storage.mjs), else the legacy in-repo file */
+let getDataAuthPath = () => null
+const authFile = () =>
+  process.env.AUTH_FILE || getDataAuthPath?.() || join(__dirname, '.auth.json')
 
 /* prefer the project-pinned Claude Code CLI over whatever is on PATH,
    so a fresh clone works with just `npm install` */
@@ -31,10 +36,11 @@ const ptyArgs = (cmd) =>
 const stripAnsi = (s) => s.replace(/\x1b\[[0-9;?]*[a-zA-Z]|\x1b\][^\x07]*\x07|\r/g, '')
 
 function loadAuthFile() {
-  try { return JSON.parse(readFileSync(AUTH_FILE, 'utf8')) } catch { return {} }
+  try { return JSON.parse(readFileSync(authFile(), 'utf8')) } catch { return {} }
 }
 
-export function createAuth(bridge, { codexBin }) {
+export function createAuth(bridge, { codexBin, getAuthPath }) {
+  if (getAuthPath) getDataAuthPath = getAuthPath
   let flow = null // { engine, child, timer }
 
   const send = (o) => {
@@ -132,7 +138,7 @@ export function createAuth(bridge, { codexBin }) {
       const tok = out.match(/sk-ant-oat[0-9]*-[A-Za-z0-9_-]+/)
       if (tok && !tokenSaved) {
         tokenSaved = true
-        writeFileSync(AUTH_FILE, JSON.stringify({ ...loadAuthFile(), claudeToken: tok[0] }, null, 2), { mode: 0o600 })
+        writeFileSync(authFile(), JSON.stringify({ ...loadAuthFile(), claudeToken: tok[0] }, null, 2), { mode: 0o600 })
       }
     }
     child.stdout.on('data', onData)

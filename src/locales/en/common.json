@@ -525,5 +525,28 @@
   },
   "toasts": {
     "addedOptimal": "Added to Day {{n}} at the optimal point of the route"
+  },
+  "storage": {
+    "setupTitle": "Save your trips on disk",
+    "setupBody": "Trips, photos and conversations become real files in a folder of yours: easy to find, back up and delete. The browser stays as a fast copy.",
+    "pathAria": "Data folder path",
+    "enable": "Enable",
+    "enabledToast": "Data folder enabled",
+    "migrateBody_one": "Found {{count}} trip in this browser: move it to {{path}}? The browser copy stays.",
+    "migrateBody_other": "Found {{count}} trips in this browser: move them to {{path}}? The browser copy stays.",
+    "migrateGo": "Move to disk",
+    "migratedToast_one": "{{count}} trip saved to disk",
+    "migratedToast_other": "{{count}} trips saved to disk",
+    "offlineBanner": "Local server unreachable: changes stay in the browser and will land on disk as soon as it's back.",
+    "dataAt": "Data:",
+    "syncPending": "disk save pending…",
+    "changeFolder": "Change folder…",
+    "apply": "Apply",
+    "changeHint": "If the chosen folder already contains trips it is adopted as-is; if it's empty, the current data is copied there (the old folder stays as a backup).",
+    "changedToast": "Data folder updated",
+    "gcButton": "Clean unused images",
+    "gcToast_one": "{{count}} image removed",
+    "gcToast_other": "{{count}} images removed",
+    "errorToast": "Error: {{error}}"
   }
 }
