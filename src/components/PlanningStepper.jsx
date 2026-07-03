@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Loader2, Check, TriangleAlert, ListTodo, ChevronDown } from 'lucide-react'
+import { Loader2, Check, TriangleAlert, ListTodo, ChevronDown, Circle } from 'lucide-react'
 import { useAgentChat } from '../agent/socket'
 
 /* Live progress of the agent's planning work, driven by report_progress */
@@ -12,8 +12,9 @@ export default function PlanningStepper() {
   const doneCount = progress.filter((p) => p.status === 'done').length
   const allDone = !thinking
 
+  /* sticky: the todo-list stays pinned while the chat scrolls underneath */
   return (
-    <div className="anim-fade-up mb-3 overflow-hidden rounded-2xl border border-violet-200 bg-violet-50/60">
+    <div className="anim-fade-up sticky top-0 z-20 mb-3 overflow-hidden rounded-2xl border border-violet-200 bg-violet-50/95 shadow-sm backdrop-blur">
       <button
         onClick={() => setCollapsed((c) => !c)}
         className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left"
@@ -29,7 +30,7 @@ export default function PlanningStepper() {
       </button>
 
       {!collapsed && (
-        <ol className="flex flex-col gap-1 px-3.5 pb-3">
+        <ol className="nice-scroll flex max-h-56 flex-col gap-1 overflow-y-auto px-3.5 pb-3">
           {progress.map((p) => (
             <li key={p.id} className="flex items-start gap-2.5">
               <span className="mt-0.5 grid size-4.5 shrink-0 place-items-center">
@@ -37,13 +38,15 @@ export default function PlanningStepper() {
                   <Check size={13} strokeWidth={3} className="text-emerald-600" />
                 ) : p.status === 'error' ? (
                   <TriangleAlert size={13} className="text-rose-500" />
+                ) : p.status === 'pending' ? (
+                  <Circle size={11} strokeWidth={2.5} className="text-violet-300" />
                 ) : (
                   <Loader2 size={13} className="animate-spin text-violet-500" />
                 )}
               </span>
               <span className="min-w-0 flex-1">
                 <span className={`block text-[12px] font-semibold leading-snug ${
-                  p.status === 'done' ? 'text-ink-500' : 'text-ink-800'
+                  p.status === 'done' ? 'text-ink-500' : p.status === 'pending' ? 'text-ink-400' : 'text-ink-800'
                 }`}>
                   {p.step}
                 </span>
