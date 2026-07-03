@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { create } from 'zustand'
-import { Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
+import { Marker, Popup } from 'react-leaflet'
 import L from 'leaflet'
 import {
-  MapPinned, X, Landmark, UtensilsCrossed, Coffee, BedDouble, TreePine, FerrisWheel, Loader2, Plus, Check,
+  MapPinned, Landmark, UtensilsCrossed, Coffee, BedDouble, TreePine, FerrisWheel, Plus, Check,
 } from 'lucide-react'
 import { useTrip, useUI, toast, activeTrip } from '../store'
 import { bestInsertion } from '../lib/geo'
@@ -14,98 +14,52 @@ const CATS = {
   attraction: {
     label: 'Attrazioni', Icon: FerrisWheel, color: '#8b5cf6',
     svg: '<circle cx="12" cy="12" r="4"/><path d="M12 2v4m6.8-1.2-2.9 2.9M22 12h-4m1.2 6.8-2.9-2.9M12 22v-4m-6.8 1.2 2.9-2.9M2 12h4M4.8 5.2l2.9 2.9"/>',
-    osm: ['node[tourism=attraction]', 'node[tourism=viewpoint]', 'way[tourism=attraction]'],
   },
   museum: {
     label: 'Musei', Icon: Landmark, color: '#f59e0b',
     svg: '<path d="M3 22h18M6 18v-7m4 7v-7m4 7v-7m4 7v-7M12 2l8 5H4z"/>',
-    osm: ['node[tourism=museum]', 'node[tourism=gallery]', 'way[tourism=museum]'],
   },
   restaurant: {
     label: 'Ristoranti', Icon: UtensilsCrossed, color: '#f43f5e',
     svg: '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/>',
-    osm: ['node[amenity=restaurant]'],
   },
   cafe: {
     label: 'Caffè & bar', Icon: Coffee, color: '#b45309',
     svg: '<path d="M17 8h1a4 4 0 1 1 0 8h-1M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>',
-    osm: ['node[amenity=cafe]', 'node[amenity=bar]'],
   },
   hotel: {
     label: 'Hotel', Icon: BedDouble, color: '#0ea5e9',
     svg: '<path d="M2 20v-8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8M4 10V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4M2 17h20"/>',
-    osm: ['node[tourism=hotel]', 'node[tourism=guest_house]', 'way[tourism=hotel]'],
   },
   park: {
     label: 'Natura', Icon: TreePine, color: '#10b981',
     svg: '<path d="m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h-.3a1 1 0 0 1-.7-1.7L9 9h-.2A1 1 0 0 1 8 7.3L12 3l4 4.3a1 1 0 0 1-.8 1.7H15l3 3.3a1 1 0 0 1-.7 1.7H17ZM12 22v-3"/>',
-    osm: ['node[leisure=park]', 'way[leisure=park]', 'node[tourism=zoo]'],
   },
 }
 const CAT_KEYS = Object.keys(CATS)
-const ITEM_CAT = { food: 'restaurant', hotel: 'hotel', activity: 'attraction' }
+
+/* the trip stores only activity/food/hotel: the finer category comes from the title */
+const CAFE_RE = /caff|café|cafe\b|coffee|bar\b|pasticc|bakery|gelat|pub\b|birreria|enoteca/i
+const MUSEUM_RE = /museo|museum|galleria|gallery|pinacoteca|mostra|exhibition/i
+const PARK_RE = /parco|park\b|giardin|garden|bosco|forest|lago|lake\b|cascat|falls|spiaggia|beach|sentiero|trail|monte|mount|riserva|oasi|zoo\b|acquario|aquarium/i
+function classify(type, title = '') {
+  if (type === 'hotel') return 'hotel'
+  if (type === 'food') return CAFE_RE.test(title) ? 'cafe' : 'restaurant'
+  if (MUSEUM_RE.test(title)) return 'museum'
+  if (PARK_RE.test(title)) return 'park'
+  return 'attraction'
+}
 
 export const usePoi = create((set) => ({
   enabled: false,
   source: 'all', // all | trip | suggestions
-  cats: { attraction: true, museum: true, restaurant: true, cafe: false, hotel: true, park: false },
-  results: [],
-  loading: false,
-  zoomHint: false,
+  cats: { attraction: true, museum: true, restaurant: true, cafe: true, hotel: true, park: true },
   toggle: () => set((s) => ({ enabled: !s.enabled })),
   setSource: (source) => set({ source }),
   toggleCat: (k) => set((s) => ({ cats: { ...s.cats, [k]: !s.cats[k] } })),
 }))
 
-/* ---------- Overpass (OSM) discovery, cached per view+cats ---------- */
-
 if (import.meta.env.DEV && typeof window !== 'undefined') window.__poi = usePoi
-
-const cache = new Map()
-async function fetchPois(bounds, cats) {
-  const bbox = [bounds.getSouth(), bounds.getWest(), bounds.getNorth(), bounds.getEast()]
-    .map((v) => v.toFixed(3)).join(',')
-  const key = `${bbox}|${cats.join(',')}`
-  if (cache.has(key)) return cache.get(key)
-  const selectors = cats.flatMap((c) => CATS[c].osm.map((sel) => `${sel}(${bbox});`)).join('')
-  const query = `[out:json][timeout:20];(${selectors});out center 80;`
-  /* the public Overpass instances rate-limit independently: rotate on failure */
-  const MIRRORS = [
-    'https://overpass-api.de/api/interpreter',
-    'https://overpass.kumi.systems/api/interpreter',
-    'https://overpass.private.coffee/api/interpreter',
-  ]
-  let data = null
-  for (const url of MIRRORS) {
-    try {
-      const r = await fetch(url, {
-        method: 'POST',
-        headers: { 'content-type': 'application/x-www-form-urlencoded' },
-        body: 'data=' + encodeURIComponent(query),
-      })
-      if (!r.ok) continue
-      data = await r.json()
-      break
-    } catch { /* next mirror */ }
-  }
-  if (!data) throw new Error('overpass')
-  const seen = new Set()
-  const out = (data.elements ?? [])
-    .map((el) => ({
-      id: `osm-${el.type}-${el.id}`,
-      name: el.tags?.name,
-      lat: el.lat ?? el.center?.lat,
-      lng: el.lon ?? el.center?.lon,
-      cat: CAT_KEYS.find((c) =>
-        CATS[c].osm.some((sel) => {
-          const m = sel.match(/\[(\w+)=(\w+)\]/)
-          return m && el.tags?.[m[1]] === m[2]
-        })) ?? 'attraction',
-    }))
-    .filter((p) => p.name && p.lat != null && !seen.has(p.name) && seen.add(p.name))
-  cache.set(key, out)
-  return out
-}
 
 const poiIcon = (cat) =>
   L.divIcon({
@@ -118,57 +72,45 @@ const poiIcon = (cat) =>
 /* ---------- markers (inside the MapContainer) ---------- */
 
 export function PoiMarkers() {
-  const map = useMap()
-  const { enabled, source, cats, results } = usePoi()
+  const { enabled, source, cats } = usePoi()
   const trip = useTrip((s) => activeTrip(s))
   const insertItemAt = useTrip((s) => s.insertItemAt)
-  const debounce = useRef(null)
-
-  const load = () => {
-    if (!usePoi.getState().enabled || usePoi.getState().source !== 'all') return
-    if (map.getZoom() < 12) { usePoi.setState({ results: [], zoomHint: true }); return }
-    usePoi.setState({ zoomHint: false, loading: true })
-    const active = CAT_KEYS.filter((k) => usePoi.getState().cats[k])
-    fetchPois(map.getBounds(), active)
-      .then((r) => usePoi.setState({ results: r }))
-      .catch(() => toast('Ricerca luoghi non disponibile, riprova tra poco'))
-      .finally(() => usePoi.setState({ loading: false }))
-  }
-
-  useMapEvents({
-    moveend() {
-      clearTimeout(debounce.current)
-      debounce.current = setTimeout(load, 500)
-    },
-  })
-  useEffect(() => { load() /* on toggle/source/cats change */ }, [enabled, source, JSON.stringify(cats)]) // eslint-disable-line react-hooks/exhaustive-deps
+  const setFocusItem = useUI((s) => s.setFocusItem)
+  const setTab = useUI((s) => s.setTab)
 
   const markers = useMemo(() => {
     if (!enabled) return []
-    if (source === 'trip') {
-      return trip.days.flatMap((d) =>
-        d.items
-          .filter((it) => it.lat != null && ITEM_CAT[it.type])
-          .map((it) => ({ id: `t-${it.id}`, name: it.title, lat: it.lat, lng: it.lng, cat: ITEM_CAT[it.type], inTrip: true })),
-      ).filter((p) => cats[p.cat])
+    const out = []
+    if (source !== 'suggestions') {
+      trip.days.forEach((d, di) => {
+        for (const it of d.items) {
+          if (it.lat == null || it.type === 'drive' || it.type === 'info') continue
+          out.push({
+            id: `t-${it.id}`, name: it.title, lat: it.lat, lng: it.lng,
+            cat: classify(it.type, it.title), inTrip: true, itemId: it.id, dayIndex: di, color: d.color,
+          })
+        }
+      })
     }
-    if (source === 'suggestions') {
-      return trip.suggestions
-        .filter((s) => s.lat != null && ITEM_CAT[s.type])
-        .map((s) => ({ id: `s-${s.id}`, name: s.title, lat: s.lat, lng: s.lng, cat: ITEM_CAT[s.type], sug: true }))
-        .filter((p) => cats[p.cat])
+    if (source !== 'trip') {
+      /* an activated suggestion already shows as a trip stop: skip its double */
+      const activeSugs = new Set(trip.days.flatMap((d) => d.items.map((it) => it.sug).filter(Boolean)))
+      for (const s of trip.suggestions) {
+        if (s.lat == null || activeSugs.has(s.id)) continue
+        out.push({ id: `s-${s.id}`, name: s.title, lat: s.lat, lng: s.lng, cat: classify(s.type, s.title), sug: s })
+      }
     }
-    return results.filter((p) => cats[p.cat])
-  }, [enabled, source, cats, results, trip])
+    return out.filter((p) => cats[p.cat])
+  }, [enabled, source, cats, trip])
 
-  const addToTrip = (p) => {
-    const spot = bestInsertion(trip, p)
+  /* activating from the map mirrors the Consigli panel (tracked via item.sug) */
+  const addSugToTrip = (sug) => {
+    const spot = bestInsertion(trip, sug)
     if (!spot) return
     const dayIndex = trip.days.findIndex((d) => d.id === spot.dayId)
     insertItemAt(spot.dayId, spot.index, {
-      type: p.cat === 'restaurant' || p.cat === 'cafe' ? 'food' : p.cat === 'hotel' ? 'hotel' : 'activity',
-      title: p.name, time: '', dur: 60, notes: '', links: [], must: false, done: false,
-      lat: p.lat, lng: p.lng, imgs: [], noWiki: false, sug: null, price: 0,
+      type: sug.type, title: sug.title, time: '', dur: sug.dur, notes: sug.notes,
+      links: sug.links ?? [], must: !!sug.must, done: false, lat: sug.lat, lng: sug.lng, sug: sug.id,
     })
     toast(`Aggiunto al Giorno ${dayIndex + 1} nel punto ottimale del percorso`)
   }
@@ -179,10 +121,19 @@ export function PoiMarkers() {
       <Popup>
         <div className="min-w-40 max-w-56">
           <div className="font-display text-[13px] font-bold text-ink-900">{p.name}</div>
-          <div className="mt-0.5 text-[11px] text-ink-500">{CATS[p.cat].label}{p.inTrip ? ' · già nel viaggio' : p.sug ? ' · nei consigli' : ''}</div>
-          {!p.inTrip && (
+          <div className="mt-0.5 text-[11px] text-ink-500">
+            {CATS[p.cat].label}{p.inTrip ? ` · Giorno ${p.dayIndex + 1}` : ' · nei consigli'}
+          </div>
+          {p.inTrip ? (
             <button
-              onClick={() => addToTrip(p)}
+              onClick={() => { setFocusItem(p.itemId, p.color); if (window.innerWidth < 1024) setTab('itinerary') }}
+              className="mt-2 rounded-lg bg-ink-900 px-2.5 py-1.5 text-[11px] font-bold text-white transition hover:bg-ink-700"
+            >
+              Vedi nel programma
+            </button>
+          ) : (
+            <button
+              onClick={() => addSugToTrip(p.sug)}
               className="mt-2 inline-flex items-center gap-1 rounded-lg bg-brand-500 px-2.5 py-1.5 text-[11px] font-bold text-white transition hover:bg-brand-600"
             >
               <Plus size={11} strokeWidth={3} /> Aggiungi al viaggio
@@ -197,7 +148,8 @@ export function PoiMarkers() {
 /* ---------- control (overlay, next to the fit button) ---------- */
 
 export function PoiControl() {
-  const { enabled, source, cats, loading, zoomHint, toggle, setSource, toggleCat } = usePoi()
+  const { enabled, source, cats, toggle, setSource, toggleCat } = usePoi()
+  const nSuggestions = useTrip((s) => activeTrip(s)?.suggestions.length ?? 0)
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -219,7 +171,7 @@ export function PoiControl() {
           enabled ? 'border-violet-400 bg-white text-violet-700' : 'border-ink-200 bg-white/95 text-ink-700 hover:border-violet-400 hover:text-violet-600'
         }`}
       >
-        {loading ? <Loader2 size={14} className="animate-spin" /> : <MapPinned size={14} />}
+        <MapPinned size={14} />
         <span className="hidden sm:inline">Luoghi</span>
       </button>
 
@@ -269,9 +221,9 @@ export function PoiControl() {
             })}
           </div>
 
-          {zoomHint && source === 'all' && (
+          {source !== 'trip' && nSuggestions === 0 && (
             <p className="mt-2 rounded-lg bg-amber-50 px-2 py-1.5 text-[10.5px] font-semibold leading-snug text-amber-700">
-              Avvicina la mappa per scoprire i luoghi della zona
+              Nessun consiglio ancora: chiedi a Ulisse idee extra e le vedrai qui sulla mappa
             </p>
           )}
         </div>
