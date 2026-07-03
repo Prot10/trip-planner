@@ -193,7 +193,7 @@ export function createAgent(bridge, { mcpPort, auth }) {
         ? ['exec', 'resume', ...flags, '-c', 'sandbox_mode="read-only"', sessionId, text]
         : ['exec', ...flags, '--sandbox', 'read-only', '--cd', codexWorkspace(language), text]
 
-      console.log(`[codex] ${sessionId ? `resume ${sessionId.slice(0, 8)}…` : 'nuova sessione'} · modello ${pickCodexModel(model)}${model !== pickCodexModel(model) ? ` (richiesto: ${model})` : ''}`)
+      console.log(`[codex] ${sessionId ? `resume ${sessionId.slice(0, 8)}…` : 'new session'} · model ${pickCodexModel(model)}${model !== pickCodexModel(model) ? ` (requested: ${model})` : ''}`)
       let child
       try {
         child = spawn(CODEX_BIN, args, { stdio: ['ignore', 'pipe', 'pipe'] })
@@ -318,7 +318,7 @@ export function createAgent(bridge, { mcpPort, auth }) {
     clearTimeout(ghostTimer)
     ghostTimer = setTimeout(() => {
       if (active) {
-        console.log('[agent] nessuna scheda da 10s: interrompo il turno orfano')
+        console.log('[agent] no tab for 10s: aborting the orphaned turn')
         active.abort()
       }
     }, 10000)

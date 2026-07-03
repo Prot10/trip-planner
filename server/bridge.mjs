@@ -21,7 +21,7 @@ export function createBridge(httpServer) {
 
   wss.on('connection', (ws) => {
     tabs.add(ws)
-    console.log(`[bridge] scheda connessa (totale: ${tabs.size})`)
+    console.log(`[bridge] tab connected (total: ${tabs.size})`)
     tabBackHandler?.()
     ws.send(JSON.stringify({ type: 'hello', tabs: tabs.size }))
 
@@ -46,7 +46,7 @@ export function createBridge(httpServer) {
 
     const drop = () => {
       if (!tabs.delete(ws)) return
-      console.log(`[bridge] scheda disconnessa (rimaste: ${tabs.size})`)
+      console.log(`[bridge] tab disconnected (left: ${tabs.size})`)
       /* a vanished tab can never answer: fail its pending calls now instead
          of letting a blocked ask_user hold the turn hostage for minutes */
       if (tabs.size === 0) {
