@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import {
-  Palmtree, PlaneTakeoff, Download, Upload, RotateCcw, Plus, CarFront, MapPin,
+  Palmtree, PlaneTakeoff, Download, Upload, Plus, CarFront, MapPin,
   CalendarDays, Route, BedDouble, Fuel, Wallet, ChevronLeft, ChevronDown, UtensilsCrossed, Ticket, Receipt, Bot,
 } from 'lucide-react'
 import { useTrip, useUI, useRoutes, toast, activeTrip } from '../store'
@@ -16,10 +16,8 @@ export default function Header() {
   const trip = useTrip((s) => activeTrip(s))
   const setTitle = useTrip((s) => s.setTitle)
   const importTrip = useTrip((s) => s.importTrip)
-  const resetTrip = useTrip((s) => s.resetTrip)
   const closeTrip = useTrip((s) => s.closeTrip)
   const openDayEditor = useUI((s) => s.openDayEditor)
-  const ask = useUI((s) => s.ask)
   const roadKmByDay = useRoutes((s) => s.byDay)
   const fileRef = useRef(null)
 
@@ -132,17 +130,6 @@ export default function Header() {
           </button>
           <IconBtn title="Esporta itinerario (JSON)" onClick={onExport}><Download size={17} /></IconBtn>
           <IconBtn title="Importa itinerario" onClick={() => fileRef.current?.click()}><Upload size={17} /></IconBtn>
-          <IconBtn
-            title="Ripristina itinerario originale"
-            onClick={() =>
-              ask('Ripristinare l’itinerario originale California Coast & Parks? Le modifiche attuali andranno perse (puoi esportarle prima).', () => {
-                resetTrip()
-                toast('Itinerario ripristinato')
-              })
-            }
-          >
-            <RotateCcw size={17} />
-          </IconBtn>
           <input ref={fileRef} type="file" accept=".json,application/json" hidden onChange={onImportFile} />
         </div>
       </div>
