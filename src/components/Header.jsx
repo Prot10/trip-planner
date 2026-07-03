@@ -5,7 +5,7 @@ import {
 } from 'lucide-react'
 import { useTrip, useUI, useRoutes, toast, activeTrip } from '../store'
 import { useAgentChat } from '../agent/socket'
-import { tripStats, fmtDur, fmtKm, fmtMoney, dayDate, fmtDate, fuelCostUsd, costByType, tripUsesCar, GAS_UNITS } from '../lib/utils'
+import { tripStats, fmtDur, fmtKm, fmtMoney, dayDate, fmtDate, fuelCost, costByType, tripUsesCar, GAS_UNITS } from '../lib/utils'
 import { refreshFx } from '../lib/fx'
 import { getTitleImage } from './ItemImage'
 import { chainedDayCoords, estimateDayKm } from '../lib/geo'
@@ -36,7 +36,8 @@ export default function Header() {
     (s, l) => s + (roadKmByDay[l.dayId] ?? estimateDayKm(l.coords)), 0)
   const usesCar = tripUsesCar(trip)
   const costs = costByType(trip)
-  const fuelUsd = usesCar ? fuelCostUsd(totalKm, trip.car) : 0
+  const currency = trip.currency ?? 'USD'
+  const fuelUsd = usesCar ? fuelCost(totalKm, trip.car, currency) : 0
   const totalUsd = costs.items + fuelUsd
 
   const onExport = async () => {
@@ -111,13 +112,13 @@ export default function Header() {
               label="date"
             />
           )}
-          <BudgetBadge costs={costs} fuelUsd={fuelUsd} totalUsd={totalUsd} />
+          <BudgetBadge costs={costs} fuelUsd={fuelUsd} totalUsd={totalUsd} currency={currency} />
         </div>
 
         {/* actions */}
         <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
           <div className="xl:hidden">
-            <BudgetBadge costs={costs} fuelUsd={fuelUsd} totalUsd={totalUsd} compact />
+            <BudgetBadge costs={costs} fuelUsd={fuelUsd} totalUsd={totalUsd} currency={currency} compact />
           </div>
           <ChatToggle />
           {usesCar && <CarSettings />}
@@ -151,7 +152,7 @@ export default function Header() {
 }
 
 /* total-budget badge: hover or click reveals the category breakdown */
-function BudgetBadge({ costs, fuelUsd, totalUsd, compact }) {
+function BudgetBadge({ costs, fuelUsd, totalUsd, currency, compact }) {
   const [hover, setHover] = useState(false)
   const [pinned, setPinned] = useState(false)
   const ref = useRef(null)
@@ -191,7 +192,7 @@ function BudgetBadge({ costs, fuelUsd, totalUsd, compact }) {
       >
         <Wallet size={14} className="text-emerald-600" />
         <div className="leading-tight">
-          <div className="whitespace-nowrap text-[12.5px] font-bold text-emerald-800">{fmtMoney(totalUsd)}</div>
+          <div className="whitespace-nowrap text-[12.5px] font-bold text-emerald-800">{fmtMoney(totalUsd, currency)}</div>
           <div className="hidden text-[9.5px] font-medium uppercase tracking-wide text-emerald-600/70 sm:block">budget</div>
         </div>
         <ChevronDown size={12} className={`text-emerald-500 transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -208,7 +209,7 @@ function BudgetBadge({ costs, fuelUsd, totalUsd, compact }) {
                     <r.Icon size={14} />
                   </span>
                   <span className="flex-1 text-xs font-semibold text-ink-600">{r.label}</span>
-                  <span className="text-[13px] font-bold tabular-nums text-ink-900">{fmtMoney(r.v)}</span>
+                  <span className="text-[13px] font-bold tabular-nums text-ink-900">{fmtMoney(r.v, currency)}</span>
                 </div>
                 <div className="ml-9.5 mt-1 h-1 overflow-hidden rounded-full bg-ink-100">
                   <div className={`h-full rounded-full ${r.bar}`} style={{ width: `${(r.v / totalUsd) * 100}%` }} />
@@ -221,7 +222,7 @@ function BudgetBadge({ costs, fuelUsd, totalUsd, compact }) {
               <Wallet size={14} />
             </span>
             <span className="flex-1 text-xs font-bold uppercase tracking-wide text-ink-700">Totale</span>
-            <span className="font-display text-[15px] font-extrabold tabular-nums text-emerald-700">{fmtMoney(totalUsd)}</span>
+            <span className="font-display text-[15px] font-extrabold tabular-nums text-emerald-700">{fmtMoney(totalUsd, currency)}</span>
           </div>
           <p className="mt-2 text-[10.5px] leading-snug text-ink-400">
             Carburante stimato dai km reali del percorso e dai dati della tua auto (icona auto qui sopra).

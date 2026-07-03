@@ -4,12 +4,13 @@ import { CSS } from '@dnd-kit/utilities'
 import {
   Clock, Timer, Star, Check, GripVertical, Pencil, Trash2, ExternalLink, Navigation, MapPinned,
 } from 'lucide-react'
-import { useTrip, useUI, toast } from '../store'
+import { useTrip, useUI, toast, activeTrip } from '../store'
 import { fmtDur, fmtMoney, gmapsUrl } from '../lib/utils'
 import { TYPE_META, itemMeta } from './typeMeta'
 import { ItemThumb } from './ItemImage'
 
 export default function ItemCard({ item, day, isLast, stopNumber }) {
+  const currency = useTrip((s) => activeTrip(s)?.currency ?? 'USD')
   const toggleDone = useTrip((s) => s.toggleDone)
   const removeItem = useTrip((s) => s.removeItem)
   const openEditor = useUI((s) => s.openEditor)
@@ -115,7 +116,7 @@ export default function ItemCard({ item, day, isLast, stopNumber }) {
               )}
               {item.price > 0 && (
                 <Chip className="bg-emerald-50 text-emerald-700 ring-emerald-600/20">
-                  {fmtMoney(item.price)}{item.type === 'hotel' ? '/notte' : ''}
+                  {fmtMoney(item.price, currency)}{item.type === 'hotel' ? '/notte' : ''}
                 </Chip>
               )}
               {item.must && (

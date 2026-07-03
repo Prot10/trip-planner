@@ -3,7 +3,7 @@ import {
   Palmtree, Plus, Copy, Trash2, Upload, MapPin, CalendarDays, CarFront, ChevronRight, Route, Wallet,
 } from 'lucide-react'
 import { useTrip, useUI, toast } from '../store'
-import { tripStats, fmtDur, dayDate, fmtDate, fmtKm, fmtMoney, costByType, fuelCostUsd } from '../lib/utils'
+import { tripStats, fmtDur, dayDate, fmtDate, fmtKm, fmtMoney, costByType, fuelCost } from '../lib/utils'
 import { chainedDayCoords, estimateDayKm } from '../lib/geo'
 import { internTripImages } from '../lib/imgdb'
 import { useItemImages } from './ItemImage'
@@ -151,7 +151,7 @@ function TripCard({ trip, onOpen, onDuplicate, onDelete }) {
   const d0 = dayDate(trip.startDate, 0)
   const dN = dayDate(trip.startDate, trip.days.length - 1)
   const km = chainedDayCoords(trip).reduce((s, l) => s + estimateDayKm(l.coords), 0)
-  const budget = costByType(trip).items + fuelCostUsd(km, trip.car)
+  const budget = costByType(trip).items + fuelCost(km, trip.car, trip.currency ?? 'USD')
 
   /* cover: first located, non-drive stop */
   const cover = trip.days.flatMap((d) => d.items).find((i) => i.lat != null && i.type !== 'drive')
@@ -190,7 +190,7 @@ function TripCard({ trip, onOpen, onDuplicate, onDelete }) {
           <span className="inline-flex items-center gap-1"><MapPin size={12} className="text-brand-500" /> {stats.stops} tappe</span>
           {stats.driveMin > 0 && <span className="inline-flex items-center gap-1"><CarFront size={12} className="text-brand-500" /> {fmtDur(stats.driveMin)}</span>}
           {km > 50 && <span className="inline-flex items-center gap-1"><Route size={12} className="text-brand-500" /> ~{fmtKm(km)}</span>}
-          {budget > 0 && <span className="inline-flex items-center gap-1 text-emerald-700"><Wallet size={12} /> ~{fmtMoney(budget)}</span>}
+          {budget > 0 && <span className="inline-flex items-center gap-1 text-emerald-700"><Wallet size={12} /> ~{fmtMoney(budget, trip.currency ?? 'USD')}</span>}
         </div>
       </div>
     </article>

@@ -8,7 +8,7 @@
 
 import { useTrip, useUI, useRoutes, activeTrip } from '../store'
 import { bestInsertion, searchPlaces, chainedDayCoords, estimateDayKm, estimateTravel } from '../lib/geo'
-import { dayDate, fmtDate, costByType, fuelCostUsd, uid, GAS_UNITS } from '../lib/utils'
+import { dayDate, fmtDate, costByType, fuelCost, uid, GAS_UNITS } from '../lib/utils'
 import { getPlaceImages } from '../components/ItemImage'
 
 export const WRITE_TOOLS = new Set([
@@ -125,8 +125,9 @@ const EXECUTORS = {
       transport: t.transport,
       brief: t.brief || undefined,
       notes: t.notes || undefined,
+      currency: t.currency ?? 'USD',
       car: { model: t.car.model || undefined, l_per_100km: t.car.lPer100, gas_price: t.car.gasPrice, gas_unit: t.car.gasUnit },
-      budget_usd: { ...costs, fuel: Math.round(fuelCostUsd(km, t.car)), total: Math.round(costs.items + fuelCostUsd(km, t.car)) },
+      budget: { ...costs, fuel: Math.round(fuelCost(km, t.car, t.currency ?? 'USD')), total: Math.round(costs.items + fuelCost(km, t.car, t.currency ?? 'USD')) },
       total_km: Math.round(km),
       days: t.days
         .map((d, i) => ({
@@ -293,6 +294,7 @@ const EXECUTORS = {
     if (a.title !== undefined) { detail.push({ field: 'titolo', from: t.title, to: a.title }); s.setTitle(a.title) }
     if (a.subtitle !== undefined) { detail.push({ field: 'sottotitolo', from: t.subtitle || '—', to: a.subtitle }); s.setSubtitle(a.subtitle) }
     if (a.transport !== undefined) { detail.push({ field: 'trasporto', from: t.transport, to: a.transport }); s.setTransport(a.transport) }
+    if (a.currency !== undefined) { detail.push({ field: 'valuta', from: t.currency ?? '—', to: a.currency }); s.setCurrency(a.currency) }
     if (a.start_date !== undefined) { detail.push({ field: 'partenza', from: t.startDate || '—', to: a.start_date }); s.setStartDate(a.start_date) }
     if (a.car_l_per_100km !== undefined) { detail.push({ field: 'consumo', from: `${t.car.lPer100} L/100km`, to: `${a.car_l_per_100km} L/100km` }); s.setCar({ lPer100: a.car_l_per_100km }) }
     if (a.car_model !== undefined) { detail.push({ field: 'auto', from: t.car.model || '—', to: a.car_model }); s.setCar({ model: a.car_model }) }
@@ -398,7 +400,10 @@ const EXECUTORS = {
   },
 
   report_progress(a) {
-    hooks.onProgress?.(a)
+    if (Array.isArray(a.steps) && a.steps.length) {
+      for (const step of a.steps) hooks.onProgress?.({ step, status: 'pending' })
+    }
+    if (a.step) hooks.onProgress?.(a)
     return { ok: true }
   },
 
@@ -409,14 +414,14 @@ const EXECUTORS = {
     if (!hooks.onAskUser) throw new Error('Interfaccia domande non disponibile.')
     if (notesPending) {
       throw new Error(
-        "Risposta precedente non ancora annotata: chiama PRIMA update_notes col taccuino completo aggiornato, POI rifai questa domanda con ask_user.",
+        "Risposta precedente non ancora annotata: chiama PRIMA update_notes col blocco note completo aggiornato, POI rifai questa domanda con ask_user.",
       )
     }
     return new Promise((resolve) =>
       hooks.onAskUser(a, (res) => {
         if (res?.ok) {
           notesPending = true
-          resolve({ ...res, promemoria: 'Aggiorna ORA il taccuino con update_notes includendo questa risposta, prima della prossima domanda.' })
+          resolve({ ...res, promemoria: 'Aggiorna ORA il blocco note con update_notes includendo questa risposta, prima della prossima domanda.' })
         } else {
           resolve(res)
         }

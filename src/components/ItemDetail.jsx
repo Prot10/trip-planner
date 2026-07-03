@@ -11,6 +11,7 @@ import Modal from './Modal'
 
 /* Read-only detail card: big photo carousel + all the item's info */
 export default function ItemDetail() {
+  const currency = useTrip((s) => activeTrip(s)?.currency ?? 'USD')
   const detail = useUI((s) => s.detail)
   const closeDetail = useUI((s) => s.closeDetail)
   const openEditor = useUI((s) => s.openEditor)
@@ -91,7 +92,7 @@ export default function ItemDetail() {
           {item.dur > 0 && <Chip className="bg-blue-50 text-blue-700 ring-blue-600/20"><Timer size={11} /> {fmtDur(item.dur)}</Chip>}
           {item.price > 0 && (
             <Chip className="bg-emerald-50 text-emerald-700 ring-emerald-600/20">
-              {item.type === 'hotel' && <BedDouble size={11} />} {fmtMoney(item.price)}{item.type === 'hotel' ? '/notte' : ''}
+              {item.type === 'hotel' && <BedDouble size={11} />} {fmtMoney(item.price, currency)}{item.type === 'hotel' ? '/notte' : ''}
             </Chip>
           )}
           {item.must && (

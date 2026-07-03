@@ -85,6 +85,7 @@ export const TOOL_DEFS = [
       subtitle: z.string().optional(),
       start_date: z.string().optional(),
       transport: z.enum(['car', 'walk', 'transit', 'mixed']).optional(),
+      currency: z.enum(['USD', 'EUR']).optional().describe('valuta del viaggio: tutti i prezzi sono espressi in questa valuta'),
       car_model: z.string().optional(),
       car_l_per_100km: z.number().positive().optional(),
       car_gas_price: z.number().positive().optional(),
@@ -106,8 +107,8 @@ export const TOOL_DEFS = [
   {
     name: 'update_notes',
     description:
-      "Il tuo TACCUINO per questo viaggio (memoria persistente, markdown, sostituisce il contenuto precedente). Aggiornalo dopo OGNI risposta dell'utente in intervista (sezioni: Destinazione, Date, Viaggiatori, Mezzo, Stile e interessi, Budget, Alloggi, Vincoli) e dopo ogni decisione importante in pianificazione. Ti viene sempre re-iniettato: è la tua memoria tra i turni.",
-    schema: { notes: z.string().describe('contenuto completo del taccuino in markdown') },
+      "Il tuo BLOCCO NOTE per questo viaggio (memoria persistente, markdown, sostituisce il contenuto precedente). Aggiornalo dopo OGNI risposta dell'utente in intervista (sezioni: Destinazione, Date, Viaggiatori, Mezzo, Stile e interessi, Budget, Alloggi, Vincoli) e dopo ogni decisione importante in pianificazione. Ti viene sempre re-iniettato: è la tua memoria tra i turni.",
+    schema: { notes: z.string().describe('contenuto completo del blocco note in markdown') },
   },
   {
     name: 'add_suggestion',
@@ -143,8 +144,14 @@ export const TOOL_DEFS = [
   },
   {
     name: 'report_progress',
-    description: "Aggiorna lo stepper di avanzamento visibile all'utente durante la pianificazione. Chiama con status 'start' quando inizi una macro-fase (titolo breve, max 6 parole, es. 'Ricerca zone e attrazioni') e con status 'done' sulla STESSA step quando la completi. Usalo generosamente: è l'unico feedback visivo durante il lavoro lungo.",
-    schema: { step: z.string(), status: z.enum(['start', 'done', 'error']), detail: z.string().optional() },
+    description:
+      "Lo stepper di avanzamento visibile all'utente. All'INIZIO della costruzione dichiara l'INTERO piano in una chiamata sola con `steps` (tutte le macro-fasi, status 'pending'). Poi, man mano che lavori, chiama con la singola `step`: status 'start' quando la apri, 'done' sulla STESSA step quando la chiudi. Niente passi a sorpresa: se serve una fase nuova aggiungila con 'pending' prima di iniziarla. È l'unico feedback visivo durante il lavoro lungo.",
+    schema: {
+      step: z.string().optional().describe('titolo breve della fase, max 6 parole'),
+      status: z.enum(['pending', 'start', 'done', 'error']).optional(),
+      detail: z.string().optional(),
+      steps: z.array(z.string()).optional().describe("dichiarazione iniziale: TUTTE le fasi del piano, in ordine"),
+    },
   },
   {
     name: 'estimate_travel',

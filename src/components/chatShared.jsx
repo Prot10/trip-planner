@@ -28,7 +28,7 @@ export const TOOL_META = {
   toggle_suggestion: { Icon: Sparkles, label: (a, r) => r?.action === 'removed' ? `Consiglio rimosso: ${r.title}` : `Consiglio attivato: ${r?.title ?? ''}` },
   add_suggestion: { Icon: Sparkles, label: (a) => `Nuovo consiglio: ${a.title ?? ''}` },
   remove_suggestion: { Icon: Sparkles, label: () => 'Consiglio eliminato' },
-  update_notes: { Icon: NotebookPen, label: () => 'Taccuino aggiornato' },
+  update_notes: { Icon: NotebookPen, label: () => 'Blocco note aggiornato' },
   set_trip_brief: { Icon: ListChecks, label: () => 'Brief del viaggio salvato' },
   start_planning: { Icon: Sparkles, label: () => 'Apertura del planner' },
   estimate_travel: { Icon: Route, label: (a) => `Stima spostamento (${a.mode ?? ''})` },
@@ -52,7 +52,7 @@ const GROUP_LABELS = {
   checklist_add: (n) => `${n} voci in checklist`,
   add_suggestion: (n) => `${n} nuovi consigli`,
   get_trip: (n) => `${n} letture del viaggio`,
-  update_notes: (n) => `Taccuino aggiornato ${n} volte`,
+  update_notes: (n) => `Blocco note aggiornato ${n} volte`,
 }
 
 /* collapse consecutive same-tool messages into groups for rendering */

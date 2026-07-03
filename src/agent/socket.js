@@ -115,6 +115,7 @@ export const useAgentChat = create((set, get) => ({
       sessionId: get().sessionId,
       mode: phase === 'interview' ? 'interview' : 'planner',
       notes: trip?.notes ?? '',
+      currency: trip?.currency ?? 'USD',
     })
   },
 
@@ -134,6 +135,7 @@ export const useAgentChat = create((set, get) => ({
       sessionId: get().sessionId,
       mode: trip?.phase === 'interview' ? 'interview' : 'planner',
       notes: trip?.notes ?? '',
+      currency: trip?.currency ?? 'USD',
     })
   },
 
@@ -242,6 +244,11 @@ hooks.onAskUser = (a, resolve) => {
       resolve,
     },
   })
+}
+
+/* dev-only handle for automated UI tests */
+if (import.meta.env.DEV && typeof window !== 'undefined') {
+  window.__stores = { useAgentChat, useTrip }
 }
 
 let ws = null

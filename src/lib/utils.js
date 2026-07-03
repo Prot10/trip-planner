@@ -48,8 +48,9 @@ export function gmapsUrl(lat, lng) {
   return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
 }
 
-export function fmtMoney(v) {
-  return '$' + Math.round(v).toLocaleString('it-IT')
+export function fmtMoney(v, currency = 'USD') {
+  const n = Math.round(v).toLocaleString('it-IT')
+  return currency === 'EUR' ? `${n} €` : '$' + n
 }
 
 export function fmtKm(v) {
@@ -63,11 +64,13 @@ export const GAS_UNITS = {
   eur_l: { label: '€ / litro', short: '€/L', toUsdPerLiter: (p) => p * eurUsd() },
 }
 
-/* fuel cost from car settings: L/100km consumption + pump price in any unit */
-export function fuelCostUsd(km, car) {
+/* fuel cost from car settings, in the trip currency: L/100km consumption +
+   pump price in any unit (converted through the live EUR/USD rate) */
+export function fuelCost(km, car, currency = 'USD') {
   const liters = (km / 100) * (car?.lPer100 || 0)
   const unit = GAS_UNITS[car?.gasUnit] ?? GAS_UNITS.usd_gal
-  return liters * unit.toUsdPerLiter(car?.gasPrice || 0)
+  const usd = liters * unit.toUsdPerLiter(car?.gasPrice || 0)
+  return currency === 'EUR' ? usd / eurUsd() : usd
 }
 
 /* does this trip involve driving at all? (controls fuel badge + car settings) */
@@ -105,6 +108,8 @@ export function normalizeTrip(raw) {
   t.brief ||= ''
   t.notes ||= ''
   t.transport = ['car', 'walk', 'transit', 'mixed'].includes(t.transport) ? t.transport : 'car'
+  /* interview trips choose their currency before the first message */
+  t.currency = t.currency === 'EUR' || t.currency === 'USD' ? t.currency : t.phase === 'interview' ? null : 'USD'
   t.suggestions = Array.isArray(t.suggestions)
     ? t.suggestions.map((s) => ({
         id: s.id ?? uid(),

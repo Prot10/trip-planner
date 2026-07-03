@@ -25,6 +25,9 @@ export default function InterviewView() {
   const closeTrip = useTrip((s) => s.closeTrip)
   const setPhase = useTrip((s) => s.setPhase)
   const notes = useTrip((s) => activeTrip(s)?.notes ?? '')
+  const currency = useTrip((s) => activeTrip(s)?.currency ?? null)
+  const setCurrency = useTrip((s) => s.setCurrency)
+  const [currencyNudge, setCurrencyNudge] = useState(false)
   const [text, setText] = useState('')
   const [showNotesMobile, setShowNotesMobile] = useState(false)
   const scrollRef = useRef(null)
@@ -35,10 +38,20 @@ export default function InterviewView() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages, streamText, thinking, pendingQuestion])
 
+  const needCurrency = !currency && empty
+  const nudgeCurrency = () => {
+    setCurrencyNudge(true)
+    setTimeout(() => setCurrencyNudge(false), 1200)
+  }
   const submit = () => {
     if (!text.trim()) return
+    if (needCurrency) { nudgeCurrency(); return }
     send(text)
     setText('')
+  }
+  const sendStarter = (ex) => {
+    if (needCurrency) { nudgeCurrency(); return }
+    send(ex)
   }
 
   return (
@@ -57,7 +70,7 @@ export default function InterviewView() {
               onClick={() => setShowNotesMobile((v) => !v)}
               className="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[12px] font-bold text-violet-600 transition hover:bg-white/70 xl:hidden"
             >
-              <NotebookPen size={14} /> Taccuino
+              <NotebookPen size={14} /> Blocco note
             </button>
           )}
         </div>
@@ -88,7 +101,7 @@ export default function InterviewView() {
                   {STARTERS.map((ex) => (
                     <button
                       key={ex}
-                      onClick={() => send(ex)}
+                      onClick={() => sendStarter(ex)}
                       className="rounded-2xl border border-ink-200 bg-white/80 px-4 py-3 text-left text-[13px] font-medium text-ink-600 shadow-sm backdrop-blur transition hover:border-violet-300 hover:bg-white hover:shadow-md"
                     >
                       <Sparkles size={12} className="mr-1.5 inline text-violet-500" />
@@ -128,7 +141,7 @@ export default function InterviewView() {
         </div>
 
         {/* Ulisse's live notebook (desktop) */}
-        <div className="pointer-events-none absolute inset-y-2 right-4 hidden w-72 items-start xl:flex">
+        <div className="pointer-events-none absolute inset-y-2 right-4 hidden w-[clamp(19rem,24vw,28rem)] items-start xl:flex">
           <NotebookCard notes={notes} />
         </div>
         {/* mobile notebook sheet */}
@@ -155,7 +168,7 @@ export default function InterviewView() {
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit() }
               }}
               rows={Math.min(4, Math.max(1, text.split('\n').length))}
-              placeholder={pendingQuestion ? 'Rispondi alla domanda qui sopra' : connected ? 'Descrivi il viaggio che sogni…' : 'Assistente non connesso'}
+              placeholder={pendingQuestion ? 'Rispondi alla domanda qui sopra' : !connected ? 'Assistente non connesso' : needCurrency ? 'Scegli la valuta qui sotto, poi descrivi il viaggio che sogni…' : 'Descrivi il viaggio che sogni…'}
               disabled={!connected || !!pendingQuestion}
               className="max-h-32 min-h-10 w-full resize-none bg-transparent px-2 py-2 text-sm text-ink-800 outline-none placeholder:text-ink-300 disabled:opacity-50"
             />
@@ -178,8 +191,25 @@ export default function InterviewView() {
               </button>
             )}
             </div>
-            {/* the engine/model choice lives inside the composer, front and center */}
-            <div className="mt-1.5 flex justify-center border-t border-ink-100 pt-1.5">
+            {/* currency (required before the first message) + engine/model, inside the composer */}
+            <div className="relative mt-1.5 flex items-center justify-center border-t border-ink-100 pt-1.5">
+              <div
+                className={`absolute left-1 flex items-center gap-1 rounded-xl p-0.5 transition ${
+                  currencyNudge ? 'animate-bounce bg-rose-50 ring-2 ring-rose-300' : needCurrency ? 'bg-violet-50 ring-1 ring-violet-200' : ''
+                }`}
+              >
+                {[['EUR', '€ Euro'], ['USD', '$ Dollaro']].map(([code, label]) => (
+                  <button
+                    key={code}
+                    onClick={() => setCurrency(code)}
+                    className={`rounded-lg px-2 py-1 text-[11px] font-bold transition ${
+                      currency === code ? 'bg-violet-600 text-white shadow-sm' : 'text-ink-500 hover:bg-ink-100 hover:text-ink-800'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
               <ModelPicker up />
             </div>
           </div>
@@ -213,7 +243,7 @@ function NotebookCard({ notes, onClose }) {
       <div className="pointer-events-auto mt-10 w-full rounded-2xl border border-dashed border-violet-200 bg-white/60 p-4 text-center backdrop-blur">
         <NotebookPen size={18} className="mx-auto text-violet-300" />
         <p className="mt-2 text-[11.5px] font-semibold text-ink-400">
-          Il taccuino di Ulisse si compilerà qui, risposta dopo risposta
+          Il blocco note di Ulisse si compilerà qui, risposta dopo risposta
         </p>
       </div>
     )
@@ -227,10 +257,10 @@ function NotebookCard({ notes, onClose }) {
     >
       <div className="flex items-center gap-2 border-b border-ink-100 bg-gradient-to-r from-violet-50 to-brand-50/60 px-3.5 py-2.5">
         <NotebookPen size={14} className={`text-violet-600 transition-transform ${highlight ? 'animate-bounce' : ''}`} />
-        <p className="flex-1 text-[12px] font-bold text-ink-800">Il taccuino di Ulisse</p>
+        <p className="flex-1 text-[12px] font-bold text-ink-800">Il blocco note di Ulisse</p>
         {highlight && <span className="text-[10px] font-bold uppercase tracking-wide text-violet-500">sta scrivendo…</span>}
         {onClose && (
-          <button onClick={onClose} aria-label="Chiudi taccuino" className="grid size-6 place-items-center rounded text-ink-400 hover:bg-white">
+          <button onClick={onClose} aria-label="Chiudi blocco note" className="grid size-6 place-items-center rounded text-ink-400 hover:bg-white">
             <X size={13} />
           </button>
         )}

@@ -46,23 +46,27 @@ function pickCodexModel(model) {
   return list.find((m) => m.id === 'gpt-5.4')?.id ?? list[0].id
 }
 
-/* the trip notebook rides along on every turn: it's the agent's memory */
-const withNotes = (prompt, notes) =>
-  notes?.trim() ? `${prompt}\n\n## Il tuo taccuino per questo viaggio (memoria corrente)\n${notes}` : prompt
+/* notebook + currency ride along on every turn: the agent's working memory */
+const withNotes = (prompt, notes, currency) => {
+  let out = prompt
+  if (currency) out += `\n\n## Valuta del viaggio\nTutti i prezzi (tool e messaggi) in ${currency}.`
+  if (notes?.trim()) out += `\n\n## Il tuo blocco note per questo viaggio (memoria corrente)\n${notes}`
+  return out
+}
 
 export function createAgent(bridge, { mcpPort, auth }) {
   const tripServer = createTripTools(bridge)
   let active = null // { abort() }
 
   /* ---------- Claude (Agent SDK) ---------- */
-  async function runClaude(text, { model, sessionId, mode, notes }) {
+  async function runClaude(text, { model, sessionId, mode, notes, currency }) {
     const abort = new AbortController()
     active = { abort: () => abort.abort() }
     try {
       const q = query({
         prompt: text,
         options: {
-          systemPrompt: withNotes(mode === 'interview' ? INTERVIEW_PROMPT : PLANNER_PROMPT, notes),
+          systemPrompt: withNotes(mode === 'interview' ? INTERVIEW_PROMPT : PLANNER_PROMPT, notes, currency),
           mcpServers: { trip: tripServer },
           tools: ['WebSearch', 'WebFetch'],
           allowedTools: [...TRIP_TOOL_NAMES, 'WebSearch', 'WebFetch'],
@@ -124,14 +128,17 @@ export function createAgent(bridge, { mcpPort, auth }) {
   }
 
   /* ---------- Codex (ChatGPT subscription) ---------- */
-  function runCodex(text, { model, sessionId, mode, notes }) {
+  function runCodex(text, { model, sessionId, mode, notes, currency }) {
     /* Codex reads AGENTS.md (planner persona); interview rules ride along
        with the first message of an interview chat, the notebook every turn */
     if (mode === 'interview' && !sessionId) {
       text = `<istruzioni_fase_intervista>\n${INTERVIEW_PROMPT}\n</istruzioni_fase_intervista>\n\nMessaggio dell'utente: ${text}`
     }
     if (notes?.trim()) {
-      text = `<taccuino_viaggio>\n${notes}\n</taccuino_viaggio>\n\n${text}`
+      text = `<blocco_note_viaggio>\n${notes}\n</blocco_note_viaggio>\n\n${text}`
+    }
+    if (currency) {
+      text = `<valuta_viaggio>${currency} — tutti i prezzi in questa valuta</valuta_viaggio>\n\n${text}`
     }
     return new Promise((resolve) => {
       /* `exec resume` only takes --json/-m/-c flags (before the session id):

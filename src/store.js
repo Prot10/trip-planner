@@ -70,6 +70,7 @@ export const useTrip = create(
       setTitle: (title) => set((s) => upd(s, (t) => ({ ...t, title: title.trim() || 'Il mio viaggio' }))),
       setStartDate: (startDate) => set((s) => upd(s, (t) => ({ ...t, startDate }))),
       setCar: (patch) => set((s) => upd(s, (t) => ({ ...t, car: { ...t.car, ...patch } }))),
+      setCurrency: (currency) => set((s) => upd(s, (t) => ({ ...t, currency }))),
 
       /* ---------- days ---------- */
       addDay: (data) =>
@@ -193,7 +194,7 @@ export const useTrip = create(
     }),
     {
       name: 'tripplanner.v2',
-      version: 8,
+      version: 9,
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({ trips: s.trips, activeId: s.activeId }),
       migrate: (persisted, fromVersion) => {
