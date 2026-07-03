@@ -9,6 +9,7 @@ import { z } from 'zod'
 
 const ITEM_TYPES = z.enum(['activity', 'drive', 'food', 'hotel', 'info'])
 const TRANSPORT = z.enum(['car', 'walk', 'bus', 'train', 'plane', 'boat'])
+const CATEGORY = z.enum(['attraction', 'museum', 'restaurant', 'cafe', 'hotel', 'park'])
 
 export const TOOL_DEFS = [
   {
@@ -36,6 +37,7 @@ export const TOOL_DEFS = [
       links: z.array(z.object({ label: z.string(), url: z.string() })).optional(),
       must_see: z.boolean().optional(),
       transport_mode: TRANSPORT.optional().describe('solo per type=drive: mezzo dello spostamento'),
+      category: CATEGORY.optional().describe('categoria del luogo (badge e filtro mappa)'),
     },
   },
   {
@@ -55,6 +57,7 @@ export const TOOL_DEFS = [
       must_see: z.boolean().optional(),
       done: z.boolean().optional(),
       transport_mode: TRANSPORT.optional().describe('solo per type=drive: mezzo dello spostamento'),
+      category: CATEGORY.optional().describe('categoria del luogo (badge e filtro mappa)'),
     },
   },
   { name: 'remove_activity', description: "Elimina un'attività dal viaggio.", schema: { item_id: z.string() } },
@@ -117,6 +120,7 @@ export const TOOL_DEFS = [
     schema: {
       title: z.string(),
       type: z.enum(['activity', 'food', 'hotel']).optional(),
+      category: CATEGORY.describe('categoria del luogo, SEMPRE obbligatoria: appare come badge e filtra la mappa'),
       duration_min: z.number().int().min(0).optional(),
       notes: z.string().describe('perché vale la pena, in 1-2 frasi'),
       lat: z.number(),
