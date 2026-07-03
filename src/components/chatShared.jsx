@@ -301,7 +301,7 @@ const CODEX_NOTES_IT = {
   'gpt-5.4-mini': 'rapido ed economico',
 }
 
-export function ModelPicker() {
+export function ModelPicker({ up = false }) {
   const engine = useAgentChat((s) => s.engine)
   const models = useAgentChat((s) => s.models)
   const select = useAgentChat((s) => s.select)
@@ -362,7 +362,11 @@ export function ModelPicker() {
       </button>
 
       {open && (
-        <div className="anim-fade-up absolute left-0 top-[calc(100%+6px)] z-40 w-72 rounded-2xl border border-ink-200 bg-white p-2 shadow-xl">
+        <div
+          className={`anim-fade-up absolute z-40 w-72 rounded-2xl border border-ink-200 bg-white p-2 shadow-xl ${
+            up ? 'bottom-[calc(100%+6px)] left-1/2 -translate-x-1/2' : 'left-0 top-[calc(100%+6px)]'
+          }`}
+        >
           {engines.map((e) => (
             <div key={e.id} className="mb-1 last:mb-0">
               <p className="flex items-baseline gap-1.5 px-2 pb-1 pt-1.5 text-[10px] font-bold uppercase tracking-wider text-ink-400">

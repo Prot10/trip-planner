@@ -60,9 +60,6 @@ export default function InterviewView() {
               <NotebookPen size={14} /> Taccuino
             </button>
           )}
-          <div className="rounded-xl bg-white/70 px-1 py-0.5 backdrop-blur">
-            <ModelPicker />
-          </div>
         </div>
       </div>
 
@@ -149,7 +146,8 @@ export default function InterviewView() {
         }`}
       >
         <div className="pointer-events-auto mx-auto max-w-2xl px-4 pb-4">
-          <div className="flex items-end gap-2 rounded-2xl border border-ink-200 bg-white p-2 shadow-lg">
+          <div className="rounded-2xl border border-ink-200 bg-white p-2 shadow-lg">
+            <div className="flex items-end gap-2">
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
@@ -179,6 +177,11 @@ export default function InterviewView() {
                 <Send size={15} />
               </button>
             )}
+            </div>
+            {/* the engine/model choice lives inside the composer, front and center */}
+            <div className="mt-1.5 flex justify-center border-t border-ink-100 pt-1.5">
+              <ModelPicker up />
+            </div>
           </div>
           <p className="mt-2 text-center text-[11px] text-ink-400">
             L'itinerario si crea solo conversando con Ulisse ·{' '}
