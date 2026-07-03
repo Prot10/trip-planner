@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Map as MapIcon, ListChecks, CalendarRange, Sparkles, Bot } from 'lucide-react'
 import { useUI, useTrip, useRoutes, activeTrip } from './store'
 import { connectAgent, useAgentChat } from './agent/socket'
@@ -40,6 +40,19 @@ export default function App() {
   const setChatOpen = useAgentChat((s) => s.setOpen)
   useEffect(() => { connectAgent() }, [])
 
+  /* the floating header's real bottom edge drives map-overlay offsets */
+  const hdrRef = useRef(null)
+  useEffect(() => {
+    const el = hdrRef.current
+    if (!el) return
+    const apply = () => document.documentElement.style.setProperty('--hdr-b', `${Math.round(el.getBoundingClientRect().bottom) + 12}px`)
+    apply()
+    const ro = new ResizeObserver(apply)
+    ro.observe(el)
+    window.addEventListener('resize', apply)
+    return () => { ro.disconnect(); window.removeEventListener('resize', apply) }
+  })
+
   /* resizable panels (desktop): itinerary column + floating chat */
   const [leftW, startLeftDrag] = useDragWidth('ui.leftW', 600, 440, 820, false)
   const [chatW, startChatDrag] = useDragWidth('ui.chatW', 420, 340, 640, true)
@@ -72,7 +85,7 @@ export default function App() {
 
   return (
     <div className="flex h-full flex-col">
-      <Header />
+      <div ref={hdrRef}><Header /></div>
 
       <main className="relative z-10 flex min-h-0 flex-1 lg:pointer-events-none" style={{ '--left-w': `${leftW + 12}px` }}>
         {/* map — full-viewport background on desktop (under the floating header), its own tab on mobile */}

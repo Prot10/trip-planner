@@ -279,7 +279,7 @@ export default function MapPanel() {
       <button
         onClick={() => setMapFilter(null)}
         title="Inquadra tutto il viaggio"
-        className="absolute bottom-6 left-3 z-[500] flex items-center gap-2 rounded-xl border border-ink-200 bg-white/95 px-3.5 py-2.5 text-xs font-bold text-ink-700 shadow-lg backdrop-blur transition hover:border-brand-400 hover:text-brand-600 lg:left-[calc(0.75rem+var(--left-w,0px))]"
+        className="absolute bottom-6 left-3 z-[500] flex items-center gap-2 rounded-xl border border-ink-200 bg-white/95 px-3.5 py-2.5 text-xs font-bold text-ink-700 shadow-lg backdrop-blur transition hover:border-brand-400 hover:text-brand-600 lg:bottom-3 lg:left-[calc(0.75rem+var(--left-w,0px))]"
       >
         <Maximize2 size={14} />
         <span className="hidden sm:inline">Inquadra viaggio</span>
@@ -492,7 +492,7 @@ function SearchOverlay({ place, setPlace, dir, setDir, route, routing, dirPick, 
   }
 
   return (
-    <div className="absolute right-[calc(0.75rem+var(--chat-w,0px))] top-3 z-[520] w-80 max-w-[calc(100vw-24px)] transition-[right] duration-200 lg:top-[84px]">
+    <div className="absolute right-[calc(0.75rem+var(--chat-w,0px))] top-3 z-[520] w-80 max-w-[calc(100vw-24px)] transition-[right] duration-200 lg:top-[var(--hdr-b,96px)]">
       <div className="nice-scroll max-h-[calc(100dvh-150px)] overflow-y-auto rounded-2xl border border-ink-200 bg-white shadow-lg">
         {!dir.open ? (
           /* --- simple place search --- */
