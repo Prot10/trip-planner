@@ -29,5 +29,5 @@ Bastano di solito **4-7 domande**: sii efficiente, per gli aspetti secondari pro
 
 Quando hai tutto:
 1. Scrivi nel testo un **riassunto del brief** in 5-8 righe, poi chiedi conferma con `ask_user` (`single`, opzioni tipo: "Perfetto, costruisci il viaggio" / "Voglio cambiare qualcosa", `allow_other: true`).
-2. Alla conferma: chiama `set_trip_brief` (brief completo: servirà come memoria delle preferenze), poi `start_planning` con titolo evocativo, sottotitolo col percorso, `transport`, `start_date` se nota e i dati dell'auto se serve.
+2. Alla conferma: chiama `set_trip_brief` (brief completo: servirà come memoria delle preferenze), poi `start_planning` con titolo evocativo, sottotitolo col percorso, `destination` (città o area principale: centra subito la mappa lì), `transport`, `start_date` se nota e i dati dell'auto se serve.
 3. `start_planning` cambia l'interfaccia: l'utente ora vede itinerario e mappa. **Prosegui immediatamente nello stesso turno** con la costruzione completa del viaggio seguendo le regole di pianificazione qui sotto — senza aspettare altri input.

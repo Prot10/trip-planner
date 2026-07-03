@@ -136,6 +136,7 @@ export const TOOL_DEFS = [
     schema: {
       title: z.string().describe('titolo evocativo del viaggio'),
       subtitle: z.string().optional().describe('sintesi del percorso, es. "Roma → Firenze → Venezia · 5 giorni"'),
+      destination: z.string().describe('città o area principale del viaggio, es. "Tokyo, Giappone": centra subito la mappa lì'),
       transport: z.enum(['car', 'walk', 'transit', 'mixed']),
       start_date: z.string().optional().describe('YYYY-MM-DD'),
       car_l_per_100km: z.number().positive().optional(),

@@ -386,7 +386,7 @@ const EXECUTORS = {
     }
   },
 
-  start_planning(a) {
+  async start_planning(a) {
     const s = useTrip.getState()
     if (a.title) s.setTitle(a.title)
     if (a.subtitle) s.setSubtitle(a.subtitle)
@@ -394,6 +394,14 @@ const EXECUTORS = {
     if (a.start_date) s.setStartDate(a.start_date)
     if (a.car_l_per_100km) s.setCar({ lPer100: a.car_l_per_100km })
     if (a.car_gas_usd_per_gal) s.setCar({ gasPrice: a.car_gas_usd_per_gal, gasUnit: 'usd_gal' })
+    /* anchor the map on the destination before the planner view mounts,
+       so it never opens on the previous default while the trip is empty */
+    if (a.destination) {
+      try {
+        const hit = (await searchPlaces(a.destination))[0]
+        if (hit) s.setCenter({ lat: hit.lat, lng: hit.lng })
+      } catch { /* no anchor: the map fits as soon as stops appear */ }
+    }
     s.setPhase('active')
     hooks.onStartPlanning?.()
     return { ok: true, note: "Planner aperto: l'utente ora vede itinerario e mappa. Prosegui con la pianificazione completa usando report_progress ad ogni fase." }

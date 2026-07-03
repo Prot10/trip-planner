@@ -110,6 +110,9 @@ export function normalizeTrip(raw) {
   t.transport = ['car', 'walk', 'transit', 'mixed'].includes(t.transport) ? t.transport : 'car'
   /* interview trips choose their currency before the first message */
   t.currency = t.currency === 'EUR' || t.currency === 'USD' ? t.currency : t.phase === 'interview' ? null : 'USD'
+  /* map anchor for the chosen destination (set at start_planning, before any stop exists) */
+  t.center = typeof t.center?.lat === 'number' && typeof t.center?.lng === 'number'
+    ? { lat: t.center.lat, lng: t.center.lng } : null
   t.suggestions = Array.isArray(t.suggestions)
     ? t.suggestions.map((s) => ({
         id: s.id ?? uid(),

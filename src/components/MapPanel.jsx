@@ -11,7 +11,7 @@ import { fetchRoadRoute, searchPlaces, fetchDirections, bestInsertion, haversine
 import { MODE_META } from './typeMeta'
 import { PoiMarkers, PoiControl } from './PoiLayer'
 
-const CA_CENTER = [36.5, -120.5]
+const WORLD_CENTER = [30, 10] // neutral fallback: no stops and no destination yet
 
 const fmtMin = (min) => {
   const h = Math.floor(min / 60)
@@ -158,7 +158,12 @@ export default function MapPanel() {
       style={{ '--chat-w': `${chatShift ? chatShift + 12 : 0}px` }}
       className={`relative h-full w-full ${picking ? '[&_.leaflet-container]:cursor-crosshair' : ''}`}
     >
-      <MapContainer center={CA_CENTER} zoom={6} zoomControl={false} className="h-full w-full">
+      <MapContainer
+        center={trip.center ? [trip.center.lat, trip.center.lng] : WORLD_CENTER}
+        zoom={trip.center ? 11 : 3}
+        zoomControl={false}
+        className="h-full w-full"
+      >
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -167,6 +172,9 @@ export default function MapPanel() {
         />
         <MapAutosize />
         <MapRef mapRef={mapRef} />
+        {/* empty trip with a chosen destination: stay centered there (also
+            covers the trip switch and start_planning while already mounted) */}
+        <CenterOnDestination center={trip.center} hasStops={layersAll.some((l) => l.points.length > 0)} tripId={trip.id} />
         {/* re-fit when the filter changes OR the trip's anchor point moves
             (e.g. the agent starts building a brand-new destination) */}
         <FitOnChange
@@ -421,6 +429,17 @@ function MapAutosize() {
     ro.observe(el)
     return () => ro.disconnect()
   }, [map])
+  return null
+}
+
+/* while the itinerary has no located stop, keep the view on the destination
+   chosen in the interview instead of a stale default */
+function CenterOnDestination({ center, hasStops, tripId }) {
+  const map = useMap()
+  useEffect(() => {
+    if (!hasStops && center) map.setView([center.lat, center.lng], 11)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tripId, center?.lat, center?.lng, hasStops, map])
   return null
 }
 
