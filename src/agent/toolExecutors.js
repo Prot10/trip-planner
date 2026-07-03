@@ -18,6 +18,11 @@ export const WRITE_TOOLS = new Set([
   'add_suggestion', 'remove_suggestion',
 ])
 
+/* an answered question the agent hasn't written to the notebook yet:
+   the next ask_user is refused until update_notes runs (models forget
+   soft reminders; a hard tool error is impossible to ignore) */
+let notesPending = false
+
 /* callbacks registered by socket.js (avoids a module cycle) */
 export const hooks = { onProgress: null, onStartPlanning: null, onAskUser: null, onNotebook: null }
 
@@ -341,6 +346,7 @@ const EXECUTORS = {
 
   /* the agent's per-trip notebook: full-replace markdown memory */
   update_notes(a) {
+    notesPending = false
     useTrip.getState().setNotes(a.notes ?? '')
     hooks.onNotebook?.()
     return { ok: true }
@@ -396,10 +402,26 @@ const EXECUTORS = {
     return { ok: true }
   },
 
-  /* interactive question card: resolves when the user answers in the UI */
+  /* interactive question card: resolves when the user answers in the UI.
+     The reminder rides on every result: the model updates the notebook far
+     more reliably when nudged in-band than by the system prompt alone. */
   ask_user(a) {
     if (!hooks.onAskUser) throw new Error('Interfaccia domande non disponibile.')
-    return new Promise((resolve) => hooks.onAskUser(a, resolve))
+    if (notesPending) {
+      throw new Error(
+        "Risposta precedente non ancora annotata: chiama PRIMA update_notes col taccuino completo aggiornato, POI rifai questa domanda con ask_user.",
+      )
+    }
+    return new Promise((resolve) =>
+      hooks.onAskUser(a, (res) => {
+        if (res?.ok) {
+          notesPending = true
+          resolve({ ...res, promemoria: 'Aggiorna ORA il taccuino con update_notes includendo questa risposta, prima della prossima domanda.' })
+        } else {
+          resolve(res)
+        }
+      }),
+    )
   },
 
   async estimate_travel(a) {
