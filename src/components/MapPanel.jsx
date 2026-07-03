@@ -89,27 +89,31 @@ export default function MapPanel() {
     let first = null
     let last = null
     let pendingMode = null
+    let pendingDriveId = null
     days.forEach((day, dayIndex) => {
       for (const it of day.items) {
-        if (it.type === 'drive') { pendingMode = it.mode ?? defaultMode; continue }
+        if (it.type === 'drive') { pendingMode = it.mode ?? defaultMode; pendingDriveId = it.id; continue }
         if (it.lat == null) continue
-        const stop = { coord: [it.lat, it.lng], dayId: day.id, title: it.title }
+        const stop = { coord: [it.lat, it.lng], dayId: day.id, title: it.title, id: it.id }
         if (last) {
           out.push({
             id: `${day.id}|${out.length}`, from: last.coord, to: stop.coord, dayId: day.id,
             dayN: dayIndex + 1, mode: pendingMode ?? defaultMode, fromTitle: last.title, toTitle: stop.title,
+            driveId: pendingDriveId, toId: stop.id,
           })
         } else {
           first = stop
         }
         last = stop
         pendingMode = null
+        pendingDriveId = null
       }
     })
     if (first && last && out.length > 0 && (first.coord[0] !== last.coord[0] || first.coord[1] !== last.coord[1])) {
       out.push({
         id: `${first.dayId}|wrap`, from: last.coord, to: first.coord, dayId: first.dayId,
         dayN: 1, mode: defaultMode, fromTitle: last.title, toTitle: first.title, wrap: true,
+        driveId: null, toId: first.id,
       })
     }
     return out
@@ -304,6 +308,8 @@ export default function MapPanel() {
 /* click details for a route leg: mode, stops, real distance and duration */
 function LegPopup({ leg, road, color }) {
   const meta = MODE_META[leg.mode] ?? MODE_META.car
+  const setFocusItem = useUI((s) => s.setFocusItem)
+  const setTab = useUI((s) => s.setTab)
   const km = road?.km ?? haversineKm(leg.from, leg.to)
   return (
     <div className="min-w-44 max-w-60">
@@ -326,6 +332,15 @@ function LegPopup({ leg, road, color }) {
         {road?.min ? <span className="font-semibold text-ink-500"> · ~{fmtMin(road.min)}</span> : null}
         {!road && <span className="font-medium text-ink-400"> in linea d'aria</span>}
       </div>
+      <button
+        onClick={() => {
+          setFocusItem(leg.driveId ?? leg.toId, color)
+          if (window.innerWidth < 1024) setTab('itinerary')
+        }}
+        className="mt-2 rounded-lg bg-ink-900 px-2.5 py-1.5 text-[11px] font-bold text-white transition hover:bg-ink-700"
+      >
+        Vedi nel programma
+      </button>
     </div>
   )
 }
