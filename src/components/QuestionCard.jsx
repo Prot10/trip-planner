@@ -112,15 +112,22 @@ export default function QuestionCard() {
   )
 }
 
-/* transcript record of an answered question */
+/* transcript record of an answered question: question + chosen answers, one block */
 export function QARecord({ m }) {
+  const answers = m.answers ?? (m.text ? m.text.split(' · ') : [])
   return (
-    <div className="mb-3">
-      <p className="text-[11.5px] font-semibold text-ink-400">{m.question}</p>
-      <div className="mt-1 flex justify-end">
-        <span className="rounded-2xl rounded-br-md bg-violet-100 px-3 py-1.5 text-[12.5px] font-semibold text-violet-800">
-          {m.text}
-        </span>
+    <div className="mb-2.5 rounded-xl border border-violet-100 bg-violet-50/40 px-3 py-2">
+      <p className="flex items-start gap-1.5 text-[11.5px] font-semibold leading-snug text-violet-900/70">
+        <CircleHelp size={12} className="mt-px shrink-0 text-violet-400" />
+        {m.question}
+      </p>
+      <div className="mt-1.5 flex flex-wrap gap-1.5 pl-[18px]">
+        {answers.map((a, i) => (
+          <span key={i} className="inline-flex items-center gap-1.5 rounded-lg bg-white px-2 py-1 text-[12px] font-semibold text-violet-800 ring-1 ring-violet-200">
+            <Check size={11} strokeWidth={3} className="text-violet-500" />
+            {a}
+          </span>
+        ))}
       </div>
     </div>
   )

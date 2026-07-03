@@ -41,6 +41,10 @@ export default function Markdown({ text }) {
 
 /* ---------- text blocks ---------- */
 
+const isTableRow = (l) => /^\s*\|.*\|\s*$/.test(l)
+const isTableSep = (l) => /^\s*\|?[\s:-]+\|[\s|:-]*$/.test(l) && l.includes('-')
+const splitRow = (l) => l.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim())
+
 function Blocks({ text }) {
   const lines = text.split('\n')
   const blocks = []
@@ -48,8 +52,25 @@ function Blocks({ text }) {
 
   const closeList = () => { if (list) { blocks.push(list); list = null } }
 
-  for (const raw of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i]
     const line = raw.trimEnd()
+
+    /* markdown table: header row + separator + body rows */
+    if (isTableRow(line) && isTableSep(lines[i + 1] ?? '')) {
+      closeList()
+      const header = splitRow(line)
+      const rows = []
+      i += 2
+      while (i < lines.length && isTableRow(lines[i])) {
+        rows.push(splitRow(lines[i]))
+        i++
+      }
+      i--
+      blocks.push({ type: 'table', header, rows })
+      continue
+    }
+
     const bullet = line.match(/^\s*[-*]\s+(.*)/)
     const number = line.match(/^\s*\d+[.)]\s+(.*)/)
     const heading = line.match(/^(#{1,3})\s+(.*)/)
@@ -74,6 +95,30 @@ function Blocks({ text }) {
 
   return blocks.map((b, i) => {
     if (b.type === 'gap') return <div key={i} className="h-2" />
+    if (b.type === 'table') {
+      return (
+        <div key={i} className="nice-scroll mb-2 mt-1 overflow-x-auto rounded-xl ring-1 ring-ink-200">
+          <table className="w-full border-collapse text-[12px]">
+            <thead>
+              <tr className="bg-ink-50">
+                {b.header.map((h, j) => (
+                  <th key={j} className="whitespace-nowrap px-3 py-2 text-left font-bold text-ink-700">{inline(h)}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-ink-100">
+              {b.rows.map((r, j) => (
+                <tr key={j} className="transition-colors hover:bg-brand-50/40">
+                  {r.map((c, k) => (
+                    <td key={k} className="px-3 py-1.5 align-top leading-snug text-ink-600">{inline(c)}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )
+    }
     if (b.type === 'heading') {
       return <p key={i} className="mb-1 mt-2 text-[13px] font-bold text-ink-900">{inline(b.text)}</p>
     }

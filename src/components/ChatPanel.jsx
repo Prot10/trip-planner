@@ -10,48 +10,7 @@ import { useTrip, useUI, activeTrip } from '../store'
 import Markdown from './Markdown'
 import PlanningStepper from './PlanningStepper'
 import QuestionCard, { QARecord } from './QuestionCard'
-
-const TOOL_META = {
-  get_trip: { Icon: Route, label: () => 'Lettura del viaggio' },
-  get_route_info: { Icon: Route, label: () => 'Lettura percorso e km' },
-  get_place_images: { Icon: Camera, label: () => 'Ricerca foto del luogo' },
-  add_activity: { Icon: MapPin, label: (a) => `Aggiunta: ${a.title ?? 'attività'}` },
-  update_activity: { Icon: Pencil, label: (a, r) => `Modifica: ${r?.title ?? a.title ?? 'attività'}` },
-  remove_activity: { Icon: Trash2, label: (a, r) => `Rimozione: ${r?.removed ?? 'attività'}` },
-  move_activity: { Icon: MapPin, label: (a, r) => `Spostamento: ${r?.title ?? 'attività'}` },
-  add_day: { Icon: CalendarPlus, label: (a) => `Nuovo giorno: ${a.title ?? ''}` },
-  update_day: { Icon: Pencil, label: (a) => `Modifica giorno ${a.day_number ?? ''}` },
-  remove_day: { Icon: Trash2, label: (a) => `Eliminazione giorno ${a.day_number ?? ''}` },
-  move_day: { Icon: CalendarPlus, label: (a) => `Spostamento giorno ${a.day_number ?? ''}` },
-  set_trip_meta: { Icon: Settings2, label: () => 'Impostazioni viaggio' },
-  checklist_add: { Icon: ListChecks, label: (a) => `Checklist: ${a.text ?? ''}` },
-  checklist_toggle: { Icon: ListChecks, label: () => 'Checklist aggiornata' },
-  checklist_remove: { Icon: ListChecks, label: () => 'Voce checklist rimossa' },
-  search_places: { Icon: Search, label: (a) => `Ricerca luogo: ${a.query ?? ''}` },
-  list_suggestions: { Icon: Sparkles, label: () => 'Lettura tappe consigliate' },
-  toggle_suggestion: { Icon: Sparkles, label: (a, r) => r?.action === 'removed' ? `Consiglio rimosso: ${r.title}` : `Consiglio attivato: ${r?.title ?? ''}` },
-  WebSearch: { Icon: Globe, label: (a) => `Ricerca web: ${a.query ?? ''}` },
-  WebFetch: { Icon: Globe, label: () => 'Lettura pagina web' },
-  web_search: { Icon: Globe, label: (a) => `Ricerca web: ${a.query ?? ''}` },
-  set_trip_brief: { Icon: ListChecks, label: () => 'Brief del viaggio salvato' },
-  start_planning: { Icon: Sparkles, label: () => 'Apertura del planner' },
-  estimate_travel: { Icon: Route, label: (a) => `Stima spostamento (${a.mode ?? ''})` },
-}
-
-const MODELS = [
-  { id: 'sonnet', label: 'Sonnet' },
-  { id: 'opus', label: 'Opus' },
-  { id: 'haiku', label: 'Haiku' },
-]
-
-const prettyModel = (m) => {
-  if (!m) return null
-  if (m === 'codex') return 'GPT (Codex)'
-  if (m.includes('opus')) return 'Opus'
-  if (m.includes('sonnet')) return 'Sonnet'
-  if (m.includes('haiku')) return 'Haiku'
-  return m
-}
+import { TOOL_META, groupMessages, ToolChipGroup, SetupCard, ModelPicker, AgentAvatar } from './chatShared'
 
 const EXAMPLES = [
   'Aggiungi una cena romantica a Monterey la sera del giorno 2',
@@ -62,8 +21,8 @@ const EXAMPLES = [
 
 export default function ChatPanel({ onClose }) {
   const {
-    connected, thinking, messages, streamText, undoReady, edits, showEdits, model, modelChoice, engine, pendingQuestion,
-    send, stop, newChat, undoAll, setShowEdits, setModelChoice, setEngine,
+    connected, thinking, messages, streamText, undoReady, edits, showEdits, pendingQuestion,
+    send, stop, newChat, undoAll, setShowEdits,
   } = useAgentChat()
   const [text, setText] = useState('')
   const [showHistory, setShowHistory] = useState(false)
@@ -85,43 +44,11 @@ export default function ChatPanel({ onClose }) {
     <div className="flex h-full min-h-0 flex-col bg-white">
       {/* header */}
       <div className="flex items-center gap-2.5 border-b border-ink-200 px-4 py-3">
-        <div className="relative grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-brand-500 text-white shadow-md shadow-violet-500/25">
-          <Bot size={18} />
-          <span
-            className={`absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full ring-2 ring-white ${
-              connected ? 'bg-emerald-500' : 'bg-ink-300'
-            }`}
-            title={connected ? 'Connesso' : 'Server non raggiungibile'}
-          />
-        </div>
+        <AgentAvatar connected={connected} />
         <div className="min-w-0 flex-1">
-          <h3 className="font-display text-[14px] font-bold text-ink-900">Assistente di viaggio</h3>
-          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-ink-400">
-            {/* engine switch */}
-            <div className="flex overflow-hidden rounded-md ring-1 ring-ink-200">
-              {['claude', 'codex'].map((e) => (
-                <button
-                  key={e}
-                  onClick={() => setEngine(e)}
-                  className={`px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide transition ${
-                    engine === e ? 'bg-violet-600 text-white' : 'bg-white text-ink-400 hover:text-ink-600'
-                  }`}
-                >
-                  {e === 'claude' ? 'Claude' : 'Codex'}
-                </button>
-              ))}
-            </div>
-            {engine === 'claude' && (
-              <select
-                value={modelChoice}
-                onChange={(e) => setModelChoice(e.target.value)}
-                title="Modello (dal tuo abbonamento)"
-                className="cursor-pointer appearance-none rounded bg-transparent font-bold text-violet-600 outline-none hover:text-violet-700"
-              >
-                {MODELS.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
-              </select>
-            )}
-            {model && <span className="truncate text-ink-300">in uso: {prettyModel(model)}</span>}
+          <h3 className="font-display text-[14px] font-bold text-ink-900">Marco Polo</h3>
+          <div className="-ml-2 flex items-center">
+            <ModelPicker />
           </div>
         </div>
         <div className="relative">
@@ -179,7 +106,7 @@ export default function ChatPanel({ onClose }) {
         )}
 
         <PlanningStepper />
-        {messages.map((m) => <Message key={m.id} m={m} />)}
+        {groupMessages(messages).map((m) => <Message key={m.id} m={m} />)}
 
         {streamText && (
           <div className="mb-3 max-w-[95%] text-[13px] leading-relaxed text-ink-800">
@@ -481,16 +408,8 @@ function Message({ m }) {
     )
   }
   if (m.role === 'qa') return <QARecord m={m} />
-  if (m.role === 'tool') {
-    const meta = TOOL_META[m.name] ?? { Icon: Wrench, label: () => m.name }
-    return (
-      <div className="mb-2 flex">
-        <span className="inline-flex items-center gap-1.5 rounded-lg bg-ink-100 px-2.5 py-1 text-[11px] font-semibold text-ink-500 ring-1 ring-ink-500/10">
-          <meta.Icon size={11} className="text-brand-500" /> {meta.label(m.args ?? {}, null)}
-        </span>
-      </div>
-    )
-  }
+  if (m.role === 'setup') return <SetupCard engine={m.engine} error={m.text} />
+  if (m.role === 'toolgroup') return <ToolChipGroup group={m} />
   return (
     <div className="mb-3 flex items-start gap-2 rounded-xl bg-rose-50 px-3 py-2 text-[12px] leading-snug text-rose-700 ring-1 ring-rose-200">
       <TriangleAlert size={13} className="mt-0.5 shrink-0" />
