@@ -4,7 +4,9 @@ import {
 } from '@dnd-kit/core'
 import { Plus } from 'lucide-react'
 import { useTrip, useUI, activeTrip } from '../store'
+import { useAgentChat } from '../agent/socket'
 import DayCard from './DayCard'
+import BuildingGlobe from './BuildingGlobe'
 import { ItemCardGhost } from './ItemCard'
 
 export default function ItineraryPanel() {
@@ -12,6 +14,7 @@ export default function ItineraryPanel() {
   const relocateItem = useTrip((s) => s.relocateItem)
   const openDayEditor = useUI((s) => s.openDayEditor)
   const [activeItem, setActiveItem] = useState(null)
+  const building = useAgentChat((s) => s.thinking) && days.every((d) => d.items.length === 0)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -62,13 +65,14 @@ export default function ItineraryPanel() {
       onDragCancel={() => setActiveItem(null)}
     >
       <div className="mx-auto flex max-w-2xl flex-col gap-4">
+        {building && <BuildingGlobe />}
         {days.map((day, i) => (
           <DayCard key={day.id} day={day} index={i} total={days.length} />
         ))}
 
         <button
           onClick={() => openDayEditor(null)}
-          className="mb-2 flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-ink-300 py-4 font-display text-sm font-bold text-ink-400 transition hover:border-brand-400 hover:bg-brand-50/50 hover:text-brand-600"
+          className={`mb-2 flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-ink-300 py-4 font-display text-sm font-bold text-ink-400 transition hover:border-brand-400 hover:bg-brand-50/50 hover:text-brand-600 ${building ? 'hidden' : ''}`}
         >
           <Plus size={18} strokeWidth={2.6} />
           Aggiungi un giorno
