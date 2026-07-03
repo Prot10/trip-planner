@@ -9,6 +9,7 @@ import { spawn } from 'node:child_process'
 import { readFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { homedir } from 'node:os'
 import { createTripTools, TRIP_TOOL_NAMES } from './tools.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -22,7 +23,28 @@ const LOCAL_CODEX = join(__dirname, '..', 'node_modules', '.bin', 'codex')
 export const CODEX_BIN = existsSync(LOCAL_CODEX) ? LOCAL_CODEX : 'codex'
 const MAX_TURNS = 100
 const CLAUDE_MODELS = new Set(['sonnet', 'opus', 'haiku'])
-const CODEX_MODELS = new Set(['gpt-5.1-codex-max', 'gpt-5.1-codex', 'gpt-5.1-codex-mini'])
+/* the model slugs OpenAI accepts for ChatGPT accounts change over time:
+   read them from the CLI's own cache so the app never goes stale again */
+const CODEX_FALLBACK = [
+  { id: 'gpt-5.5', label: 'GPT-5.5' },
+  { id: 'gpt-5.4', label: 'GPT-5.4' },
+  { id: 'gpt-5.4-mini', label: 'GPT-5.4 Mini' },
+]
+function codexModels() {
+  try {
+    const cache = JSON.parse(readFileSync(join(homedir(), '.codex', 'models_cache.json'), 'utf8'))
+    const list = (cache.models ?? [])
+      .filter((m) => m.visibility === 'list' && m.slug)
+      .map((m) => ({ id: m.slug, label: m.display_name || m.slug, note: m.description || '' }))
+    if (list.length) return list
+  } catch { /* cache missing: first run or CLI never used */ }
+  return CODEX_FALLBACK
+}
+function pickCodexModel(model) {
+  const list = codexModels()
+  if (list.some((m) => m.id === model)) return model
+  return list.find((m) => m.id === 'gpt-5.4')?.id ?? list[0].id
+}
 
 /* the trip notebook rides along on every turn: it's the agent's memory */
 const withNotes = (prompt, notes) =>
@@ -117,7 +139,7 @@ export function createAgent(bridge, { mcpPort, auth }) {
       const flags = [
         '--json',
         '--skip-git-repo-check',
-        '-m', CODEX_MODELS.has(model) ? model : 'gpt-5.1-codex',
+        '-m', pickCodexModel(model),
         '-c', `mcp_servers.trip.url="http://127.0.0.1:${mcpPort}/mcp"`,
         '-c', 'mcp_servers.trip.tool_timeout_sec=900',
         '-c', 'tools.web_search=true',
@@ -126,6 +148,7 @@ export function createAgent(bridge, { mcpPort, auth }) {
         ? ['exec', 'resume', ...flags, '-c', 'sandbox_mode="read-only"', sessionId, text]
         : ['exec', ...flags, '--sandbox', 'read-only', '--cd', CODEX_WORKSPACE, text]
 
+      console.log(`[codex] ${sessionId ? `resume ${sessionId.slice(0, 8)}…` : 'nuova sessione'} · modello ${pickCodexModel(model)}${model !== pickCodexModel(model) ? ` (richiesto: ${model})` : ''}`)
       let child
       try {
         child = spawn(CODEX_BIN, args, { stdio: ['ignore', 'pipe', 'pipe'] })
@@ -159,6 +182,7 @@ export function createAgent(bridge, { mcpPort, auth }) {
       })
       child.on('close', (code) => {
         if (code !== 0 && !sawMessage) {
+          console.error(`[codex] uscito con codice ${code}: ${stderr.trim().slice(-300)}`)
           const isAuth = /login|auth/i.test(stderr)
           bridge.broadcast({
             type: 'agent_error',
@@ -187,6 +211,7 @@ export function createAgent(bridge, { mcpPort, auth }) {
         }
         if (ev.type === 'error' && ev.message) {
           if (/retrying \d/.test(ev.message)) return // transient retries: stay quiet
+          console.error(`[codex] errore: ${String(ev.message).slice(0, 200)}`)
           lastError = fmtCodexError(ev.message)
           sawMessage = true
           const isAuth = /login|not supported.*ChatGPT|auth/i.test(ev.message)
@@ -246,6 +271,8 @@ export function createAgent(bridge, { mcpPort, auth }) {
       runTurn({ ...msg, text: msg.text.trim() })
     } else if (msg.type === 'stop') {
       active?.abort()
+    } else if (msg.type === 'models_get') {
+      bridge.broadcast({ type: 'codex_models', models: codexModels() })
     }
   })
 }

@@ -287,19 +287,41 @@ const ENGINES = [
     name: 'ChatGPT',
     note: 'abbonamento Plus (Codex)',
     models: [
-      { id: 'gpt-5.1-codex', label: 'Codex', note: 'equilibrato — consigliato' },
-      { id: 'gpt-5.1-codex-max', label: 'Codex Max', note: 'il più capace' },
-      { id: 'gpt-5.1-codex-mini', label: 'Codex Mini', note: 'rapido ed economico' },
+      { id: 'gpt-5.5', label: 'GPT-5.5', note: 'il più capace' },
+      { id: 'gpt-5.4', label: 'GPT-5.4', note: 'equilibrato — consigliato' },
+      { id: 'gpt-5.4-mini', label: 'GPT-5.4 Mini', note: 'rapido ed economico' },
     ],
   },
 ]
+
+/* Italian one-liners for known slugs; unknown ones keep the CLI description */
+const CODEX_NOTES_IT = {
+  'gpt-5.5': 'il più capace',
+  'gpt-5.4': 'equilibrato — consigliato',
+  'gpt-5.4-mini': 'rapido ed economico',
+}
 
 export function ModelPicker() {
   const engine = useAgentChat((s) => s.engine)
   const models = useAgentChat((s) => s.models)
   const select = useAgentChat((s) => s.select)
+  const codexModels = useAgentChat((s) => s.codexModels)
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
+
+  /* the ChatGPT column mirrors whatever the CLI currently supports */
+  const engines = ENGINES.map((e) =>
+    e.id === 'codex' && codexModels?.length
+      ? {
+          ...e,
+          models: codexModels.map((m) => ({
+            id: m.id,
+            label: m.label ?? m.id,
+            note: CODEX_NOTES_IT[m.id] ?? (m.note ? m.note.slice(0, 60) : ''),
+          })),
+        }
+      : e,
+  )
 
   useEffect(() => {
     if (!open) return
@@ -310,7 +332,7 @@ export function ModelPicker() {
     return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey) }
   }, [open])
 
-  const eng = ENGINES.find((e) => e.id === engine)
+  const eng = engines.find((e) => e.id === engine)
   const model = eng.models.find((m) => m.id === models[engine]) ?? eng.models[0]
 
   return (
@@ -329,7 +351,7 @@ export function ModelPicker() {
 
       {open && (
         <div className="anim-fade-up absolute left-0 top-[calc(100%+6px)] z-40 w-72 rounded-2xl border border-ink-200 bg-white p-2 shadow-xl">
-          {ENGINES.map((e) => (
+          {engines.map((e) => (
             <div key={e.id} className="mb-1 last:mb-0">
               <p className="flex items-baseline gap-1.5 px-2 pb-1 pt-1.5 text-[10px] font-bold uppercase tracking-wider text-ink-400">
                 <span className={`size-1.5 translate-y-[-1px] rounded-full ${e.id === 'claude' ? 'bg-brand-500' : 'bg-emerald-500'}`} />

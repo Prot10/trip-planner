@@ -32,7 +32,8 @@ export const useChats = create(
 )
 
 const CLAUDE_MODELS = ['sonnet', 'opus', 'haiku']
-const CODEX_MODELS = ['gpt-5.1-codex-max', 'gpt-5.1-codex', 'gpt-5.1-codex-mini']
+/* fallback until the server sends the CLI's real list (codex_models event) */
+const CODEX_MODELS = ['gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini']
 const storedFor = (engine, fallback, valid) => {
   const v = localStorage.getItem(`agent.model.${engine}`)
   return valid.includes(v) ? v : fallback
@@ -48,8 +49,9 @@ export const useAgentChat = create((set, get) => ({
   engine: localStorage.getItem('agent.engine') === 'codex' ? 'codex' : 'claude',
   models: {
     claude: storedFor('claude', 'sonnet', CLAUDE_MODELS),
-    codex: storedFor('codex', 'gpt-5.1-codex', CODEX_MODELS),
+    codex: storedFor('codex', 'gpt-5.4', CODEX_MODELS),
   },
+  codexModels: null,            // [{id,label,note}] from the CLI cache, via the server
   chatId: null,                   // active saved-chat id
   sessionId: null,                // engine session/thread to resume
   edits: [],                      // per-turn write log: { id, name, args, result, undo, detail, reverted }
@@ -79,7 +81,7 @@ export const useAgentChat = create((set, get) => ({
   setShowEdits: (showEdits) => set({ showEdits }),
   /* explicit engine+model selection: nothing is ever picked at random */
   select(engine, model) {
-    const valid = engine === 'codex' ? CODEX_MODELS : CLAUDE_MODELS
+    const valid = engine === 'codex' ? (get().codexModels?.map((m) => m.id) ?? CODEX_MODELS) : CLAUDE_MODELS
     const m = valid.includes(model) ? model : valid.includes(get().models[engine]) ? get().models[engine] : valid[1] ?? valid[0]
     localStorage.setItem('agent.engine', engine)
     localStorage.setItem(`agent.model.${engine}`, m)
@@ -291,6 +293,17 @@ function handleEvent(msg) {
       if (msg.auth) push({ role: 'setup', engine: msg.auth, text: msg.error })
       else push({ role: 'error', text: msg.error })
       break
+    case 'codex_models': {
+      /* the CLI's currently valid slugs: heal a stale saved selection */
+      const list = Array.isArray(msg.models) ? msg.models.filter((m) => m?.id) : []
+      if (!list.length) break
+      useAgentChat.setState({ codexModels: list })
+      const cur = useAgentChat.getState().models.codex
+      const good = list.some((m) => m.id === cur) ? cur : list.find((m) => m.id === 'gpt-5.4')?.id ?? list[0].id
+      localStorage.setItem('agent.model.codex', good)
+      if (good !== cur) useAgentChat.setState((s) => ({ models: { ...s.models, codex: good } }))
+      break
+    }
     case 'auth_event': {
       const cur = useAgentChat.getState().auth
       if (msg.engine !== cur.engine && msg.phase !== 'done') break
@@ -337,7 +350,10 @@ export function connectAgent() {
     scheduleRetry()
     return
   }
-  ws.onopen = () => useAgentChat.setState({ connected: true })
+  ws.onopen = () => {
+    useAgentChat.setState({ connected: true })
+    sendWs({ type: 'models_get' })
+  }
   ws.onmessage = (e) => {
     try { handleEvent(JSON.parse(e.data)) } catch { /* ignore malformed frames */ }
   }

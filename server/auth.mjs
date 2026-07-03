@@ -25,7 +25,10 @@ function loadAuthFile() {
 export function createAuth(bridge, { codexBin }) {
   let flow = null // { engine, child, timer }
 
-  const send = (o) => bridge.broadcast({ type: 'auth_event', ...o })
+  const send = (o) => {
+    console.log(`[auth] ${o.engine} → ${o.phase}${o.error ? `: ${String(o.error).slice(0, 160)}` : ''}`)
+    bridge.broadcast({ type: 'auth_event', ...o })
+  }
 
   function endFlow() {
     if (!flow) return

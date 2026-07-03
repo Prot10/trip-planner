@@ -32,7 +32,7 @@ export function createBridge(httpServer) {
         resolve(msg)
         return
       }
-      if (msg.type === 'chat' || msg.type === 'stop' || msg.type === 'reset') {
+      if (msg.type === 'chat' || msg.type === 'stop' || msg.type === 'reset' || msg.type === 'models_get') {
         chatHandler?.(msg, ws)
       }
       if (msg.type?.startsWith('auth_')) {
