@@ -13,8 +13,20 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const AUTH_FILE = join(__dirname, '.auth.json')
+const AUTH_FILE = process.env.AUTH_FILE || join(__dirname, '.auth.json')
 const FLOW_TIMEOUT_MS = 5 * 60 * 1000
+
+/* prefer the project-pinned Claude Code CLI over whatever is on PATH,
+   so a fresh clone works with just `npm install` */
+const LOCAL_CLAUDE = join(__dirname, '..', 'node_modules', '.bin', 'claude')
+const CLAUDE_BIN = process.env.CLAUDE_BIN || (existsSync(LOCAL_CLAUDE) ? LOCAL_CLAUDE : 'claude')
+
+/* `script` lends the CLI a pty, but BSD (macOS) and util-linux (Linux)
+   disagree on the syntax */
+const ptyArgs = (cmd) =>
+  process.platform === 'linux'
+    ? ['-qec', cmd, '/dev/null']
+    : ['-q', '/dev/null', 'sh', '-c', cmd]
 
 const stripAnsi = (s) => s.replace(/\x1b\[[0-9;?]*[a-zA-Z]|\x1b\][^\x07]*\x07|\r/g, '')
 
@@ -96,7 +108,7 @@ export function createAuth(bridge, { codexBin }) {
        must be wide, or the pty wraps the OAuth URL across lines. */
     let child
     try {
-      child = spawn('script', ['-q', '/dev/null', 'sh', '-c', 'stty cols 500 2>/dev/null; exec claude setup-token'], {
+      child = spawn('script', ptyArgs(`stty cols 500 2>/dev/null; exec "${CLAUDE_BIN}" setup-token`), {
         stdio: ['pipe', 'pipe', 'pipe'],
       })
     } catch {
