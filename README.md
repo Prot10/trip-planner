@@ -19,7 +19,7 @@ Ships pre-loaded with a real 7-day / 6-night California loop (Pasadena → Big S
 - **A live notebook** — Ulisse takes structured notes after every single answer (enforced at the tool layer, not just prompted) and the notebook card fills in next to the chat in real time; it is re-injected on every turn as persistent per-trip memory, for both engines.
 - **Trip currency** — pick EUR or USD before the first message; every price in the app and in the agent's work uses it (the fuel estimate converts through a daily-refreshed exchange rate).
 - **@-mentions** — type `@` in the chat to tag any activity from a live-filtered menu: it becomes an inline chip and the agent receives the exact item id, so instructions like "move @Louvre after lunch" are unambiguous.
-- **Upfront plan** — when building starts, the whole todo-list appears immediately in a sticky stepper (pending → running → done), with a large animated globe in the itinerary while the first stops are being researched.
+- **Upfront plan** — when building starts, the whole todo-list appears immediately in a sticky stepper (pending → running → done), with a large animated globe in the itinerary while the first stops are being researched; the map opens already centered on the chosen destination.
 - **Multi-modal transport** — every transfer has a mode (car, walk, bus, train, plane, ferry) with its own icon; car/bus legs follow real roads, walking uses pedestrian routing, trains/flights/ferries are drawn as dashed lines; the fuel estimate only appears when a car is involved.
 - **In-app chat** (floating panel over the map on desktop, its own tab on mobile) with **two subscription-powered engines**: Claude (Agent SDK, Pro/Max login) and **Codex** (OpenAI Codex CLI, ChatGPT sign-in). No API keys. A custom system prompt turns them into travel-planning experts, restricted to 20+ purpose-built trip tools plus web search for fresh info (no file or shell access).
 - **One-click guided sign-in** — if an engine isn't connected, the chat shows a card with a single button: the local server runs the CLI login for you (the browser consent page opens by itself; Claude additionally asks to paste back a one-time code) and your message is retried automatically on success. A terminal fallback stays available.
@@ -37,11 +37,11 @@ Ships pre-loaded with a real 7-day / 6-night California loop (Pasadena → Big S
 - **Pre-trip checklist** with progress bar, seeded with the critical bookings and road-condition checks.
 
 ### Map
-- **One continuous round trip** — every day's leg starts where the previous one ended and the loop closes back at the origin, drawn on **real roads** (OSRM routing, cached locally) and color-coded per day with numbered pins.
+- **One continuous route** — every day's leg starts where the previous one ended, drawn on **real roads** (OSRM routing, cached locally) and color-coded per day with numbered pins. No leg is invented: the trip only loops back if the itinerary itself ends at the start (Ulisse asks whether you want a round trip or a one-way route).
 - **Place search** (Nominatim) with one-click *"Add to trip"* that inserts the stop **at the route-optimal position** — the gap that adds the fewest extra kilometres.
 - **Directions like Google Maps** — pick A and B by search, by clicking the map, or from any trip pin: blue route overlay, duration, distance and localized turn-by-turn steps, in a panel that expands with a smooth animation.
 - **Clickable route legs** — click any leg (solid or dashed) for a popup with the transport mode, day, endpoints, real distance and estimated duration, plus a *"show in itinerary"* jump that highlights the matching entry.
-- **Places discovery** — a "Luoghi" layer shows attractions, museums, restaurants, cafés, hotels and parks as category-colored pins (OpenStreetMap Overpass, free): pick the categories, filter by source (discovered / in the itinerary / suggestions) and add any place to the trip at the route-optimal point.
+- **Places layer** — a "Luoghi" layer shows the trip's stops and Ulisse's extra suggestions as category-colored pins (attractions, museums, restaurants, cafés, hotels, nature): pick the categories, filter by source (all / in the itinerary / suggestions) and activate any suggested place straight from its popup, inserted at the route-optimal point.
 - Per-day filtering, fly-to from any activity, and deep links into the real Google Maps for navigation.
 
 ### Budget
