@@ -8,7 +8,8 @@ import { useTrip, activeTrip, toast } from '../store'
 import { uid } from '../lib/utils'
 import { executeTool, applyUndoOp, WRITE_TOOLS, hooks } from './toolExecutors'
 
-const WS_URL = `ws://${location.hostname}:5200/agent`
+const AGENT_PORT = import.meta.env.VITE_AGENT_PORT ?? 5200
+const WS_URL = `ws://${location.hostname}:${AGENT_PORT}/agent`
 
 /* ---------- saved conversations, per trip ---------- */
 export const useChats = create(
