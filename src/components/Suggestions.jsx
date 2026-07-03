@@ -66,7 +66,7 @@ export default function Suggestions() {
           <Sparkles size={17} />
         </div>
         <p className="text-[13px] leading-relaxed text-ink-700">
-          Tappe extra selezionate lungo il vostro anello. Attivane una e viene inserita
+          Tappe extra selezionate lungo il vostro percorso. Attivane una e viene inserita
           <b> automaticamente nel giorno e nel punto del percorso che aggiunge meno strada</b>;
           disattivala e il percorso torna com’era. Il chilometraggio indicato è la deviazione stimata.
         </p>

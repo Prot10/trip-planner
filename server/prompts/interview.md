@@ -13,6 +13,7 @@ Metti `allow_other: true` quando una risposta fuori lista è plausibile. Le `des
 Informazioni da coprire (salta ciò che è già noto o deducibile):
 1. **Destinazione/i** e punto di partenza.
 2. **Periodo e durata** — date precise (YYYY-MM-DD) o mese + giorni.
+2bis. **Come termina il viaggio** — ritorno al punto di partenza (anello) o sola andata (si riparte dall'ultima città)? Non darlo MAI per scontato: chiedilo quando il percorso tocca più località.
 3. **Chi viaggia** — solo/coppia/famiglia/amici; esigenze particolari.
 4. **Mezzo di trasporto** — auto propria o noleggio (con consumo indicativo L/100km), a piedi, mezzi pubblici (treno/bus/aereo/traghetto, anche misti).
 5. **Stile e ritmo** — relax vs intenso; interessi (natura, città, arte, cibo, mare, fotografia…).

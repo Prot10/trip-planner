@@ -80,14 +80,14 @@ export default function MapPanel() {
     })
   }, [days])
 
-  /* one continuous round trip broken into LEGS between consecutive located
-     stops; each leg carries the transport mode of the drive item between
-     them (car/bus → real roads, walk → foot routing, train/plane/boat →
-     straight dashed). The wrap leg closes the loop back to the start. */
+  /* the itinerary broken into LEGS between consecutive located stops; each
+     leg carries the transport mode of the drive item between them (car/bus →
+     real roads, walk → foot routing, train/plane/boat → straight dashed).
+     No implicit return leg: a round trip only closes if the itinerary itself
+     ends where it started (Ulisse asks the user how the trip should end). */
   const legs = useMemo(() => {
     const defaultMode = trip.transport === 'walk' ? 'walk' : 'car'
     const out = []
-    let first = null
     let last = null
     let pendingMode = null
     let pendingDriveId = null
@@ -102,21 +102,12 @@ export default function MapPanel() {
             dayN: dayIndex + 1, mode: pendingMode ?? defaultMode, fromTitle: last.title, toTitle: stop.title,
             driveId: pendingDriveId, toId: stop.id,
           })
-        } else {
-          first = stop
         }
         last = stop
         pendingMode = null
         pendingDriveId = null
       }
     })
-    if (first && last && out.length > 0 && (first.coord[0] !== last.coord[0] || first.coord[1] !== last.coord[1])) {
-      out.push({
-        id: `${first.dayId}|wrap`, from: last.coord, to: first.coord, dayId: first.dayId,
-        dayN: 1, mode: defaultMode, fromTitle: last.title, toTitle: first.title, wrap: true,
-        driveId: null, toId: first.id,
-      })
-    }
     return out
   }, [days, trip.transport])
 
@@ -331,7 +322,6 @@ function LegPopup({ leg, road, color }) {
         <span className="font-semibold text-ink-800">{leg.fromTitle}</span>
         {' → '}
         <span className="font-semibold text-ink-800">{leg.toTitle}</span>
-        {leg.wrap && <span className="block text-[10.5px] text-ink-400">Chiusura dell'anello verso il punto di partenza</span>}
       </div>
       <div className="mt-1.5 text-[12px] font-bold text-ink-900">
         {fmtKm(km)}
