@@ -93,7 +93,21 @@ export function normalizeTrip(raw) {
   t.startDate ||= ''
   t.phase = t.phase === 'interview' ? 'interview' : 'active'
   t.brief ||= ''
+  t.notes ||= ''
   t.transport = ['car', 'walk', 'transit', 'mixed'].includes(t.transport) ? t.transport : 'car'
+  t.suggestions = Array.isArray(t.suggestions)
+    ? t.suggestions.map((s) => ({
+        id: s.id ?? uid(),
+        title: s.title ?? '',
+        type: ['activity', 'food', 'hotel'].includes(s.type) ? s.type : 'activity',
+        dur: Number(s.dur) || 60,
+        notes: s.notes ?? '',
+        lat: typeof s.lat === 'number' ? s.lat : null,
+        lng: typeof s.lng === 'number' ? s.lng : null,
+        must: !!s.must,
+        links: Array.isArray(s.links) ? s.links : [],
+      }))
+    : []
   t.car = {
     lPer100: Number(t.car?.lPer100) || 8.5,
     gasPerGal: Number(t.car?.gasPerGal) || 4.8,

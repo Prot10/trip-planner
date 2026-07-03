@@ -39,6 +39,9 @@ export const useTrip = create(
       },
       setPhase: (phase) => set((s) => upd(s, (t) => ({ ...t, phase }))),
       setBrief: (brief) => set((s) => upd(s, (t) => ({ ...t, brief }))),
+      setNotes: (notes) => set((s) => upd(s, (t) => ({ ...t, notes }))),
+      addSuggestion: (sug) => set((s) => upd(s, (t) => ({ ...t, suggestions: [...t.suggestions, sug] }))),
+      removeSuggestion: (id) => set((s) => upd(s, (t) => ({ ...t, suggestions: t.suggestions.filter((x) => x.id !== id) }))),
       setTransport: (transport) => set((s) => upd(s, (t) => ({ ...t, transport }))),
       setSubtitle: (subtitle) => set((s) => upd(s, (t) => ({ ...t, subtitle }))),
       deleteTrip: (id) =>
@@ -190,7 +193,7 @@ export const useTrip = create(
     }),
     {
       name: 'tripplanner.v2',
-      version: 6,
+      version: 7,
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({ trips: s.trips, activeId: s.activeId }),
       migrate: (persisted, fromVersion) => {
@@ -222,6 +225,15 @@ export const useTrip = create(
                 if (it.type === 'hotel' && !it.price) it.price = LEGACY_HOTEL_PRICES[di] ?? 0
               })
             })
+          }
+        }
+        if (fromVersion < 7) {
+          /* suggestions became per-trip: only the California seed keeps the catalog */
+          for (const t of trips) {
+            if (!t.suggestions?.length) {
+              const isCA = t.title?.includes('California') || t.days.some((d) => d.items.some((it) => it.sug))
+              t.suggestions = isCA ? structuredClone(seedData.suggestions ?? []) : []
+            }
           }
         }
         if (fromVersion < 5) {

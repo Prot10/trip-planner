@@ -1,6 +1,5 @@
 import { Star, Timer, Route, ExternalLink, Sparkles } from 'lucide-react'
 import { useTrip, useUI, toast, activeTrip } from '../store'
-import { SUGGESTIONS } from '../data/suggestions'
 import { bestInsertion } from '../lib/geo'
 import { fmtDur } from '../lib/utils'
 import { TYPE_META } from './typeMeta'
@@ -53,6 +52,15 @@ export default function Suggestions() {
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4">
+      {trip.suggestions.length === 0 && (
+        <div className="rounded-2xl border border-ink-200 bg-white p-6 text-center">
+          <p className="text-sm font-semibold text-ink-700">Nessun consiglio per questo viaggio, per ora</p>
+          <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-ink-400">
+            Chiedi all'assistente idee extra lungo il percorso: le salverà qui come consigli attivabili con un click.
+          </p>
+        </div>
+      )}
+      {trip.suggestions.length > 0 && (
       <div className="flex items-start gap-3 rounded-2xl border border-brand-200 bg-brand-50/60 p-4">
         <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-500 text-white">
           <Sparkles size={17} />
@@ -63,9 +71,10 @@ export default function Suggestions() {
           disattivala e il percorso torna com’era. Il chilometraggio indicato è la deviazione stimata.
         </p>
       </div>
+      )}
 
       <ul className="flex flex-col gap-3">
-        {SUGGESTIONS.map((sug) => {
+        {trip.suggestions.map((sug) => {
           const isOn = active.has(sug.id)
           const meta = TYPE_META[sug.type]
           const preview = isOn ? null : bestInsertion(trip, sug)
