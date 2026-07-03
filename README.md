@@ -80,15 +80,36 @@ Ships pre-loaded with a real 7-day / 6-night California loop (Pasadena → Big S
 
 ## Getting started
 
+The only prerequisite is **Node.js ≥ 20.19** (an `.nvmrc` is included). Every CLI the AI agent needs (Claude Code, Codex) is pinned by npm — nothing else to install.
+
 ```sh
+git clone https://github.com/Prot10/trip-planner.git
+cd trip-planner
 npm install
-npm run dev      # web app (http://localhost:5199) + AI agent server together
-npm run build    # production build in dist/
+npm start        # builds the app and serves everything at http://localhost:5200
 ```
 
-On macOS you can also double-click `Avvia Trip Planner.command`, which serves the production build, starts the agent server and opens the browser.
+That's it: one port runs the web app, the agent WebSocket and the MCP endpoint.
 
-**AI assistant prerequisites**: a [Claude Code](https://claude.com/claude-code) install for the Claude engine and/or a ChatGPT account for Codex (the project pins its own Codex CLI via npm). You don't need the terminal: the first time an engine isn't connected the chat offers a **one-click guided sign-in** that drives the CLI login for you. The agent server reuses those local logins — a personal, self-hosted setup; usage counts against your plans' limits. Without them, the whole app works normally and the chat reports what's missing.
+For development, with hot reload:
+
+```sh
+npm run dev      # Vite dev server (http://localhost:5199) + agent server (5200)
+```
+
+On macOS you can also double-click `Avvia Trip Planner.command`, which installs, builds, starts the server and opens the browser.
+
+### Docker
+
+```sh
+docker compose up --build    # http://localhost:5200
+```
+
+Sign-in credentials survive rebuilds via named volumes. One caveat: the guided **Claude** sign-in works fully inside Docker (open the link, paste the code); the **ChatGPT/Codex** OAuth callback can't reach into a container, so log in once on the host (`npx codex login`) and uncomment the `~/.codex` mount in `docker-compose.yml`.
+
+### AI assistant prerequisites
+
+A **Claude subscription** (Pro/Max) and/or a **ChatGPT subscription** (Plus) — no API keys. You don't need the terminal: the first time an engine isn't connected the chat offers a **one-click guided sign-in** that drives the CLI login for you (the CLIs themselves ship with the repo's npm dependencies). The agent server reuses those logins — a personal, self-hosted setup; usage counts against your plans' limits. Without them, the whole app works normally and the chat reports what's missing.
 
 Ports are configurable: `AGENT_PORT` for the agent server, `VITE_AGENT_PORT` to point the web app at it (both default to 5200).
 
