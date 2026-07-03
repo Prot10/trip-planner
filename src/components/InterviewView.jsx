@@ -16,7 +16,7 @@ const STARTERS = [
   '5 giorni in Sicilia con bambini, mare e buon cibo',
 ]
 
-/* Full-screen chat: a new trip can only be born through Marco Polo's interview */
+/* Full-screen chat: a new trip can only be born through Ulisse's interview */
 export default function InterviewView() {
   const {
     connected, thinking, messages, streamText, pendingQuestion,
@@ -81,7 +81,7 @@ export default function InterviewView() {
                 Dove andiamo?
               </h1>
               <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-ink-500">
-                Sono <b>Marco Polo</b>, il tuo agente di viaggio. Raccontami cosa hai in mente:
+                Sono <b>Ulisse</b>, il tuo agente di viaggio. Raccontami cosa hai in mente:
                 ti farò una domanda alla volta prendendo appunti, poi <b>costruirò l'itinerario
                 completo per te</b> — lo vedrai nascere in tempo reale.
               </p>
@@ -130,7 +130,7 @@ export default function InterviewView() {
           </div>
         </div>
 
-        {/* Marco Polo's live notebook (desktop) */}
+        {/* Ulisse's live notebook (desktop) */}
         <div className="pointer-events-none absolute inset-y-2 right-4 hidden w-72 items-start xl:flex">
           <NotebookCard notes={notes} />
         </div>
@@ -181,7 +181,7 @@ export default function InterviewView() {
             )}
           </div>
           <p className="mt-2 text-center text-[11px] text-ink-400">
-            L'itinerario si crea solo conversando con Marco Polo ·{' '}
+            L'itinerario si crea solo conversando con Ulisse ·{' '}
             <button onClick={() => setPhase('active')} className="pointer-events-auto font-semibold text-ink-500 underline decoration-ink-300 underline-offset-2 hover:text-ink-700">
               oppure crea manualmente
             </button>
@@ -210,7 +210,7 @@ function NotebookCard({ notes, onClose }) {
       <div className="pointer-events-auto mt-10 w-full rounded-2xl border border-dashed border-violet-200 bg-white/60 p-4 text-center backdrop-blur">
         <NotebookPen size={18} className="mx-auto text-violet-300" />
         <p className="mt-2 text-[11.5px] font-semibold text-ink-400">
-          Il taccuino di Marco Polo si compilerà qui, risposta dopo risposta
+          Il taccuino di Ulisse si compilerà qui, risposta dopo risposta
         </p>
       </div>
     )
@@ -224,7 +224,7 @@ function NotebookCard({ notes, onClose }) {
     >
       <div className="flex items-center gap-2 border-b border-ink-100 bg-gradient-to-r from-violet-50 to-brand-50/60 px-3.5 py-2.5">
         <NotebookPen size={14} className={`text-violet-600 transition-transform ${highlight ? 'animate-bounce' : ''}`} />
-        <p className="flex-1 text-[12px] font-bold text-ink-800">Il taccuino di Marco Polo</p>
+        <p className="flex-1 text-[12px] font-bold text-ink-800">Il taccuino di Ulisse</p>
         {highlight && <span className="text-[10px] font-bold uppercase tracking-wide text-violet-500">sta scrivendo…</span>}
         {onClose && (
           <button onClick={onClose} aria-label="Chiudi taccuino" className="grid size-6 place-items-center rounded text-ink-400 hover:bg-white">

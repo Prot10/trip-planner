@@ -9,6 +9,8 @@ const INTERACTIVE_TIMEOUT_MS = 15 * 60 * 1000 // ask_user waits for a human
 
 export function createBridge(httpServer) {
   const wss = new WebSocketServer({ server: httpServer, path: '/agent' })
+  /* listen errors (e.g. EADDRINUSE) are reported by the http server */
+  wss.on('error', () => {})
   const tabs = new Set()
   const pending = new Map() // rpc id -> { resolve, timer }
   let nextId = 1

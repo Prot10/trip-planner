@@ -46,6 +46,17 @@ mcpHandler = createMcpHandler(bridge)
 const auth = createAuth(bridge, { codexBin: process.env.CODEX_BIN || CODEX_BIN })
 createAgent(bridge, { mcpPort: PORT, auth })
 
+http.on('error', (e) => {
+  if (e.code === 'EADDRINUSE') {
+    console.error(
+      `[agent-server] la porta ${PORT} è già occupata: probabilmente un altro \`npm run dev\` è ancora attivo.\n` +
+      `[agent-server] chiudilo, oppure libera la porta con:  lsof -ti tcp:${PORT} | xargs kill`,
+    )
+    process.exit(1)
+  }
+  throw e
+})
+
 http.listen(PORT, '127.0.0.1', () => {
   console.log(`[agent-server] pronto su ws://localhost:${PORT}/agent (MCP: http://localhost:${PORT}/mcp)`)
 })

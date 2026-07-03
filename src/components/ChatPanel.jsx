@@ -46,7 +46,7 @@ export default function ChatPanel({ onClose }) {
       <div className="flex items-center gap-2.5 border-b border-ink-200 px-4 py-3">
         <AgentAvatar connected={connected} />
         <div className="min-w-0 flex-1">
-          <h3 className="font-display text-[14px] font-bold text-ink-900">Marco Polo</h3>
+          <h3 className="font-display text-[14px] font-bold text-ink-900">Ulisse</h3>
           <div className="-ml-2 flex items-center">
             <ModelPicker />
           </div>
