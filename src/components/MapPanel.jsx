@@ -9,6 +9,7 @@ import { useAgentChat } from '../agent/socket'
 import { fmtDur, fmtKm, gmapsUrl } from '../lib/utils'
 import { fetchRoadRoute, searchPlaces, fetchDirections, bestInsertion, haversineKm } from '../lib/geo'
 import { MODE_META } from './typeMeta'
+import { PoiMarkers, PoiControl } from './PoiLayer'
 
 const CA_CENTER = [36.5, -120.5]
 
@@ -244,6 +245,8 @@ export default function MapPanel() {
           )
         })}
 
+        <PoiMarkers />
+
         {layers.map(({ day, dayIndex, points }) => (
           <div key={day.id}>
             {points.map(({ item, n }) => (
@@ -275,7 +278,7 @@ export default function MapPanel() {
       />
 
       {/* legend / day filter */}
-      <div className="nice-scroll absolute left-3 right-3 top-[60px] z-[500] flex gap-1.5 overflow-x-auto pb-1 transition-[right,left] duration-200 lg:left-[calc(0.75rem+var(--left-w,0px))] lg:right-[calc(21.5rem+var(--chat-w,0px))] lg:top-[var(--hdr-b,96px)] lg:flex-wrap">
+      <div className="nice-scroll absolute left-3 right-3 top-[60px] z-[500] -m-1.5 flex gap-1.5 overflow-x-auto p-1.5 transition-[right,left] duration-200 lg:left-[calc(0.75rem+var(--left-w,0px))] lg:right-[calc(21.5rem+var(--chat-w,0px))] lg:top-[var(--hdr-b,96px)] lg:flex-wrap">
         <LegChip active={!mapFilter} color="#334155" onClick={() => setMapFilter(null)}>
           Tutto il viaggio
         </LegChip>
@@ -292,15 +295,18 @@ export default function MapPanel() {
         ))}
       </div>
 
-      {/* fit-all */}
-      <button
-        onClick={() => setMapFilter(null)}
-        title="Inquadra tutto il viaggio"
-        className="absolute bottom-6 left-3 z-[500] flex items-center gap-2 rounded-xl border border-ink-200 bg-white/95 px-3.5 py-2.5 text-xs font-bold text-ink-700 shadow-lg backdrop-blur transition hover:border-brand-400 hover:text-brand-600 lg:bottom-3 lg:left-[calc(0.75rem+var(--left-w,0px))]"
-      >
-        <Maximize2 size={14} />
-        <span className="hidden sm:inline">Inquadra viaggio</span>
-      </button>
+      {/* fit-all + POI discovery */}
+      <div className="absolute bottom-6 left-3 z-[500] flex items-center gap-2 lg:bottom-3 lg:left-[calc(0.75rem+var(--left-w,0px))]">
+        <button
+          onClick={() => setMapFilter(null)}
+          title="Inquadra tutto il viaggio"
+          className="flex items-center gap-2 rounded-xl border border-ink-200 bg-white/95 px-3.5 py-2.5 text-xs font-bold text-ink-700 shadow-lg backdrop-blur transition hover:border-brand-400 hover:text-brand-600"
+        >
+          <Maximize2 size={14} />
+          <span className="hidden sm:inline">Inquadra viaggio</span>
+        </button>
+        <PoiControl />
+      </div>
     </div>
   )
 }
@@ -512,7 +518,10 @@ const dirIcon = (letter, color) =>
 
 function MapRef({ mapRef }) {
   const map = useMap()
-  useEffect(() => { mapRef.current = map }, [map, mapRef])
+  useEffect(() => {
+    mapRef.current = map
+    if (import.meta.env.DEV) window.__map = map
+  }, [map, mapRef])
   return null
 }
 
