@@ -7,10 +7,14 @@ import { useAgentChat } from '../agent/socket'
 export default function QuestionCard() {
   const q = useAgentChat((s) => s.pendingQuestion)
   const answer = useAgentChat((s) => s.answerQuestion)
+  if (!q) return null
+  /* keyed remount: selections and typed text must never leak into the next question */
+  return <QuestionCardInner key={q.question} q={q} answer={answer} />
+}
+
+function QuestionCardInner({ q, answer }) {
   const [selected, setSelected] = useState([])
   const [other, setOther] = useState('')
-
-  if (!q) return null
 
   const submitMulti = () => {
     const all = [...selected, ...(other.trim() ? [other.trim()] : [])]
@@ -21,7 +25,7 @@ export default function QuestionCard() {
   }
 
   return (
-    <div key={q.question} className="anim-fade-up mb-3 overflow-hidden rounded-2xl border border-violet-200 bg-white shadow-md shadow-violet-500/10">
+    <div className="anim-fade-up mb-3 overflow-hidden rounded-2xl border border-violet-200 bg-white shadow-md shadow-violet-500/10">
       <div className="flex items-start gap-2.5 border-b border-violet-100 bg-violet-50/60 px-3.5 py-2.5">
         <CircleHelp size={16} className="mt-0.5 shrink-0 text-violet-600" />
         <p className="text-[13px] font-bold leading-snug text-ink-900">{q.question}</p>
