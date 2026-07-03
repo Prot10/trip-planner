@@ -1,0 +1,18 @@
+services:
+  tripplanner:
+    build: .
+    ports:
+      - "5200:5200" # web app + agent server
+    environment:
+      - AUTH_FILE=/data/auth.json
+    volumes:
+      # keep sign-in credentials across container rebuilds
+      - claude-data:/root/.claude
+      - auth-data:/data
+      # ChatGPT/Codex engine: log in on the host once (`npx codex login`),
+      # then share the credentials with the container:
+      # - ~/.codex:/root/.codex
+
+volumes:
+  claude-data:
+  auth-data:
