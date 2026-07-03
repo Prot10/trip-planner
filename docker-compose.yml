@@ -4,15 +4,17 @@ services:
     ports:
       - "5200:5200" # web app + agent server
     environment:
-      - AUTH_FILE=/data/auth.json
+      - ULISSE_DATA_DIR=/data/ulisse
     volumes:
-      # keep sign-in credentials across container rebuilds
+      # the data folder is a bind mount so host and container share the SAME
+      # human-readable files (trips/, images/, chats/, auth.json).
+      # Windows: replace with  %USERPROFILE%/Documents/Ulisse:/data/ulisse
+      - ~/Documents/Ulisse:/data/ulisse
+      # keep the Claude CLI sign-in cache across rebuilds
       - claude-data:/root/.claude
-      - auth-data:/data
       # ChatGPT/Codex engine: log in on the host once (`npx codex login`),
       # then share the credentials with the container:
       # - ~/.codex:/root/.codex
 
 volumes:
   claude-data:
-  auth-data:

@@ -57,7 +57,7 @@ Ships pre-loaded with a real 7-day / 6-night California loop (Pasadena → Big S
 - A per-trip catalog of extra stops with photos, notes and links — Ulisse fills it with the good ideas that didn't make the itinerary. A single toggle inserts each one **automatically at the optimal point of the route** (with the estimated detour in km) — and removes it just as cleanly.
 
 ### Sharing
-- **Export / import JSON** — your own photos are inlined into the export, so the file you send carries everything. Data persists locally (localStorage + IndexedDB); nothing ever leaves the browser.
+- **Export / import JSON** — your own photos are inlined into the export, so the file you send carries everything. Data lives in your own local folder (see *Your data*) plus a fast browser cache; nothing ever leaves your machine.
 
 ### Languages
 - **Fully internationalized** (i18next): Italian and English out of the box, picked from the browser on first visit and switchable anytime from the language selector (dashboard, planner header, interview composer). Dates, numbers and currencies follow the locale (`it-IT` / `en-US`).
@@ -105,7 +105,23 @@ On macOS you can also double-click `Avvia Trip Planner.command`, which installs,
 docker compose up --build    # http://localhost:5200
 ```
 
-Sign-in credentials survive rebuilds via named volumes. One caveat: the guided **Claude** sign-in works fully inside Docker (open the link, paste the code); the **ChatGPT/Codex** OAuth callback can't reach into a container, so log in once on the host (`npx codex login`) and uncomment the `~/.codex` mount in `docker-compose.yml`.
+The data folder is bind-mounted (`~/Documents/Ulisse` by default), so the container reads and writes the same files as a local run. One caveat: the guided **Claude** sign-in works fully inside Docker (open the link, paste the code); the **ChatGPT/Codex** OAuth callback can't reach into a container, so log in once on the host (`npx codex login`) and uncomment the `~/.codex` mount in `docker-compose.yml`.
+
+### Your data
+
+Everything lives in a folder you own — by default **`Documents/Ulisse`** (resolved per platform and language: on Windows the real Documents folder is asked to the system, OneDrive redirection included; on Linux the localized XDG folder, e.g. `~/Documenti`, is used):
+
+```
+Documents/Ulisse/
+  trips/weekend-in-rome--abc123.json   one readable JSON per trip
+  images/i8f3ka9x2c4e.webp             your photos, as real files
+  chats/abc123.json                    saved conversations with Ulisse
+  auth.json                            sign-in token
+```
+
+Delete a trip file and the trip is gone; delete the folder and the app starts fresh. Pick a different location on first launch (or change it later from the dashboard footer — pointing it at an existing Ulisse folder adopts it, e.g. a restored backup). The browser keeps a fast local copy, so the app opens instantly and works even if the local server is briefly down; everything reconciles to disk automatically. `ULISSE_DATA_DIR` overrides the folder via environment.
+
+Note for Windows: storage and the app itself work; the one-click guided *Claude* sign-in currently relies on a Unix pty, so on Windows run `npx claude setup-token` in a terminal instead.
 
 ### AI assistant prerequisites
 
@@ -130,6 +146,8 @@ src/
     en/common.json         every UI string, English
   lib/
     utils.js               dates, durations, costs, fuel units, trip normalization
+    storageSync.js         browser <-> disk sync (hydrate, debounced write-through)
+    storageClient.js       /storage API wrappers
     geo.js                 haversine, optimal insertion, OSRM routing & turn-by-turn
     imgdb.js               IndexedDB photo store, compression, portable export
     fx.js                  daily-cached EUR/USD rate for fuel prices
@@ -158,6 +176,7 @@ src/
     PoiLayer.jsx           category pins for trip stops and suggestions
 server/
   index.mjs                local agent server (WebSocket + MCP over HTTP)
+  storage.mjs              the on-disk data folder: trips/photos/chats as files
   agent.mjs                Claude Agent SDK + Codex CLI engines, dynamic models
   auth.mjs                 guided in-app sign-in flows for both engines
   bridge.mjs               browser bridge: tool calls in, live edits out
