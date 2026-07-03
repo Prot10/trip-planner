@@ -19,7 +19,7 @@ const INTERVIEW_PROMPT = `${read('interview.md')}\n\n${PLANNING_RULES}`
 const CODEX_WORKSPACE = join(__dirname, 'codex-workspace')
 /* prefer the project-pinned Codex CLI over whatever brew has */
 const LOCAL_CODEX = join(__dirname, '..', 'node_modules', '.bin', 'codex')
-const CODEX_BIN = existsSync(LOCAL_CODEX) ? LOCAL_CODEX : 'codex'
+export const CODEX_BIN = existsSync(LOCAL_CODEX) ? LOCAL_CODEX : 'codex'
 const MAX_TURNS = 100
 const CLAUDE_MODELS = new Set(['sonnet', 'opus', 'haiku'])
 const CODEX_MODELS = new Set(['gpt-5.1-codex-max', 'gpt-5.1-codex', 'gpt-5.1-codex-mini'])
@@ -28,7 +28,7 @@ const CODEX_MODELS = new Set(['gpt-5.1-codex-max', 'gpt-5.1-codex', 'gpt-5.1-cod
 const withNotes = (prompt, notes) =>
   notes?.trim() ? `${prompt}\n\n## Il tuo taccuino per questo viaggio (memoria corrente)\n${notes}` : prompt
 
-export function createAgent(bridge, { mcpPort }) {
+export function createAgent(bridge, { mcpPort, auth }) {
   const tripServer = createTripTools(bridge)
   let active = null // { abort() }
 
@@ -49,8 +49,13 @@ export function createAgent(bridge, { mcpPort }) {
           maxTurns: MAX_TURNS,
           abortController: abort,
           includePartialMessages: true,
-          /* ask_user blocks on human input: give MCP tools generous timeouts */
-          env: { ...process.env, MCP_TOOL_TIMEOUT: '900000', MCP_TIMEOUT: '900000' },
+          /* ask_user blocks on human input: give MCP tools generous timeouts;
+             a token captured by the guided in-app login wins over stale creds */
+          env: {
+            ...process.env,
+            MCP_TOOL_TIMEOUT: '900000', MCP_TIMEOUT: '900000',
+            ...(auth?.getClaudeToken() ? { CLAUDE_CODE_OAUTH_TOKEN: auth.getClaudeToken() } : {}),
+          },
           ...(sessionId ? { resume: sessionId } : {}),
         },
       })
@@ -107,19 +112,19 @@ export function createAgent(bridge, { mcpPort }) {
       text = `<taccuino_viaggio>\n${notes}\n</taccuino_viaggio>\n\n${text}`
     }
     return new Promise((resolve) => {
+      /* `exec resume` only takes --json/-m/-c flags (before the session id):
+         sandbox and cwd must ride along as config overrides there */
       const flags = [
         '--json',
         '--skip-git-repo-check',
-        '--sandbox', 'read-only',
         '-m', CODEX_MODELS.has(model) ? model : 'gpt-5.1-codex',
-        '--cd', CODEX_WORKSPACE,
         '-c', `mcp_servers.trip.url="http://127.0.0.1:${mcpPort}/mcp"`,
         '-c', 'mcp_servers.trip.tool_timeout_sec=900',
         '-c', 'tools.web_search=true',
       ]
       const args = sessionId
-        ? ['exec', 'resume', sessionId, ...flags, text]
-        : ['exec', ...flags, text]
+        ? ['exec', 'resume', ...flags, '-c', 'sandbox_mode="read-only"', sessionId, text]
+        : ['exec', ...flags, '--sandbox', 'read-only', '--cd', CODEX_WORKSPACE, text]
 
       let child
       try {
@@ -154,8 +159,12 @@ export function createAgent(bridge, { mcpPort }) {
       })
       child.on('close', (code) => {
         if (code !== 0 && !sawMessage) {
-          const hint = /login|auth/i.test(stderr) ? ' Esegui `codex login` con il tuo account ChatGPT.' : ''
-          bridge.broadcast({ type: 'agent_error', error: `Codex è uscito con errore (${code}). ${stderr.slice(-300)}${hint}` })
+          const isAuth = /login|auth/i.test(stderr)
+          bridge.broadcast({
+            type: 'agent_error',
+            error: `Codex è uscito con errore (${code}). ${stderr.slice(-300)}`,
+            ...(isAuth ? { auth: 'codex' } : {}),
+          })
         }
         resolve()
       })
@@ -166,7 +175,7 @@ export function createAgent(bridge, { mcpPort }) {
         const m = msg.match(/"message":"([^"]+)"/)
         if (m) msg = m[1]
         if (/model is not supported.*ChatGPT account/i.test(msg)) {
-          msg += ' — Il login ChatGPT è probabilmente scaduto: esegui `codex login` nel terminale e riprova.'
+          msg += ' — Il login ChatGPT è probabilmente scaduto: ricollega l’account qui sotto.'
         }
         return msg
       }
