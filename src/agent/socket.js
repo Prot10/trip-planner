@@ -52,6 +52,7 @@ export const useAgentChat = create((set, get) => ({
     codex: storedFor('codex', 'gpt-5.4', CODEX_MODELS),
   },
   codexModels: null,            // [{id,label,note}] from the CLI cache, via the server
+  resolvedClaude: localStorage.getItem('agent.resolved.claude') || null, // real model id behind the alias
   chatId: null,                   // active saved-chat id
   sessionId: null,                // engine session/thread to resume
   edits: [],                      // per-turn write log: { id, name, args, result, undo, detail, reverted }
@@ -317,6 +318,12 @@ function handleEvent(msg) {
       break
     }
     case 'model':
+      /* the SDK reports the real model behind the alias (e.g. claude-sonnet-5):
+         shown in the picker so the list is always current without a model API */
+      if (String(msg.model ?? '').startsWith('claude')) {
+        localStorage.setItem('agent.resolved.claude', msg.model)
+        useAgentChat.setState({ resolvedClaude: msg.model })
+      }
       break
     case 'session':
       useAgentChat.setState({ sessionId: msg.sessionId })

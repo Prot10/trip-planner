@@ -306,22 +306,34 @@ export function ModelPicker() {
   const models = useAgentChat((s) => s.models)
   const select = useAgentChat((s) => s.select)
   const codexModels = useAgentChat((s) => s.codexModels)
+  const resolvedClaude = useAgentChat((s) => s.resolvedClaude)
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
-  /* the ChatGPT column mirrors whatever the CLI currently supports */
-  const engines = ENGINES.map((e) =>
-    e.id === 'codex' && codexModels?.length
-      ? {
-          ...e,
-          models: codexModels.map((m) => ({
-            id: m.id,
-            label: m.label ?? m.id,
-            note: CODEX_NOTES_IT[m.id] ?? (m.note ? m.note.slice(0, 60) : ''),
-          })),
-        }
-      : e,
-  )
+  /* both columns stay current without hardcoded lists: ChatGPT mirrors the
+     CLI's model cache; Claude's aliases always resolve to the newest model
+     of each family — the id reported by the SDK is shown on its row */
+  const engines = ENGINES.map((e) => {
+    if (e.id === 'codex' && codexModels?.length) {
+      return {
+        ...e,
+        models: codexModels.map((m) => ({
+          id: m.id,
+          label: m.label ?? m.id,
+          note: CODEX_NOTES_IT[m.id] ?? (m.note ? m.note.slice(0, 60) : ''),
+        })),
+      }
+    }
+    if (e.id === 'claude' && resolvedClaude) {
+      return {
+        ...e,
+        models: e.models.map((m) =>
+          resolvedClaude.includes(m.id) ? { ...m, note: `${m.note} · ora: ${resolvedClaude}` } : m,
+        ),
+      }
+    }
+    return e
+  })
 
   useEffect(() => {
     if (!open) return
