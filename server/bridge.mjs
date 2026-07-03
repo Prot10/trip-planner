@@ -16,9 +16,13 @@ export function createBridge(httpServer) {
   let nextId = 1
   let chatHandler = null // set by agent.mjs: (msg, ws) => void
   let authHandler = null // set by auth.mjs: guided sign-in flows
+  let tabsGoneHandler = null // all tabs disconnected
+  let tabBackHandler = null  // a tab (re)connected
 
   wss.on('connection', (ws) => {
     tabs.add(ws)
+    console.log(`[bridge] scheda connessa (totale: ${tabs.size})`)
+    tabBackHandler?.()
     ws.send(JSON.stringify({ type: 'hello', tabs: tabs.size }))
 
     ws.on('message', (raw) => {
@@ -40,8 +44,22 @@ export function createBridge(httpServer) {
       }
     })
 
-    ws.on('close', () => tabs.delete(ws))
-    ws.on('error', () => tabs.delete(ws))
+    const drop = () => {
+      if (!tabs.delete(ws)) return
+      console.log(`[bridge] scheda disconnessa (rimaste: ${tabs.size})`)
+      /* a vanished tab can never answer: fail its pending calls now instead
+         of letting a blocked ask_user hold the turn hostage for minutes */
+      if (tabs.size === 0) {
+        for (const [id, { resolve, timer }] of pending) {
+          clearTimeout(timer)
+          resolve({ error: 'La scheda del browser si è chiusa prima di rispondere.' })
+        }
+        pending.clear()
+        tabsGoneHandler?.()
+      }
+    }
+    ws.on('close', drop)
+    ws.on('error', drop)
   })
 
   /* run a tool in the browser tab and await its result */
@@ -74,6 +92,8 @@ export function createBridge(httpServer) {
     broadcast,
     onChat(fn) { chatHandler = fn },
     onAuth(fn) { authHandler = fn },
+    onTabsGone(fn) { tabsGoneHandler = fn },
+    onTabBack(fn) { tabBackHandler = fn },
     get tabCount() { return tabs.size },
   }
 }

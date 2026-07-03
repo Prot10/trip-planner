@@ -266,6 +266,20 @@ export function createAgent(bridge, { mcpPort, auth }) {
     }
   }
 
+  /* browser gone for good (not just a refresh): abort the orphaned turn,
+     or it blocks every new chat with "un turno è già in corso" */
+  let ghostTimer = null
+  bridge.onTabsGone(() => {
+    clearTimeout(ghostTimer)
+    ghostTimer = setTimeout(() => {
+      if (active) {
+        console.log('[agent] nessuna scheda da 10s: interrompo il turno orfano')
+        active.abort()
+      }
+    }, 10000)
+  })
+  bridge.onTabBack(() => clearTimeout(ghostTimer))
+
   bridge.onChat((msg) => {
     if (msg.type === 'chat' && typeof msg.text === 'string' && msg.text.trim()) {
       runTurn({ ...msg, text: msg.text.trim() })
