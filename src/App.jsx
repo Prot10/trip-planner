@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Map as MapIcon, ListChecks, CalendarRange, Sparkles, Bot } from 'lucide-react'
 import { useUI, useTrip, useRoutes, activeTrip } from './store'
 import { connectAgent, useAgentChat } from './agent/socket'
@@ -17,6 +18,7 @@ import ConfirmDialog from './components/ConfirmDialog'
 import Toast from './components/Toast'
 
 export default function App() {
+  const { t } = useTranslation()
   const activeId = useTrip((s) => s.activeId)
   const tab = useUI((s) => s.tab)
   const setTab = useUI((s) => s.setTab)
@@ -101,9 +103,9 @@ export default function App() {
         >
           {/* desktop tabs */}
           <nav className="hidden items-center gap-1 border-b border-ink-200 bg-white px-4 pt-2 lg:flex">
-            <TabBtn active={leftTab === 'itinerary'} onClick={() => setTab('itinerary')} Icon={CalendarRange} label="Itinerario" />
-            <TabBtn active={leftTab === 'suggestions'} onClick={() => setTab('suggestions')} Icon={Sparkles} label="Consigli" />
-            <TabBtn active={leftTab === 'checklist'} onClick={() => setTab('checklist')} Icon={ListChecks} label="Checklist" />
+            <TabBtn active={leftTab === 'itinerary'} onClick={() => setTab('itinerary')} Icon={CalendarRange} label={t('app.tabItinerary')} />
+            <TabBtn active={leftTab === 'suggestions'} onClick={() => setTab('suggestions')} Icon={Sparkles} label={t('app.tabSuggestions')} />
+            <TabBtn active={leftTab === 'checklist'} onClick={() => setTab('checklist')} Icon={ListChecks} label={t('app.tabChecklist')} />
           </nav>
 
           <div className="nice-scroll min-h-0 flex-1 overflow-y-auto px-3 pb-24 pt-4 sm:px-4 lg:pb-8">
@@ -115,7 +117,7 @@ export default function App() {
           {/* drag handle to resize the itinerary column */}
           <div
             onMouseDown={startLeftDrag}
-            title="Trascina per ridimensionare"
+            title={t('app.dragResize')}
             className="absolute right-0 top-0 z-10 hidden h-full w-1.5 cursor-col-resize transition-colors hover:bg-brand-400/60 active:bg-brand-500 lg:block"
           />
         </section>
@@ -136,7 +138,7 @@ export default function App() {
             <div className="relative h-full overflow-hidden rounded-3xl border border-ink-200 bg-white shadow-2xl">
               <div
                 onMouseDown={startChatDrag}
-                title="Trascina per ridimensionare"
+                title={t('app.dragResize')}
                 className="absolute left-0 top-0 z-10 h-full w-1.5 cursor-col-resize transition-colors hover:bg-brand-400/60 active:bg-brand-500"
               />
               <ChatPanel onClose={() => setChatOpen(false)} />
@@ -147,11 +149,11 @@ export default function App() {
 
       {/* mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-[700] flex border-t border-ink-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
-        <MobileTab active={tab === 'itinerary'} onClick={() => setTab('itinerary')} Icon={CalendarRange} label="Itinerario" />
-        <MobileTab active={tab === 'map'} onClick={() => setTab('map')} Icon={MapIcon} label="Mappa" />
-        <MobileTab active={tab === 'chat'} onClick={() => setTab('chat')} Icon={Bot} label="AI" />
-        <MobileTab active={tab === 'suggestions'} onClick={() => setTab('suggestions')} Icon={Sparkles} label="Consigli" />
-        <MobileTab active={tab === 'checklist'} onClick={() => setTab('checklist')} Icon={ListChecks} label="Checklist" />
+        <MobileTab active={tab === 'itinerary'} onClick={() => setTab('itinerary')} Icon={CalendarRange} label={t('app.tabItinerary')} />
+        <MobileTab active={tab === 'map'} onClick={() => setTab('map')} Icon={MapIcon} label={t('app.tabMap')} />
+        <MobileTab active={tab === 'chat'} onClick={() => setTab('chat')} Icon={Bot} label={t('app.tabAI')} />
+        <MobileTab active={tab === 'suggestions'} onClick={() => setTab('suggestions')} Icon={Sparkles} label={t('app.tabSuggestions')} />
+        <MobileTab active={tab === 'checklist'} onClick={() => setTab('checklist')} Icon={ListChecks} label={t('app.tabChecklist')} />
       </nav>
 
       {/* overlays */}
@@ -161,12 +163,12 @@ export default function App() {
       {picking && (
         <div className="pointer-events-none fixed inset-x-0 top-20 z-[800] flex justify-center px-4">
           <div className="anim-fade-up pointer-events-auto flex items-center gap-3 rounded-2xl bg-ink-900 px-5 py-3 text-sm font-semibold text-white shadow-xl">
-            Clicca sulla mappa per scegliere la posizione
+            {t('app.pickOnMap')}
             <button
               onClick={() => setPicking(false)}
               className="rounded-lg bg-white/15 px-2.5 py-1 text-xs font-bold hover:bg-white/25"
             >
-              Annulla
+              {t('common.cancel')}
             </button>
           </div>
         </div>

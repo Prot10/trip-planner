@@ -2,3 +2,6 @@ node_modules
 dist
 .DS_Store
 server/.auth.json
+
+# generated at server boot from server/prompts/<lang>/
+server/codex-workspace/*/AGENTS.md

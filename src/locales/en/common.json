@@ -1,0 +1,529 @@
+{
+  "chat": {
+    "tools": {
+      "get_trip": "Reading the trip",
+      "get_route_info": "Reading route and distance",
+      "get_place_images": "Searching photos of the place",
+      "activityFallback": "activity",
+      "add_activity": "Added: {{title}}",
+      "update_activity": "Edited: {{title}}",
+      "remove_activity": "Removed: {{title}}",
+      "move_activity": "Moved: {{title}}",
+      "add_day": "New day: {{title}}",
+      "update_day": "Edited day {{n}}",
+      "remove_day": "Deleted day {{n}}",
+      "move_day": "Moved day {{n}}",
+      "set_trip_meta": "Trip settings",
+      "checklist_add": "Checklist: {{text}}",
+      "checklist_toggle": "Checklist updated",
+      "checklist_remove": "Checklist item removed",
+      "search_places": "Place search: {{query}}",
+      "list_suggestions": "Reading suggested stops",
+      "suggestion_removed": "Suggestion removed: {{title}}",
+      "suggestion_enabled": "Suggestion enabled: {{title}}",
+      "add_suggestion": "New suggestion: {{title}}",
+      "remove_suggestion": "Suggestion deleted",
+      "update_notes": "Notes updated",
+      "set_trip_brief": "Trip brief saved",
+      "start_planning": "Opening the planner",
+      "estimate_travel": "Travel estimate ({{mode}})",
+      "web_search": "Web search: {{query}}",
+      "web_fetch": "Reading web page"
+    },
+    "groups": {
+      "add_activity": "Added {{count}} activities",
+      "update_activity": "Edited {{count}} activities",
+      "remove_activity": "Removed {{count}} activities",
+      "move_activity": "Moved {{count}} activities",
+      "add_day": "Created {{count}} days",
+      "search_places": "{{count}} place searches",
+      "get_place_images": "{{count}} photo searches",
+      "estimate_travel": "{{count}} travel estimates",
+      "web_search": "{{count}} web searches",
+      "checklist_add": "{{count}} checklist items",
+      "add_suggestion": "{{count}} new suggestions",
+      "get_trip": "{{count}} trip reads",
+      "update_notes": "Notes updated {{count}} times"
+    },
+    "setup": {
+      "claude": {
+        "title": "Connect your Claude subscription",
+        "account": "Claude account (Pro/Max)",
+        "step1": "Open the terminal and start Claude Code",
+        "step2": "Inside Claude Code, log in with your subscription"
+      },
+      "codex": {
+        "title": "Connect your ChatGPT account",
+        "account": "ChatGPT account (Plus)",
+        "step1": "Open the terminal in the project folder and run",
+        "step2": "Complete sign-in in the browser with your ChatGPT account (Plus)"
+      },
+      "stepReturn": "Come back here and resend the message.",
+      "done": "Account connected! Retrying your message right away.",
+      "verifying": "Verifying the code…",
+      "completeInTab": "Complete sign-in in the browser tab that just opened, with your {{account}}.",
+      "noTab": "No tab opened? Click here to open the sign-in page",
+      "codePlaceholder": "Paste here the code shown at the end of sign-in…",
+      "confirm": "Confirm",
+      "oneClick": "Connect in one click",
+      "willOpen": "The sign-in page for your {{account}} will open: no API key, no terminal.",
+      "needServer": "The local server is needed: run `npm run dev` in the project folder.",
+      "preferTerminal": "Prefer the terminal?"
+    },
+    "models": {
+      "claudeNote": "Pro/Max subscription",
+      "codexNote": "Plus subscription (Codex)",
+      "sonnet": "fast and bright — recommended",
+      "opus": "the deepest, slower",
+      "haiku": "ultra-light, for quick edits",
+      "gpt5_5": "the most capable",
+      "gpt5_4": "balanced — recommended",
+      "gpt5_4_mini": "fast and inexpensive",
+      "resolvedNote": "{{note}} · now: {{model}}",
+      "pickAria": "Choose engine and model"
+    },
+    "panel": {
+      "connected": "Connected",
+      "notConnected": "Server unreachable",
+      "example1": "Add a romantic dinner in Monterey on the evening of day 2",
+      "example2": "Is day 4 too packed? Suggest what to cut",
+      "example3": "Find an uncrowded beach near the day 3 route",
+      "example4": "How much am I spending on hotels? Where can I save?",
+      "savedChats": "Saved conversations",
+      "newChat": "New conversation",
+      "closeChat": "Close chat",
+      "intro": "Ask me anything about the trip: I can <1>add, move and edit stops</1>, search for places, photos and up-to-date information on the web, and optimize the route. Every change shows up in the itinerary right away, and you can review or undo it, even one at a time.",
+      "working": "working on it…",
+      "edits_one": "{{count}} edit this turn",
+      "edits_other": "{{count}} edits this turn",
+      "hide": "Hide",
+      "show": "Show",
+      "undoAll": "Undo all",
+      "serverDown": "Agent server unreachable: start the app with <1>npm run dev</1>.",
+      "answerAbove": "Answer the question above",
+      "placeholder": "Write to the assistant… (@ to tag an activity)",
+      "stop": "Stop",
+      "send": "Send",
+      "justNow": "just now",
+      "minAgo": "{{count}} min ago",
+      "hoursAgo": "{{count}} h ago",
+      "daysAgo": "{{count}} d ago",
+      "tripChats": "Conversations for this trip",
+      "noChats": "No saved conversations yet.",
+      "deleteChat": "Delete conversation",
+      "showInItinerary": "Show in the itinerary",
+      "undone": "undone",
+      "undoOneTitle": "Undo only this edit",
+      "undoOne": "undo"
+    },
+    "toasts": {
+      "turnUndone": "Turn edits undone",
+      "editUndone": "Edit undone",
+      "undoFailed": "Couldn't undo: {{error}}",
+      "accountLinked": "Account linked!"
+    }
+  },
+  "editor": {
+    "titleNew": "New activity",
+    "titleEdit": "Edit activity",
+    "confirmDelete": "Delete \"{{title}}\"?",
+    "fields": {
+      "type": "Type",
+      "transportMode": "Transport mode",
+      "title": "Title",
+      "titlePlaceholder": "e.g. Sunset at Bixby Bridge",
+      "time": "Time",
+      "duration": "Duration (minutes)",
+      "durationPlaceholder": "e.g. 90",
+      "pricePlaceholder": "e.g. 25",
+      "priceHotel": "Price per night ({{cur}})",
+      "priceFood": "Estimated cost ({{cur}})",
+      "priceDrive": "Cost ({{cur}}) — tolls, extra fuel…",
+      "priceActivity": "Cost ({{cur}}) — tickets, parking…",
+      "priceInfo": "Cost ({{cur}}) — entry fees, passes…",
+      "notes": "Notes",
+      "notesPlaceholder": "Tips, parking, things not to miss…"
+    },
+    "links": {
+      "label": "Links",
+      "labelPlaceholder": "Label",
+      "remove": "Remove link",
+      "add": "Add link"
+    },
+    "photos": {
+      "gallery": "Image gallery",
+      "cover": "Cover",
+      "makeCover": "Click to make it the cover",
+      "remove": "Remove photo",
+      "dropHere": "Drag photos here from your PC",
+      "orClick": "or click to choose them",
+      "urlPlaceholder": "…or paste a photo URL",
+      "addFromUrl": "Add photo from URL",
+      "wikiHidden": "Automatic Wikipedia photos hidden",
+      "hideWiki": "Hide automatic Wikipedia photos"
+    },
+    "location": {
+      "label": "Location on the map",
+      "searchPlaceholder": "Search for a place… (e.g. Bixby Bridge, California)",
+      "search": "Search",
+      "noResults": "No results — try adding “, California”",
+      "pickOnMap": "Pick on the map",
+      "remove": "Remove location"
+    },
+    "toggles": {
+      "must": "Must-see",
+      "done": "Already done"
+    },
+    "toasts": {
+      "saved": "Activity saved",
+      "deleted": "Activity deleted",
+      "titleRequired": "Enter a title",
+      "searchNetworkError": "Network error during search",
+      "invalidImage": "\"{{name}}\" is not a valid image",
+      "photosAdded_one": "Photo added",
+      "photosAdded_other": "{{count}} photos added",
+      "invalidUrl": "Enter a valid URL (https://…)",
+      "coverSet": "Set as cover"
+    }
+  },
+  "header": {
+    "allTrips": "All trips",
+    "backToTrips": "Back to my trips",
+    "tripName": "Trip name",
+    "aiAssistant": "AI assistant",
+    "exportTooltip": "Export itinerary (JSON)",
+    "importTooltip": "Import itinerary",
+    "stats": {
+      "days_one": "day",
+      "days_other": "days",
+      "stops_one": "stop",
+      "stops_other": "stops",
+      "driving": "driving",
+      "total": "total",
+      "dates": "dates"
+    },
+    "budget": {
+      "title": "Trip budget",
+      "badge": "budget",
+      "hotel": "Hotels",
+      "food": "Food",
+      "activity": "Activities",
+      "extra": "Extras & tickets",
+      "fuel": "Fuel (estimate)",
+      "totalLabel": "Total",
+      "fuelNote": "Fuel estimated from the route's real distance and your car details (car icon above)."
+    },
+    "car": {
+      "tooltip": "Your car (for the fuel estimate)",
+      "settingsAria": "Car settings",
+      "title": "Your car",
+      "makeModel": "Make and model",
+      "modelPlaceholder": "e.g. Dacia Duster, Toyota RAV4…",
+      "consumption": "Consumption (L/100 km)",
+      "fuelPrice": "Fuel price",
+      "fuelPriceUnit": "Fuel price unit",
+      "priceHint": "The right price depends on where you're traveling and changes over time: ask the assistant to look up the current average at your destination.",
+      "askAgentButton": "Find the current price",
+      "askAgentPrompt": "Search the web for the current average fuel price in the area of this trip and update the car settings with set_trip_meta (use the local unit). If you know my car's typical fuel consumption, update that too."
+    },
+    "toasts": {
+      "exported": "Itinerary exported — share it!",
+      "imported": "Itinerary imported!",
+      "invalidFile": "Invalid file"
+    }
+  },
+  "app": {
+    "tabItinerary": "Itinerary",
+    "tabSuggestions": "Suggestions",
+    "tabChecklist": "Checklist",
+    "tabMap": "Map",
+    "tabAI": "AI",
+    "dragResize": "Drag to resize",
+    "pickOnMap": "Click on the map to choose the location"
+  },
+  "globe": {
+    "building": "Ulisse is building your trip…",
+    "subtitle": "Searching for places, checking opening hours and prices, building it day by day: the stops will appear here in real time."
+  },
+  "itinerary": {
+    "addDay": "Add a day"
+  },
+  "checklist": {
+    "title": "To do before you leave",
+    "placeholder": "Add something to do…",
+    "addedToast": "Added to the checklist",
+    "markTodo": "Mark as to-do",
+    "markDone": "Mark as done",
+    "open": "open"
+  },
+  "question": {
+    "openPlaceholder": "Write your answer…",
+    "otherPlaceholder": "Or write something else…",
+    "send": "Send answer",
+    "confirm": "Confirm"
+  },
+  "stepper": {
+    "done": "Planning complete",
+    "building": "Building your trip…",
+    "liveNote": "the plan updates in real time in the itinerary"
+  },
+  "day": {
+    "stops_one": "{{count}} stop",
+    "stops_other": "{{count}} stops",
+    "showOnMap": "Show on map",
+    "editDay": "Edit day",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "deleteDay": "Delete day",
+    "confirmDelete": "Delete the day \"{{title}}\" and all its activities?",
+    "deleted": "Day deleted",
+    "empty": "Empty day — drag an activity here or add one",
+    "addItem": "Add activity",
+    "newDay": "New day",
+    "saved": "Day saved",
+    "titleLabel": "Title / route",
+    "titlePlaceholder": "e.g. San Francisco → Yosemite Valley",
+    "nightLabel": "Where you'll sleep",
+    "nightPlaceholder": "e.g. El Portal / Mariposa",
+    "positionLabel": "Position in the trip",
+    "colorLabel": "Color on the map",
+    "colorAria": "Color {{color}}"
+  },
+  "item": {
+    "markTodo": "Mark as to-do",
+    "markDone": "Mark as done",
+    "dragReorder": "Drag to reorder",
+    "perNight": "/night",
+    "mustSee": "must-see",
+    "map": "map",
+    "showOnMap": "Show on map",
+    "confirmDelete": "Delete \"{{title}}\"?",
+    "deleted": "Activity deleted",
+    "photoN": "Photo {{n}}",
+    "photoPrev": "Previous photo",
+    "photoNext": "Next photo"
+  },
+  "confirm": {
+    "confirm": "Confirm"
+  },
+  "mention": {
+    "taggedRef": "\"{{title}}\" → item_id {{id}} (day {{day}})",
+    "taggedNote": "[Activities tagged by the user: {{refs}}]",
+    "dayShort": "D{{n}}",
+    "hint": "↑↓ to choose · Enter to confirm",
+    "ariaLabel": "Write to the assistant"
+  },
+  "map": {
+    "search": {
+      "placeholder": "Search a place on the map…",
+      "noResults": "No results — try adding the city or state",
+      "networkError": "Network error while searching",
+      "clear": "Clear"
+    },
+    "dir": {
+      "directions": "Directions",
+      "roadDirections": "Driving directions",
+      "close": "Close directions",
+      "fromPlaceholder": "Starting point…",
+      "toPlaceholder": "Destination…",
+      "swap": "Swap start and destination",
+      "pickOnMap": "Pick on the map",
+      "remove": "Remove",
+      "mapPoint": "Point on the map",
+      "clickToSetStart": "Click on the map to set the starting point",
+      "clickToSetEnd": "Click on the map to set the destination",
+      "calculating": "Calculating route…",
+      "showSteps_one": "Show directions ({{count}} turn)",
+      "showSteps_other": "Show directions ({{count}} turns)",
+      "hideSteps": "Hide directions"
+    },
+    "legend": {
+      "all": "Whole trip",
+      "dayShort": "D{{n}}",
+      "fitAll": "Fit the whole trip",
+      "fit": "Fit trip"
+    },
+    "leg": {
+      "straightLine": "as the crow flies",
+      "hm": "{{h}} h {{m}} min",
+      "m": "{{m}} min"
+    },
+    "toasts": {
+      "routeNotFound": "Route not found",
+      "positionSet": "Location set"
+    },
+    "poi": {
+      "button": "Places",
+      "showTitle": "Show places on the map",
+      "title": "Places on the map",
+      "on": "On",
+      "off": "Off",
+      "srcAll": "All",
+      "srcTrip": "In the trip",
+      "srcSuggestions": "Suggestions",
+      "inSuggestions": "in the suggestions",
+      "emptyHint": "No suggestions yet: ask Ulisse for extra ideas and you'll see them here on the map"
+    }
+  },
+  "dashboard": {
+    "title": "My trips",
+    "subtitle": "Plan, optimize and share your itineraries",
+    "import": "Import",
+    "create": "Create",
+    "newTripPlaceholder": "Trip name… (e.g. Weekend in Rome)",
+    "confirmDelete": "Permanently delete the trip \"{{title}}\"?",
+    "toasts": {
+      "created": "Trip created — happy planning!",
+      "duplicated": "Trip duplicated",
+      "deleted": "Trip deleted",
+      "imported": "Trip imported!",
+      "invalidFile": "Invalid file"
+    },
+    "duplicate": "Duplicate",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "stops_one": "{{count}} stop",
+    "stops_other": "{{count}} stops",
+    "agentHint": "the assistant builds it with you",
+    "fromScratch": "Prefer to start from scratch?",
+    "createManually": "create a trip manually"
+  },
+  "interview": {
+    "starters": [
+      "A romantic weekend in Paris in late September, no car",
+      "A 10-day road trip in Iceland in August, nature and photography",
+      "A week in Japan between Tokyo and Kyoto by public transport",
+      "5 days in Sicily with kids, beaches and great food"
+    ],
+    "notebook": "Notebook",
+    "heroTitle": "Where are we going?",
+    "heroIntro": "I'm <b>Ulisse</b>, your travel agent. Tell me what you have in mind: I'll ask you one question at a time while taking notes, then <b>I'll build the full itinerary for you</b> — you'll watch it come to life in real time.",
+    "thinking": "thinking…",
+    "placeholderAnswer": "Answer the question above",
+    "placeholderOffline": "Assistant not connected",
+    "placeholderCurrency": "Pick a currency below, then describe the trip of your dreams…",
+    "placeholder": "Describe the trip of your dreams…",
+    "stop": "Stop",
+    "send": "Send",
+    "currencyEUR": "€ Euro",
+    "currencyUSD": "$ Dollar",
+    "footerHint": "The itinerary is created only by chatting with Ulisse",
+    "orManually": "or create it manually",
+    "notebookTitle": "Ulisse's notebook",
+    "notebookEmpty": "Ulisse's notebook will fill in here, answer after answer",
+    "writing": "writing…",
+    "notebookClose": "Close notebook"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "add": "Add",
+    "yes": "yes",
+    "no": "no",
+    "day": "Day",
+    "dayN": "Day {{n}}",
+    "seeInItinerary": "Show in itinerary",
+    "addToTrip": "Add to trip",
+    "notAvailable": "—"
+  },
+  "units": {
+    "durMin": "{{m}} min",
+    "durH": "{{h}}h",
+    "durHM": "{{h}}h {{m}}"
+  },
+  "types": {
+    "activity": "Stop",
+    "drive": "Transfer",
+    "food": "Food",
+    "hotel": "Hotel",
+    "info": "Info"
+  },
+  "modes": {
+    "car": "Car",
+    "walk": "On foot",
+    "bus": "Bus",
+    "train": "Train",
+    "plane": "Plane",
+    "boat": "Ferry"
+  },
+  "cats": {
+    "attraction": "Attractions",
+    "museum": "Museums",
+    "restaurant": "Restaurants",
+    "cafe": "Cafés & bars",
+    "hotel": "Hotels",
+    "park": "Nature"
+  },
+  "gas": {
+    "usd_gal": "$ / gallon",
+    "usd_l": "$ / liter",
+    "eur_l": "€ / liter"
+  },
+  "fields": {
+    "title": "title",
+    "type": "type",
+    "time": "time",
+    "dur": "duration",
+    "price": "price",
+    "notes": "notes",
+    "links": "links",
+    "linkCount_one": "{{count}} link",
+    "linkCount_other": "{{count}} links",
+    "must": "must-see",
+    "done": "done",
+    "position": "location",
+    "night": "night",
+    "startDate": "departure",
+    "consumption": "consumption",
+    "fuel": "fuel",
+    "fuelUnit": "fuel unit",
+    "car": "car",
+    "stop": "stop",
+    "removed": "removed",
+    "day": "day",
+    "dayRemoved": "day removed",
+    "order": "order",
+    "positionN": "position {{n}}",
+    "subtitle": "subtitle",
+    "transport": "transport",
+    "currency": "currency",
+    "checklist": "checklist",
+    "doneState": "done",
+    "todoState": "to do",
+    "suggestion": "suggestion"
+  },
+  "datePicker": {
+    "startDate": "Departure date",
+    "pickAria": "Pick the departure date",
+    "setToast": "Departing {{date}} — dates assigned to the days",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "untilN_one": "{{count}} day · until {{date}}",
+    "untilN_other": "{{count}} days · until {{date}}",
+    "pickHint": "Pick the departure day",
+    "remove": "Remove"
+  },
+  "suggestions": {
+    "emptyTitle": "No suggestions for this trip, yet",
+    "emptyBody": "Ask the assistant for extra ideas along the route: it will save them here as suggestions you can activate with one click.",
+    "introBefore": "Extra stops picked along your route. Activate one and it is inserted",
+    "introBold": "automatically into the day and the point of the route that adds the least distance",
+    "introAfter": "; deactivate it and the route goes back to how it was. The mileage shown is the estimated detour.",
+    "removeFromTrip": "Remove from trip",
+    "recommended": "recommended",
+    "removedToast": "Removed — route updated"
+  },
+  "store": {
+    "newTrip": "New trip",
+    "myTrip": "My trip",
+    "newDay": "New day",
+    "copySuffix": "(copy)",
+    "conversation": "Conversation"
+  },
+  "toasts": {
+    "addedOptimal": "Added to Day {{n}} at the optimal point of the route"
+  }
+}

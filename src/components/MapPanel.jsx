@@ -4,6 +4,7 @@ import L from 'leaflet'
 import {
   Maximize2, Search, X, Navigation, ArrowUpDown, Crosshair, Loader2, ChevronDown, Plus,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useTrip, useUI, useRoutes, toast, activeTrip } from '../store'
 import { useAgentChat } from '../agent/socket'
 import { fmtDur, fmtKm, gmapsUrl } from '../lib/utils'
@@ -13,13 +14,14 @@ import { PoiMarkers, PoiControl } from './PoiLayer'
 
 const WORLD_CENTER = [30, 10] // neutral fallback: no stops and no destination yet
 
-const fmtMin = (min) => {
+const fmtMin = (min, t) => {
   const h = Math.floor(min / 60)
   const m = Math.round(min % 60)
-  return h ? `${h} h ${m} min` : `${m} min`
+  return h ? t('map.leg.hm', { h, m }) : t('map.leg.m', { m })
 }
 
 export default function MapPanel() {
+  const { t } = useTranslation()
   const trip = useTrip((s) => activeTrip(s))
   const insertItemAt = useTrip((s) => s.insertItemAt)
   const days = trip.days
@@ -45,7 +47,7 @@ export default function MapPanel() {
       .then((r) => {
         if (dead) return
         setRoute(r)
-        if (!r) toast('Percorso non trovato')
+        if (!r) toast(t('map.toasts.routeNotFound'))
         else mapRef.current?.fitBounds(r.latlngs, { padding: [60, 60] })
       })
       .finally(() => !dead && setRouting(false))
@@ -61,7 +63,7 @@ export default function MapPanel() {
       links: [], must: false, done: false, lat: p.lat, lng: p.lng, imgs: [], noWiki: false, sug: null, price: 0,
     })
     setPlace(null)
-    toast(`Aggiunto al Giorno ${dayIndex + 1} nel punto ottimale del percorso`)
+    toast(t('toasts.addedOptimal', { n: dayIndex + 1 }))
   }
 
   const directionsTo = (target) => {
@@ -201,13 +203,13 @@ export default function MapPanel() {
                     onClick={() => addPlaceToTrip(place)}
                     className="inline-flex items-center gap-1 rounded-lg bg-brand-500 px-2.5 py-1.5 text-[11px] font-bold text-white transition hover:bg-brand-600"
                   >
-                    <Plus size={11} strokeWidth={3} /> Aggiungi al viaggio
+                    <Plus size={11} strokeWidth={3} /> {t('common.addToTrip')}
                   </button>
                   <button
                     onClick={() => directionsTo(place)}
                     className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1.5 text-[11px] font-bold !text-blue-700 ring-1 ring-blue-600/20 transition hover:bg-blue-100"
                   >
-                    <Navigation size={11} /> Indicazioni
+                    <Navigation size={11} /> {t('map.dir.directions')}
                   </button>
                 </div>
               </div>
@@ -279,7 +281,7 @@ export default function MapPanel() {
       {/* legend / day filter */}
       <div className="nice-scroll absolute left-3 right-3 top-[60px] z-[500] -m-1.5 flex gap-1.5 overflow-x-auto p-1.5 transition-[right,left] duration-200 lg:left-[calc(0.75rem+var(--left-w,0px))] lg:right-[calc(21.5rem+var(--chat-w,0px))] lg:top-[var(--hdr-b,96px)] lg:flex-wrap">
         <LegChip active={!mapFilter} color="#334155" onClick={() => setMapFilter(null)}>
-          Tutto il viaggio
+          {t('map.legend.all')}
         </LegChip>
         {days.map((d, i) => (
           <LegChip
@@ -289,7 +291,7 @@ export default function MapPanel() {
             onClick={() => setMapFilter(mapFilter === d.id ? null : d.id)}
           >
             <span className="size-2 shrink-0 rounded-full" style={{ background: d.color }} />
-            G{i + 1}
+            {t('map.legend.dayShort', { n: i + 1 })}
           </LegChip>
         ))}
       </div>
@@ -298,11 +300,11 @@ export default function MapPanel() {
       <div className="absolute bottom-6 left-3 z-[500] flex items-center gap-2 lg:bottom-3 lg:left-[calc(0.75rem+var(--left-w,0px))]">
         <button
           onClick={() => setMapFilter(null)}
-          title="Inquadra tutto il viaggio"
+          title={t('map.legend.fitAll')}
           className="flex items-center gap-2 rounded-xl border border-ink-200 bg-white/95 px-3.5 py-2.5 text-xs font-bold text-ink-700 shadow-lg backdrop-blur transition hover:border-brand-400 hover:text-brand-600"
         >
           <Maximize2 size={14} />
-          <span className="hidden sm:inline">Inquadra viaggio</span>
+          <span className="hidden sm:inline">{t('map.legend.fit')}</span>
         </button>
         <PoiControl />
       </div>
@@ -312,6 +314,7 @@ export default function MapPanel() {
 
 /* click details for a route leg: mode, stops, real distance and duration */
 function LegPopup({ leg, road, color }) {
+  const { t } = useTranslation()
   const meta = MODE_META[leg.mode] ?? MODE_META.car
   const setFocusItem = useUI((s) => s.setFocusItem)
   const setTab = useUI((s) => s.setTab)
@@ -323,7 +326,7 @@ function LegPopup({ leg, road, color }) {
           <meta.Icon size={13} />
         </span>
         <span className="font-display text-[13px] font-bold text-ink-900">
-          {meta.label} · Giorno {leg.dayN}
+          {t(meta.labelKey)} · {t('common.dayN', { n: leg.dayN })}
         </span>
       </div>
       <div className="mt-1.5 text-[11.5px] leading-snug text-ink-600">
@@ -333,8 +336,8 @@ function LegPopup({ leg, road, color }) {
       </div>
       <div className="mt-1.5 text-[12px] font-bold text-ink-900">
         {fmtKm(km)}
-        {road?.min ? <span className="font-semibold text-ink-500"> · ~{fmtMin(road.min)}</span> : null}
-        {!road && <span className="font-medium text-ink-400"> in linea d'aria</span>}
+        {road?.min ? <span className="font-semibold text-ink-500"> · ~{fmtMin(road.min, t)}</span> : null}
+        {!road && <span className="font-medium text-ink-400"> {t('map.leg.straightLine')}</span>}
       </div>
       <button
         onClick={() => {
@@ -343,7 +346,7 @@ function LegPopup({ leg, road, color }) {
         }}
         className="mt-2 rounded-lg bg-ink-900 px-2.5 py-1.5 text-[11px] font-bold text-white transition hover:bg-ink-700"
       >
-        Vedi nel programma
+        {t('common.seeInItinerary')}
       </button>
     </div>
   )
@@ -352,6 +355,7 @@ function LegPopup({ leg, road, color }) {
 /* ---------- markers ---------- */
 
 function PinMarker({ item, n, day, dayIndex, markerRefs, onDirTo }) {
+  const { t } = useTranslation()
   const setFocusItem = useUI((s) => s.setFocusItem)
   const setTab = useUI((s) => s.setTab)
 
@@ -386,7 +390,7 @@ function PinMarker({ item, n, day, dayIndex, markerRefs, onDirTo }) {
         <div className="min-w-44">
           <div className="font-display text-[13.5px] font-bold text-ink-900">{item.title}</div>
           <div className="mt-0.5 text-[11.5px] text-ink-500">
-            Giorno {dayIndex + 1}
+            {t('common.dayN', { n: dayIndex + 1 })}
             {item.time ? ` · ${item.time}` : ''}
             {item.dur ? ` · ${fmtDur(item.dur)}` : ''}
           </div>
@@ -395,13 +399,13 @@ function PinMarker({ item, n, day, dayIndex, markerRefs, onDirTo }) {
               onClick={() => { setFocusItem(item.id, day.color); if (window.innerWidth < 1024) setTab('itinerary') }}
               className="rounded-lg bg-ink-900 px-2.5 py-1.5 text-[11px] font-bold text-white transition hover:bg-ink-700"
             >
-              Vedi nel programma
+              {t('common.seeInItinerary')}
             </button>
             <button
               onClick={() => onDirTo({ lat: item.lat, lng: item.lng, name: item.title, short: item.title })}
               className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1.5 text-[11px] font-bold !text-blue-700 ring-1 ring-blue-600/20 transition hover:bg-blue-100"
             >
-              <Navigation size={11} /> Indicazioni
+              <Navigation size={11} /> {t('map.dir.directions')}
             </button>
             <a
               href={gmapsUrl(item.lat, item.lng)}
@@ -489,6 +493,7 @@ function FlyToConsumer({ markerRefs }) {
 
 /* pick-a-location mode: next map click lands in the item editor draft */
 function PickConsumer() {
+  const { t } = useTranslation()
   const picking = useUI((s) => s.picking)
   useMapEvents({
     click(e) {
@@ -503,7 +508,7 @@ function PickConsumer() {
       })
       setPicking(false)
       if (window.innerWidth < 1024) setTab('itinerary')
-      toast('Posizione impostata')
+      toast(t('map.toasts.positionSet'))
     },
   })
   return null
@@ -536,6 +541,7 @@ function MapRef({ mapRef }) {
 
 /* while choosing A/B, the next map click becomes that endpoint */
 function DirPickConsumer({ dirPick, setDirPick, setDir }) {
+  const { t } = useTranslation()
   useMapEvents({
     click(e) {
       if (!dirPick) return
@@ -543,7 +549,7 @@ function DirPickConsumer({ dirPick, setDirPick, setDir }) {
         lat: +e.latlng.lat.toFixed(5),
         lng: +e.latlng.lng.toFixed(5),
         name: `${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`,
-        short: 'Punto sulla mappa',
+        short: t('map.dir.mapPoint'),
       }
       setDir((d) => ({ ...d, [dirPick]: p }))
       setDirPick(null)
@@ -553,6 +559,7 @@ function DirPickConsumer({ dirPick, setDirPick, setDir }) {
 }
 
 function SearchOverlay({ place, setPlace, dir, setDir, route, routing, dirPick, setDirPick, mapRef }) {
+  const { t } = useTranslation()
   const [showSteps, setShowSteps] = useState(false)
 
   const selectPlace = (p) => {
@@ -573,14 +580,14 @@ function SearchOverlay({ place, setPlace, dir, setDir, route, routing, dirPick, 
           /* --- simple place search --- */
           <div className="flex items-start gap-1 p-1.5">
             <PlaceSearch
-              placeholder="Cerca un luogo sulla mappa…"
+              placeholder={t('map.search.placeholder')}
               onSelect={selectPlace}
               autoClear={false}
             />
             <button
               onClick={() => setDir((d) => ({ ...d, open: true }))}
-              title="Indicazioni stradali"
-              aria-label="Indicazioni stradali"
+              title={t('map.dir.roadDirections')}
+              aria-label={t('map.dir.roadDirections')}
               className="grid size-9 shrink-0 place-items-center rounded-xl bg-blue-600 text-white shadow-sm transition hover:bg-blue-700"
             >
               <Navigation size={15} />
@@ -591,9 +598,9 @@ function SearchOverlay({ place, setPlace, dir, setDir, route, routing, dirPick, 
           <div className="p-3">
             <div className="mb-2 flex items-center justify-between">
               <h4 className="flex items-center gap-1.5 font-display text-[13px] font-bold text-ink-900">
-                <Navigation size={13} className="text-blue-600" /> Indicazioni
+                <Navigation size={13} className="text-blue-600" /> {t('map.dir.directions')}
               </h4>
-              <button onClick={closeDirections} aria-label="Chiudi indicazioni" className="grid size-7 place-items-center rounded-lg text-ink-400 transition hover:bg-ink-100">
+              <button onClick={closeDirections} aria-label={t('map.dir.close')} className="grid size-7 place-items-center rounded-lg text-ink-400 transition hover:bg-ink-100">
                 <X size={15} />
               </button>
             </div>
@@ -607,7 +614,7 @@ function SearchOverlay({ place, setPlace, dir, setDir, route, routing, dirPick, 
               <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                 <Endpoint
                   value={dir.a}
-                  placeholder="Partenza…"
+                  placeholder={t('map.dir.fromPlaceholder')}
                   picking={dirPick === 'a'}
                   onPick={() => setDirPick(dirPick === 'a' ? null : 'a')}
                   onSelect={(p) => setDir((d) => ({ ...d, a: p }))}
@@ -615,7 +622,7 @@ function SearchOverlay({ place, setPlace, dir, setDir, route, routing, dirPick, 
                 />
                 <Endpoint
                   value={dir.b}
-                  placeholder="Arrivo…"
+                  placeholder={t('map.dir.toPlaceholder')}
                   picking={dirPick === 'b'}
                   onPick={() => setDirPick(dirPick === 'b' ? null : 'b')}
                   onSelect={(p) => setDir((d) => ({ ...d, b: p }))}
@@ -624,8 +631,8 @@ function SearchOverlay({ place, setPlace, dir, setDir, route, routing, dirPick, 
               </div>
               <button
                 onClick={() => setDir((d) => ({ ...d, a: d.b, b: d.a }))}
-                title="Inverti partenza e arrivo"
-                aria-label="Inverti partenza e arrivo"
+                title={t('map.dir.swap')}
+                aria-label={t('map.dir.swap')}
                 className="grid w-8 shrink-0 place-items-center self-center rounded-lg text-ink-400 transition hover:bg-ink-100 hover:text-ink-700"
               >
                 <ArrowUpDown size={15} />
@@ -634,20 +641,20 @@ function SearchOverlay({ place, setPlace, dir, setDir, route, routing, dirPick, 
 
             {dirPick && (
               <p className="mt-2 rounded-lg bg-blue-50 px-2.5 py-1.5 text-[11px] font-semibold text-blue-700">
-                Clicca sulla mappa per impostare {dirPick === 'a' ? 'la partenza' : "l'arrivo"}
+                {dirPick === 'a' ? t('map.dir.clickToSetStart') : t('map.dir.clickToSetEnd')}
               </p>
             )}
 
             {routing && (
               <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-ink-500">
-                <Loader2 size={14} className="animate-spin text-blue-600" /> Calcolo percorso…
+                <Loader2 size={14} className="animate-spin text-blue-600" /> {t('map.dir.calculating')}
               </div>
             )}
 
             {route && !routing && (
               <div className="mt-3 border-t border-ink-100 pt-2.5">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-display text-lg font-extrabold text-blue-700">{fmtMin(route.min)}</span>
+                  <span className="font-display text-lg font-extrabold text-blue-700">{fmtMin(route.min, t)}</span>
                   <span className="text-xs font-semibold text-ink-500">({fmtKm(route.km)})</span>
                 </div>
                 <button
@@ -655,7 +662,7 @@ function SearchOverlay({ place, setPlace, dir, setDir, route, routing, dirPick, 
                   className="mt-1 flex items-center gap-1 text-[11.5px] font-bold text-blue-600 hover:underline"
                 >
                   <ChevronDown size={12} className={`transition-transform ${showSteps ? 'rotate-180' : ''}`} />
-                  {showSteps ? 'Nascondi indicazioni' : `Mostra indicazioni (${route.steps.length} svolte)`}
+                  {showSteps ? t('map.dir.hideSteps') : t('map.dir.showSteps', { count: route.steps.length })}
                 </button>
                 <div
                   className={`grid transition-[grid-template-rows] duration-300 ease-out ${
@@ -691,13 +698,14 @@ function SearchOverlay({ place, setPlace, dir, setDir, route, routing, dirPick, 
 
 /* one endpoint (A/B): search input until set, then a chip with clear */
 function Endpoint({ value, placeholder, picking, onPick, onSelect, onClear }) {
+  const { t } = useTranslation()
   if (value) {
     return (
       <div className="flex h-9 min-w-0 items-center gap-1.5 rounded-xl bg-ink-50 px-2.5 ring-1 ring-ink-200">
         <span className="min-w-0 flex-1 truncate text-xs font-semibold text-ink-800" title={value.name}>
           {value.short || value.name}
         </span>
-        <button onClick={onClear} aria-label="Rimuovi" className="shrink-0 text-ink-400 transition hover:text-rose-600">
+        <button onClick={onClear} aria-label={t('map.dir.remove')} className="shrink-0 text-ink-400 transition hover:text-rose-600">
           <X size={13} strokeWidth={2.8} />
         </button>
       </div>
@@ -708,8 +716,8 @@ function Endpoint({ value, placeholder, picking, onPick, onSelect, onClear }) {
       <PlaceSearch placeholder={placeholder} onSelect={onSelect} autoClear small />
       <button
         onClick={onPick}
-        title="Scegli sulla mappa"
-        aria-label={`Scegli sulla mappa: ${placeholder}`}
+        title={t('map.dir.pickOnMap')}
+        aria-label={`${t('map.dir.pickOnMap')}: ${placeholder}`}
         className={`grid size-8 shrink-0 place-items-center rounded-lg transition ${
           picking ? 'bg-blue-600 text-white' : 'text-ink-400 hover:bg-ink-100 hover:text-ink-700'
         }`}
@@ -722,6 +730,7 @@ function Endpoint({ value, placeholder, picking, onPick, onSelect, onClear }) {
 
 /* Nominatim search box with a results dropdown */
 function PlaceSearch({ placeholder, onSelect, autoClear, small }) {
+  const { t } = useTranslation()
   const [q, setQ] = useState('')
   const [results, setResults] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -733,9 +742,9 @@ function PlaceSearch({ placeholder, onSelect, autoClear, small }) {
     try {
       const r = await searchPlaces(query)
       setResults(r)
-      if (!r.length) toast('Nessun risultato — prova ad aggiungere la città o lo stato')
+      if (!r.length) toast(t('map.search.noResults'))
     } catch {
-      toast('Errore di rete nella ricerca')
+      toast(t('map.search.networkError'))
     } finally {
       setBusy(false)
     }
@@ -761,7 +770,7 @@ function PlaceSearch({ placeholder, onSelect, autoClear, small }) {
         {busy
           ? <Loader2 size={13} className="shrink-0 animate-spin text-blue-600" />
           : q && (
-            <button onClick={() => { setQ(''); setResults(null) }} aria-label="Pulisci" className="shrink-0 text-ink-300 hover:text-ink-600">
+            <button onClick={() => { setQ(''); setResults(null) }} aria-label={t('map.search.clear')} className="shrink-0 text-ink-300 hover:text-ink-600">
               <X size={12} strokeWidth={3} />
             </button>
           )}

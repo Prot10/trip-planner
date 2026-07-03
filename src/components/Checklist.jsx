@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Check, Trash2, Plus, ExternalLink } from 'lucide-react'
 import { useTrip, toast, activeTrip } from '../store'
 
 export default function Checklist() {
+  const { t } = useTranslation()
   const checklist = useTrip((s) => activeTrip(s).checklist)
   const addCheck = useTrip((s) => s.addCheck)
   const toggleCheck = useTrip((s) => s.toggleCheck)
@@ -13,11 +15,11 @@ export default function Checklist() {
   const pct = checklist.length ? Math.round((done / checklist.length) * 100) : 0
 
   const onAdd = () => {
-    const t = text.trim()
-    if (!t) return
-    addCheck(t)
+    const txt = text.trim()
+    if (!txt) return
+    addCheck(txt)
     setText('')
-    toast('Aggiunto alla checklist')
+    toast(t('checklist.addedToast'))
   }
 
   return (
@@ -25,7 +27,7 @@ export default function Checklist() {
       {/* progress */}
       <div className="rounded-2xl border border-ink-200 bg-white p-4 shadow-sm">
         <div className="flex items-baseline justify-between">
-          <h3 className="font-display text-sm font-bold text-ink-900">Da fare prima di partire</h3>
+          <h3 className="font-display text-sm font-bold text-ink-900">{t('checklist.title')}</h3>
           <span className="text-xs font-semibold text-ink-500">
             {done}/{checklist.length} · {pct}%
           </span>
@@ -44,12 +46,12 @@ export default function Checklist() {
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') onAdd() }}
-          placeholder="Aggiungi una cosa da fare…"
+          placeholder={t('checklist.placeholder')}
           className="w-full rounded-xl border border-ink-200 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none transition placeholder:text-ink-300 focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
         />
         <button
           onClick={onAdd}
-          aria-label="Aggiungi"
+          aria-label={t('common.add')}
           className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand-500 text-white shadow-md shadow-brand-500/30 transition hover:bg-brand-600 active:scale-95"
         >
           <Plus size={18} strokeWidth={2.6} />
@@ -67,7 +69,7 @@ export default function Checklist() {
           >
             <button
               onClick={() => toggleCheck(c.id)}
-              aria-label={c.done ? 'Segna da fare' : 'Segna come fatto'}
+              aria-label={c.done ? t('checklist.markTodo') : t('checklist.markDone')}
               className={`mt-0.5 grid size-[22px] shrink-0 place-items-center rounded-lg border-[1.5px] transition ${
                 c.done
                   ? 'border-emerald-500 bg-emerald-500 text-white'
@@ -85,13 +87,13 @@ export default function Checklist() {
                   rel="noopener noreferrer"
                   className="ml-2 inline-flex items-center gap-1 align-middle text-xs font-semibold text-brand-600 hover:underline"
                 >
-                  <ExternalLink size={11} /> apri
+                  <ExternalLink size={11} /> {t('checklist.open')}
                 </a>
               )}
             </p>
             <button
               onClick={() => removeCheck(c.id)}
-              aria-label="Elimina"
+              aria-label={t('common.delete')}
               className="grid size-7 shrink-0 place-items-center rounded-lg text-ink-300 opacity-100 transition hover:bg-rose-50 hover:text-rose-600 lg:opacity-0 lg:group-hover:opacity-100"
             >
               <Trash2 size={14} />

@@ -7,6 +7,7 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import { useTrip, activeTrip, toast } from '../store'
 import { uid } from '../lib/utils'
 import { executeTool, applyUndoOp, WRITE_TOOLS, hooks } from './toolExecutors'
+import i18n from '../i18n'
 
 const AGENT_PORT = import.meta.env.VITE_AGENT_PORT ?? 5200
 const WS_URL = `ws://${location.hostname}:${AGENT_PORT}/agent`
@@ -116,6 +117,7 @@ export const useAgentChat = create((set, get) => ({
       mode: phase === 'interview' ? 'interview' : 'planner',
       notes: trip?.notes ?? '',
       currency: trip?.currency ?? 'USD',
+      language: i18n.language,
     })
   },
 
@@ -136,6 +138,7 @@ export const useAgentChat = create((set, get) => ({
       mode: trip?.phase === 'interview' ? 'interview' : 'planner',
       notes: trip?.notes ?? '',
       currency: trip?.currency ?? 'USD',
+      language: i18n.language,
     })
   },
 
@@ -166,7 +169,7 @@ export const useAgentChat = create((set, get) => ({
       undoReady: false, undoSnapshot: null,
       edits: s.edits.map((e) => ({ ...e, reverted: true })),
     }))
-    toast('Modifiche del turno annullate')
+    toast(i18n.t('chat.toasts.turnUndone'))
   },
 
   /* answer the agent's interactive question; unblocks its tool call */
@@ -192,9 +195,9 @@ export const useAgentChat = create((set, get) => ({
         const anyLeft = edits.some((e) => !e.reverted)
         return { edits, undoReady: anyLeft && !!s.undoSnapshot }
       })
-      toast('Modifica annullata')
+      toast(i18n.t('chat.toasts.editUndone'))
     } catch (e) {
-      toast(`Impossibile annullare: ${e?.message ?? e}`)
+      toast(i18n.t('chat.toasts.undoFailed', { error: e?.message ?? e }))
     }
   },
 }))
@@ -210,7 +213,7 @@ function persistChat() {
     engine: s.engine,
     model: s.models[s.engine],
     sessionId: s.sessionId,
-    title: (firstUser?.text ?? 'Conversazione').slice(0, 70),
+    title: (firstUser?.text ?? i18n.t('store.conversation')).slice(0, 70),
     updatedAt: Date.now(),
     messages: s.messages,
   })
@@ -320,7 +323,7 @@ function handleEvent(msg) {
       else if (msg.phase === 'url') useAgentChat.setState({ auth: { ...cur, phase: 'waiting', url: msg.url, needsCode: !!msg.needsCode || cur.needsCode } })
       else if (msg.phase === 'done') {
         useAgentChat.setState({ auth: { ...cur, engine: msg.engine, phase: 'done', error: null } })
-        toast('Account collegato!')
+        toast(i18n.t('chat.toasts.accountLinked'))
         setTimeout(() => useAgentChat.getState().resendLast(), 800)
       } else if (msg.phase === 'error') useAgentChat.setState({ auth: { ...cur, phase: 'error', error: msg.error } })
       break

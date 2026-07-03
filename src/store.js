@@ -1,17 +1,22 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import seedData from './data/seed.json'
+import seedIt from './data/seed.it.json'
+import seedEn from './data/seed.en.json'
 import { normalizeTrip, uid, DAY_COLORS } from './lib/utils'
+/* i18n is initialized before this module (see main.jsx import order):
+   defaults below are evaluated lazily, but the seed language is read here */
+import i18n from './i18n'
 
+const seedData = i18n.language === 'it' ? seedIt : seedEn
 const seed = () => normalizeTrip(structuredClone(seedData))
 
 const blankTrip = (title, phase = 'active') =>
   normalizeTrip({
-    title: title || 'Nuovo viaggio',
+    title: title || i18n.t('store.newTrip'),
     subtitle: '',
     startDate: '',
     phase,
-    days: phase === 'interview' ? [] : [{ title: 'Giorno 1', night: '', color: DAY_COLORS[0], items: [] }],
+    days: phase === 'interview' ? [] : [{ title: i18n.t('common.dayN', { n: 1 }), night: '', color: DAY_COLORS[0], items: [] }],
     checklist: [],
   })
 
@@ -53,7 +58,7 @@ export const useTrip = create(
         set((s) => {
           const src = s.trips.find((t) => t.id === id)
           if (!src) return {}
-          const copy = normalizeTrip({ ...structuredClone(src), id: undefined, title: `${src.title} (copia)` })
+          const copy = normalizeTrip({ ...structuredClone(src), id: undefined, title: `${src.title} ${i18n.t('store.copySuffix')}` })
           copy.id = uid()
           copy.days.forEach((d) => { d.id = uid(); d.items.forEach((it) => { it.id = uid() }) })
           copy.checklist.forEach((c) => { c.id = uid() })
@@ -67,7 +72,7 @@ export const useTrip = create(
       },
 
       /* ---------- trip meta ---------- */
-      setTitle: (title) => set((s) => upd(s, (t) => ({ ...t, title: title.trim() || 'Il mio viaggio' }))),
+      setTitle: (title) => set((s) => upd(s, (t) => ({ ...t, title: title.trim() || i18n.t('store.myTrip') }))),
       setStartDate: (startDate) => set((s) => upd(s, (t) => ({ ...t, startDate }))),
       setCar: (patch) => set((s) => upd(s, (t) => ({ ...t, car: { ...t.car, ...patch } }))),
       setCurrency: (currency) => set((s) => upd(s, (t) => ({ ...t, currency }))),
@@ -79,7 +84,7 @@ export const useTrip = create(
           ...t,
           days: [...t.days, {
             id: uid(),
-            title: data.title || 'Nuovo giorno',
+            title: data.title || i18n.t('store.newDay'),
             night: data.night || '',
             color: data.color || DAY_COLORS[t.days.length % DAY_COLORS.length],
             items: [],
@@ -195,7 +200,7 @@ export const useTrip = create(
     }),
     {
       name: 'tripplanner.v2',
-      version: 10,
+      version: 11,
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({ trips: s.trips, activeId: s.activeId }),
       migrate: (persisted, fromVersion) => {

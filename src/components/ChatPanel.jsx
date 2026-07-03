@@ -5,6 +5,7 @@ import {
   Pencil, CalendarPlus, Search, Sparkles, ListChecks, Route, Settings2, Camera,
   ChevronDown, Eye, EyeOff, Crosshair, History, Globe, Plus, Check,
 } from 'lucide-react'
+import { Trans, useTranslation } from 'react-i18next'
 import { useAgentChat, useChats } from '../agent/socket'
 import { useTrip, useUI, activeTrip } from '../store'
 import Markdown from './Markdown'
@@ -14,13 +15,14 @@ import MentionInput from './MentionInput'
 import { TOOL_META, groupMessages, ToolChipGroup, SetupCard, ModelPicker, AgentAvatar } from './chatShared'
 
 const EXAMPLES = [
-  'Aggiungi una cena romantica a Monterey la sera del giorno 2',
-  'Il giorno 4 è troppo pieno? Suggerisci cosa tagliare',
-  'Trova una spiaggia poco affollata vicino al percorso del giorno 3',
-  'Quanto sto spendendo di hotel? Dove posso risparmiare?',
+  'chat.panel.example1',
+  'chat.panel.example2',
+  'chat.panel.example3',
+  'chat.panel.example4',
 ]
 
 export default function ChatPanel({ onClose }) {
+  const { t } = useTranslation()
   const {
     connected, thinking, messages, streamText, undoReady, edits, showEdits, pendingQuestion,
     send, stop, newChat, undoAll, setShowEdits,
@@ -52,8 +54,8 @@ export default function ChatPanel({ onClose }) {
         <div className="relative">
           <button
             onClick={() => setShowHistory((v) => !v)}
-            title="Conversazioni salvate"
-            aria-label="Conversazioni salvate"
+            title={t('chat.panel.savedChats')}
+            aria-label={t('chat.panel.savedChats')}
             className={`grid size-8 place-items-center rounded-lg transition ${showHistory ? 'bg-violet-50 text-violet-600' : 'text-ink-400 hover:bg-ink-100 hover:text-ink-700'}`}
           >
             <History size={15} />
@@ -62,8 +64,8 @@ export default function ChatPanel({ onClose }) {
         </div>
         <button
           onClick={newChat}
-          title="Nuova conversazione"
-          aria-label="Nuova conversazione"
+          title={t('chat.panel.newChat')}
+          aria-label={t('chat.panel.newChat')}
           className="grid size-8 place-items-center rounded-lg text-ink-400 transition hover:bg-ink-100 hover:text-ink-700"
         >
           <Plus size={16} />
@@ -71,7 +73,7 @@ export default function ChatPanel({ onClose }) {
         {onClose && (
           <button
             onClick={onClose}
-            aria-label="Chiudi chat"
+            aria-label={t('chat.panel.closeChat')}
             className="grid size-8 place-items-center rounded-lg text-ink-400 transition hover:bg-ink-100 hover:text-ink-700"
           >
             <X size={17} />
@@ -84,19 +86,19 @@ export default function ChatPanel({ onClose }) {
         {messages.length === 0 && !streamText && (
           <div className="mt-2">
             <p className="text-[13px] leading-relaxed text-ink-500">
-              Chiedimi qualsiasi cosa sul viaggio: posso <b>aggiungere, spostare e modificare tappe</b>,
-              cercare luoghi, foto e informazioni aggiornate sul web, e ottimizzare il percorso.
-              Ogni modifica appare subito nell'itinerario e puoi rivederla o annullarla, anche singolarmente.
+              <Trans i18nKey="chat.panel.intro">
+                Chiedimi qualsiasi cosa sul viaggio: posso <b>aggiungere, spostare e modificare tappe</b>, cercare luoghi, foto e informazioni aggiornate sul web, e ottimizzare il percorso. Ogni modifica appare subito nell'itinerario e puoi rivederla o annullarla, anche singolarmente.
+              </Trans>
             </p>
             <div className="mt-4 flex flex-col gap-2">
               {EXAMPLES.map((ex) => (
                 <button
                   key={ex}
-                  onClick={() => send(ex)}
+                  onClick={() => send(t(ex))}
                   disabled={!connected}
                   className="rounded-xl border border-ink-200 bg-ink-50 px-3 py-2 text-left text-xs font-medium text-ink-600 transition hover:border-brand-300 hover:bg-brand-50/50 disabled:opacity-40"
                 >
-                  {ex}
+                  {t(ex)}
                 </button>
               ))}
             </div>
@@ -119,7 +121,7 @@ export default function ChatPanel({ onClose }) {
             <span className="flex gap-1">
               <Dot delay="0ms" /> <Dot delay="150ms" /> <Dot delay="300ms" />
             </span>
-            sto lavorando…
+            {t('chat.panel.working')}
           </div>
         )}
       </div>
@@ -134,19 +136,19 @@ export default function ChatPanel({ onClose }) {
           )}
           <div className="flex items-center gap-2 px-3.5 py-2.5">
             <p className="min-w-0 flex-1 text-[11.5px] font-semibold leading-snug text-amber-800">
-              {visibleEdits.length === 1 ? '1 modifica' : `${visibleEdits.length} modifiche`} in questo turno
+              {t('chat.panel.edits', { count: visibleEdits.length })}
             </p>
             <button
               onClick={() => setShowEdits(!showEdits)}
               className="flex shrink-0 items-center gap-1.5 rounded-lg bg-white px-2.5 py-1.5 text-[11.5px] font-bold text-amber-700 ring-1 ring-amber-300 transition hover:bg-amber-100"
             >
-              {showEdits ? <EyeOff size={12} /> : <Eye size={12} />} {showEdits ? 'Nascondi' : 'Mostra'}
+              {showEdits ? <EyeOff size={12} /> : <Eye size={12} />} {showEdits ? t('chat.panel.hide') : t('chat.panel.show')}
             </button>
             <button
               onClick={undoAll}
               className="flex shrink-0 items-center gap-1.5 rounded-lg bg-white px-2.5 py-1.5 text-[11.5px] font-bold text-rose-600 ring-1 ring-rose-300 transition hover:bg-rose-50"
             >
-              <Undo2 size={12} /> Annulla tutto
+              <Undo2 size={12} /> {t('chat.panel.undoAll')}
             </button>
           </div>
         </div>
@@ -156,7 +158,9 @@ export default function ChatPanel({ onClose }) {
       <div className="border-t border-ink-200 p-3">
         {!connected && (
           <p className="mb-2 rounded-lg bg-rose-50 px-3 py-2 text-[11.5px] font-semibold leading-snug text-rose-700">
-            Server agente non raggiungibile: avvia l'app con <code className="font-mono">npm run dev</code>.
+            <Trans i18nKey="chat.panel.serverDown">
+              Server agente non raggiungibile: avvia l'app con <code className="font-mono">npm run dev</code>.
+            </Trans>
           </p>
         )}
         <div className="flex items-end gap-2">
@@ -164,14 +168,14 @@ export default function ChatPanel({ onClose }) {
             ref={inputRef}
             onSend={send}
             onEmptyChange={setComposerEmpty}
-            placeholder={pendingQuestion ? 'Rispondi alla domanda qui sopra' : "Scrivi all'assistente… (@ per taggare un'attività)"}
+            placeholder={pendingQuestion ? t('chat.panel.answerAbove') : t('chat.panel.placeholder')}
             disabled={!connected || !!pendingQuestion}
           />
           {thinking ? (
             <button
               onClick={stop}
-              title="Interrompi"
-              aria-label="Interrompi"
+              title={t('chat.panel.stop')}
+              aria-label={t('chat.panel.stop')}
               className="grid size-10 shrink-0 place-items-center rounded-xl bg-ink-900 text-white transition hover:bg-ink-700"
             >
               <Square size={14} fill="currentColor" />
@@ -180,8 +184,8 @@ export default function ChatPanel({ onClose }) {
             <button
               onClick={submit}
               disabled={!connected || composerEmpty}
-              title="Invia"
-              aria-label="Invia"
+              title={t('chat.panel.send')}
+              aria-label={t('chat.panel.send')}
               className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-500 text-white shadow-md shadow-brand-500/30 transition hover:bg-brand-600 active:scale-95 disabled:opacity-40 disabled:shadow-none"
             >
               <Send size={15} />
@@ -196,6 +200,7 @@ export default function ChatPanel({ onClose }) {
 /* ---------- saved conversations ---------- */
 
 function HistoryPopover({ onClose }) {
+  const { t } = useTranslation()
   const tripId = useTrip((s) => s.activeId)
   const chats = useChats((s) => s.byTrip[tripId] ?? [])
   const deleteChat = useChats((s) => s.deleteChat)
@@ -211,20 +216,20 @@ function HistoryPopover({ onClose }) {
 
   const rel = (ts) => {
     const m = Math.round((Date.now() - ts) / 60000)
-    if (m < 1) return 'adesso'
-    if (m < 60) return `${m} min fa`
+    if (m < 1) return t('chat.panel.justNow')
+    if (m < 60) return t('chat.panel.minAgo', { count: m })
     const h = Math.round(m / 60)
-    if (h < 24) return `${h} h fa`
-    return `${Math.round(h / 24)} g fa`
+    if (h < 24) return t('chat.panel.hoursAgo', { count: h })
+    return t('chat.panel.daysAgo', { count: Math.round(h / 24) })
   }
 
   return (
     <div ref={ref} className="anim-fade-up absolute right-0 top-[calc(100%+8px)] z-30 w-72 rounded-2xl border border-ink-200 bg-white p-2 shadow-xl">
       <p className="px-2 pb-1.5 pt-1 text-[10.5px] font-bold uppercase tracking-wider text-ink-400">
-        Conversazioni di questo viaggio
+        {t('chat.panel.tripChats')}
       </p>
       {chats.length === 0 && (
-        <p className="px-2 pb-2 text-xs text-ink-400">Ancora nessuna conversazione salvata.</p>
+        <p className="px-2 pb-2 text-xs text-ink-400">{t('chat.panel.noChats')}</p>
       )}
       <div className="nice-scroll max-h-72 overflow-y-auto">
         {chats.map((c) => (
@@ -242,7 +247,7 @@ function HistoryPopover({ onClose }) {
             </button>
             <button
               onClick={() => deleteChat(tripId, c.id)}
-              aria-label="Elimina conversazione"
+              aria-label={t('chat.panel.deleteChat')}
               className="grid size-6 shrink-0 place-items-center rounded-md text-ink-300 opacity-0 transition hover:bg-rose-50 hover:text-rose-600 group-hover:opacity-100"
             >
               <Trash2 size={12} />
@@ -257,6 +262,7 @@ function HistoryPopover({ onClose }) {
 /* ---------- per-turn edit review ---------- */
 
 function EditRow({ edit }) {
+  const { t } = useTranslation()
   const meta = TOOL_META[edit.name] ?? { Icon: Wrench, label: () => edit.name }
   const setFocusItem = useUI((s) => s.setFocusItem)
   const setTab = useUI((s) => s.setTab)
@@ -275,7 +281,7 @@ function EditRow({ edit }) {
           <meta.Icon size={12} className="shrink-0 text-amber-600" />
           <span className={`min-w-0 flex-1 truncate text-[11.5px] font-semibold text-amber-900 ${edit.reverted ? 'line-through' : ''}`}>
             {meta.label(edit.args, edit.result)}
-            {dayN ? <span className="font-medium text-amber-700/70"> · Giorno {dayN}</span> : null}
+            {dayN ? <span className="font-medium text-amber-700/70"> · {t('common.dayN', { n: dayN })}</span> : null}
           </span>
         </button>
         {itemId && !edit.reverted && (
@@ -284,8 +290,8 @@ function EditRow({ edit }) {
               if (window.innerWidth < 1024) setTab('itinerary')
               setFocusItem(itemId, '#f59e0b')
             }}
-            title="Mostra nell'itinerario"
-            aria-label="Mostra nell'itinerario"
+            title={t('chat.panel.showInItinerary')}
+            aria-label={t('chat.panel.showInItinerary')}
             className="grid size-6 shrink-0 place-items-center rounded-md text-amber-600 transition hover:bg-amber-100"
           >
             <Crosshair size={12} />
@@ -293,16 +299,16 @@ function EditRow({ edit }) {
         )}
         {edit.reverted ? (
           <span className="inline-flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase text-emerald-700">
-            <Check size={10} /> annullata
+            <Check size={10} /> {t('chat.panel.undone')}
           </span>
         ) : (
           edit.undo && (
             <button
               onClick={() => undoOne(edit.id)}
-              title="Annulla solo questa modifica"
+              title={t('chat.panel.undoOneTitle')}
               className="flex shrink-0 items-center gap-1 rounded-md px-1.5 py-1 text-[10.5px] font-bold text-rose-600 transition hover:bg-rose-50"
             >
-              <Undo2 size={11} /> annulla
+              <Undo2 size={11} /> {t('chat.panel.undoOne')}
             </button>
           )
         )}

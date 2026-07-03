@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   X, Search, Crosshair, Trash2, Plus, MapPin, Star, Check, Loader2, ImagePlus, ImageOff, Link2,
 } from 'lucide-react'
@@ -12,15 +13,16 @@ const EMPTY = {
   links: [], must: false, done: false, lat: null, lng: null, imgs: [], noWiki: false, price: '', mode: 'car',
 }
 
-const PRICE_LABELS = {
-  hotel: 'Prezzo a notte ($)',
-  food: 'Costo stimato ($)',
-  drive: 'Costo ($) — pedaggi, benzina extra…',
-  activity: 'Costo ($) — biglietti, parcheggio…',
-  info: 'Costo ($) — ingressi, pass…',
+const PRICE_LABEL_KEYS = {
+  hotel: 'editor.fields.priceHotel',
+  food: 'editor.fields.priceFood',
+  drive: 'editor.fields.priceDrive',
+  activity: 'editor.fields.priceActivity',
+  info: 'editor.fields.priceInfo',
 }
 
 export default function ItemEditor() {
+  const { t, i18n } = useTranslation()
   const editor = useUI((s) => s.editor)
   const closeEditor = useUI((s) => s.closeEditor)
   const openEditor = useUI((s) => s.openEditor)
@@ -31,6 +33,8 @@ export default function ItemEditor() {
   const updateItem = useTrip((s) => s.updateItem)
   const removeItem = useTrip((s) => s.removeItem)
   const days = useTrip((s) => activeTrip(s).days)
+  const currency = useTrip((s) => activeTrip(s).currency ?? 'USD')
+  const cur = currency === 'EUR' ? '€' : '$'
 
   const { dayId, itemId, draft: savedDraft } = editor
   const existing = itemId ? days.find((d) => d.id === dayId)?.items.find((i) => i.id === itemId) : null
@@ -53,12 +57,12 @@ export default function ItemEditor() {
     setResults(null)
     try {
       const r = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&accept-language=it&q=${encodeURIComponent(q)}`,
+        `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&accept-language=${i18n.language}&q=${encodeURIComponent(q)}`,
       )
       setResults(await r.json())
     } catch {
       setResults([])
-      toast('Errore di rete nella ricerca')
+      toast(t('editor.toasts.searchNetworkError'))
     } finally {
       setSearching(false)
     }
@@ -72,7 +76,7 @@ export default function ItemEditor() {
   }
 
   const onSave = () => {
-    if (!draft.title.trim()) { toast('Inserisci un titolo'); return }
+    if (!draft.title.trim()) { toast(t('editor.toasts.titleRequired')); return }
     const data = {
       ...draft,
       title: draft.title.trim(),
@@ -89,30 +93,30 @@ export default function ItemEditor() {
     if (itemId) updateItem(dayId, itemId, data)
     else addItem(dayId, data)
     closeEditor()
-    toast('Attività salvata')
+    toast(t('editor.toasts.saved'))
   }
 
   const onDelete = () =>
-    ask(`Eliminare "${existing?.title}"?`, () => {
+    ask(t('editor.confirmDelete', { title: existing?.title }), () => {
       removeItem(dayId, itemId)
       closeEditor()
-      toast('Attività eliminata')
+      toast(t('editor.toasts.deleted'))
     })
 
   return (
     <Modal onClose={closeEditor} wide>
       <div className="flex items-center justify-between px-5 pt-5 sm:px-6">
         <h3 className="font-display text-lg font-bold text-ink-900">
-          {itemId ? 'Modifica attività' : 'Nuova attività'}
+          {itemId ? t('editor.titleEdit') : t('editor.titleNew')}
         </h3>
-        <button onClick={closeEditor} aria-label="Chiudi" className="grid size-8 place-items-center rounded-lg text-ink-400 transition hover:bg-ink-100">
+        <button onClick={closeEditor} aria-label={t('common.close')} className="grid size-8 place-items-center rounded-lg text-ink-400 transition hover:bg-ink-100">
           <X size={18} />
         </button>
       </div>
 
       <div className="flex flex-col gap-4 px-5 py-4 sm:px-6">
         {/* type */}
-        <Field label="Tipo">
+        <Field label={t('editor.fields.type')}>
           <div className="flex flex-wrap gap-1.5">
             {Object.entries(TYPE_META).map(([key, m]) => (
               <button
@@ -124,14 +128,14 @@ export default function ItemEditor() {
                     : 'border-ink-200 text-ink-500 hover:border-ink-300 hover:text-ink-700'
                 }`}
               >
-                <m.Icon size={14} /> {m.label}
+                <m.Icon size={14} /> {t(m.labelKey)}
               </button>
             ))}
           </div>
         </Field>
 
         {draft.type === 'drive' && (
-          <Field label="Mezzo di trasporto">
+          <Field label={t('editor.fields.transportMode')}>
             <div className="flex flex-wrap gap-1.5">
               {Object.entries(MODE_META).map(([key, m]) => (
                 <button
@@ -143,30 +147,30 @@ export default function ItemEditor() {
                       : 'border-ink-200 text-ink-500 hover:border-ink-300 hover:text-ink-700'
                   }`}
                 >
-                  <m.Icon size={14} /> {m.label}
+                  <m.Icon size={14} /> {t(m.labelKey)}
                 </button>
               ))}
             </div>
           </Field>
         )}
 
-        <Field label="Titolo">
+        <Field label={t('editor.fields.title')}>
           <input
             autoFocus
             value={draft.title}
             onChange={(e) => set({ title: e.target.value })}
-            placeholder="es. Tramonto a Bixby Bridge"
+            placeholder={t('editor.fields.titlePlaceholder')}
             className={inputCls}
           />
         </Field>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Orario">
+          <Field label={t('editor.fields.time')}>
             <input type="time" value={draft.time} onChange={(e) => set({ time: e.target.value })} className={inputCls} />
           </Field>
-          <Field label="Durata (minuti)">
+          <Field label={t('editor.fields.duration')}>
             <input
-              type="number" min="0" step="5" placeholder="es. 90"
+              type="number" min="0" step="5" placeholder={t('editor.fields.durationPlaceholder')}
               value={draft.dur}
               onChange={(e) => set({ dur: e.target.value })}
               className={inputCls}
@@ -174,34 +178,34 @@ export default function ItemEditor() {
           </Field>
         </div>
 
-        <Field label={PRICE_LABELS[draft.type]}>
+        <Field label={t(PRICE_LABEL_KEYS[draft.type], { cur })}>
           <input
-            type="number" min="0" step="1" placeholder="es. 25"
+            type="number" min="0" step="1" placeholder={t('editor.fields.pricePlaceholder')}
             value={draft.price || ''}
             onChange={(e) => set({ price: e.target.value })}
             className={inputCls}
           />
         </Field>
 
-        <Field label="Note">
+        <Field label={t('editor.fields.notes')}>
           <textarea
             rows={3}
             value={draft.notes}
             onChange={(e) => set({ notes: e.target.value })}
-            placeholder="Consigli, parcheggio, cose da non perdere…"
+            placeholder={t('editor.fields.notesPlaceholder')}
             className={`${inputCls} resize-y`}
           />
         </Field>
 
         {/* links */}
-        <Field label="Link">
+        <Field label={t('editor.links.label')}>
           <div className="flex flex-col gap-2">
             {draft.links.map((l, i) => (
               <div key={i} className="flex gap-2">
                 <input
                   value={l.label}
                   onChange={(e) => set({ links: draft.links.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)) })}
-                  placeholder="Etichetta"
+                  placeholder={t('editor.links.labelPlaceholder')}
                   className={`${inputCls} w-32 shrink-0 sm:w-40`}
                 />
                 <input
@@ -212,7 +216,7 @@ export default function ItemEditor() {
                 />
                 <button
                   onClick={() => set({ links: draft.links.filter((_, j) => j !== i) })}
-                  aria-label="Rimuovi link"
+                  aria-label={t('editor.links.remove')}
                   className="grid size-9 shrink-0 place-items-center rounded-xl text-ink-400 transition hover:bg-rose-50 hover:text-rose-600"
                 >
                   <Trash2 size={15} />
@@ -223,24 +227,24 @@ export default function ItemEditor() {
               onClick={() => set({ links: [...draft.links, { label: '', url: '' }] })}
               className="flex w-fit items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold text-brand-600 transition hover:bg-brand-50"
             >
-              <Plus size={13} strokeWidth={2.6} /> Aggiungi link
+              <Plus size={13} strokeWidth={2.6} /> {t('editor.links.add')}
             </button>
           </div>
         </Field>
 
-        <Field label="Galleria immagini">
+        <Field label={t('editor.photos.gallery')}>
           <GalleryEditor draft={draft} set={set} />
         </Field>
 
         {/* location */}
-        <Field label="Posizione sulla mappa">
+        <Field label={t('editor.location.label')}>
           <div className="rounded-2xl border border-ink-200 bg-ink-50 p-3">
             <div className="flex gap-2">
               <input
                 value={searchQ}
                 onChange={(e) => setSearchQ(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); doSearch() } }}
-                placeholder="Cerca un luogo… (es. Bixby Bridge, California)"
+                placeholder={t('editor.location.searchPlaceholder')}
                 className={`${inputCls} bg-white`}
               />
               <button
@@ -248,14 +252,14 @@ export default function ItemEditor() {
                 className="flex shrink-0 items-center gap-1.5 rounded-xl border border-ink-200 bg-white px-3 text-[13px] font-semibold text-ink-600 shadow-sm transition hover:border-ink-300"
               >
                 {searching ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
-                Cerca
+                {t('editor.location.search')}
               </button>
             </div>
 
             {results && (
               <div className="mt-2 flex flex-col gap-1">
                 {results.length === 0 && (
-                  <p className="px-1 text-xs text-ink-400">Nessun risultato — prova ad aggiungere “, California”</p>
+                  <p className="px-1 text-xs text-ink-400">{t('editor.location.noResults')}</p>
                 )}
                 {results.map((r, i) => (
                   <button
@@ -275,12 +279,12 @@ export default function ItemEditor() {
                 onClick={pickOnMap}
                 className="flex items-center gap-1.5 rounded-xl border border-ink-200 bg-white px-3 py-1.5 text-xs font-semibold text-ink-600 shadow-sm transition hover:border-brand-400 hover:text-brand-600"
               >
-                <Crosshair size={13} /> Scegli sulla mappa
+                <Crosshair size={13} /> {t('editor.location.pickOnMap')}
               </button>
               {draft.lat != null && (
                 <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-600/20">
                   <MapPin size={12} /> {draft.lat}, {draft.lng}
-                  <button onClick={() => set({ lat: null, lng: null })} aria-label="Rimuovi posizione" className="ml-0.5 text-emerald-500 hover:text-rose-600">
+                  <button onClick={() => set({ lat: null, lng: null })} aria-label={t('editor.location.remove')} className="ml-0.5 text-emerald-500 hover:text-rose-600">
                     <X size={12} strokeWidth={3} />
                   </button>
                 </span>
@@ -295,14 +299,14 @@ export default function ItemEditor() {
             on={draft.must}
             onClick={() => set({ must: !draft.must })}
             Icon={Star}
-            label="Imperdibile"
+            label={t('editor.toggles.must')}
             onCls="border-amber-400 bg-amber-50 text-amber-700"
           />
           <Toggle
             on={draft.done}
             onClick={() => set({ done: !draft.done })}
             Icon={Check}
-            label="Già fatto"
+            label={t('editor.toggles.done')}
             onCls="border-emerald-400 bg-emerald-50 text-emerald-700"
           />
         </div>
@@ -315,7 +319,7 @@ export default function ItemEditor() {
             onClick={onDelete}
             className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
           >
-            <Trash2 size={15} /> Elimina
+            <Trash2 size={15} /> {t('common.delete')}
           </button>
         )}
         <div className="ml-auto flex gap-2.5">
@@ -323,13 +327,13 @@ export default function ItemEditor() {
             onClick={closeEditor}
             className="rounded-xl border border-ink-200 px-4 py-2 text-sm font-semibold text-ink-600 transition hover:bg-ink-50"
           >
-            Annulla
+            {t('common.cancel')}
           </button>
           <button
             onClick={onSave}
             className="rounded-xl bg-brand-500 px-5 py-2 text-sm font-semibold text-white shadow-md shadow-brand-500/30 transition hover:bg-brand-600 active:scale-[.97]"
           >
-            Salva
+            {t('common.save')}
           </button>
         </div>
       </div>
@@ -340,6 +344,7 @@ export default function ItemEditor() {
 /* the item's own photo gallery: drag & drop files, paste a URL, remove,
    click a thumb to make it the cover; optional opt-out from Wikipedia photos */
 function GalleryEditor({ draft, set }) {
+  const { t } = useTranslation()
   const [resolved, setResolved] = useState([]) // aligned with draft.imgs
   const [urlInput, setUrlInput] = useState('')
   const [busy, setBusy] = useState(false)
@@ -361,19 +366,19 @@ function GalleryEditor({ draft, set }) {
     const refs = []
     for (const f of imgs) {
       try { refs.push(await putImg(await compressImageFile(f))) }
-      catch { toast(`"${f.name}" non è un'immagine valida`) }
+      catch { toast(t('editor.toasts.invalidImage', { name: f.name })) }
     }
     setBusy(false)
     if (refs.length) {
       set((d) => ({ imgs: [...d.imgs, ...refs] }))
-      toast(refs.length === 1 ? 'Foto aggiunta' : `${refs.length} foto aggiunte`)
+      toast(t('editor.toasts.photosAdded', { count: refs.length }))
     }
   }
 
   const addUrl = () => {
     const u = urlInput.trim()
     if (!u) return
-    if (!/^https?:\/\//.test(u)) { toast('Inserisci un URL valido (https://…)') ; return }
+    if (!/^https?:\/\//.test(u)) { toast(t('editor.toasts.invalidUrl')) ; return }
     set((d) => ({ imgs: [...d.imgs, u] }))
     setUrlInput('')
   }
@@ -385,7 +390,7 @@ function GalleryEditor({ draft, set }) {
     const [ref] = imgs.splice(i, 1)
     imgs.unshift(ref)
     set({ imgs })
-    toast('Impostata come copertina')
+    toast(t('editor.toasts.coverSet'))
   }
 
   return (
@@ -398,7 +403,7 @@ function GalleryEditor({ draft, set }) {
               <button
                 type="button"
                 onClick={() => makeCover(i)}
-                title={i === 0 ? 'Copertina' : 'Clicca per renderla copertina'}
+                title={i === 0 ? t('editor.photos.cover') : t('editor.photos.makeCover')}
                 className={`block size-16 overflow-hidden rounded-lg ring-2 transition ${
                   i === 0 ? 'ring-brand-500' : 'ring-transparent hover:ring-brand-300'
                 }`}
@@ -415,7 +420,7 @@ function GalleryEditor({ draft, set }) {
               <button
                 type="button"
                 onClick={() => removeAt(i)}
-                aria-label="Rimuovi foto"
+                aria-label={t('editor.photos.remove')}
                 className="absolute -right-1.5 -top-1.5 grid size-5 place-items-center rounded-full bg-ink-900 text-white opacity-100 shadow transition hover:bg-rose-600 lg:opacity-0 lg:group-hover/th:opacity-100"
               >
                 <X size={10} strokeWidth={3} />
@@ -437,7 +442,7 @@ function GalleryEditor({ draft, set }) {
       >
         {busy ? <Loader2 size={19} className="animate-spin text-brand-500" /> : <ImagePlus size={19} className="text-ink-400" />}
         <span className="text-xs font-semibold text-ink-500">
-          Trascina qui le foto dal tuo PC <span className="text-ink-400">oppure clicca per sceglierle</span>
+          {t('editor.photos.dropHere')} <span className="text-ink-400">{t('editor.photos.orClick')}</span>
         </span>
       </div>
       <input
@@ -451,16 +456,16 @@ function GalleryEditor({ draft, set }) {
           value={urlInput}
           onChange={(e) => setUrlInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addUrl() } }}
-          placeholder="…oppure incolla l'URL di una foto"
+          placeholder={t('editor.photos.urlPlaceholder')}
           className={`${inputCls} bg-white`}
         />
         <button
           type="button"
           onClick={addUrl}
-          aria-label="Aggiungi foto da URL"
+          aria-label={t('editor.photos.addFromUrl')}
           className="flex shrink-0 items-center gap-1.5 rounded-xl border border-ink-200 bg-white px-3 text-[13px] font-semibold text-ink-600 shadow-sm transition hover:border-ink-300"
         >
-          <Link2 size={14} /> Aggiungi
+          <Link2 size={14} /> {t('common.add')}
         </button>
       </div>
 
@@ -474,7 +479,7 @@ function GalleryEditor({ draft, set }) {
           }`}
         >
           <ImageOff size={13} />
-          {draft.noWiki ? 'Foto automatiche di Wikipedia nascoste' : 'Nascondi le foto automatiche di Wikipedia'}
+          {draft.noWiki ? t('editor.photos.wikiHidden') : t('editor.photos.hideWiki')}
         </button>
       )}
     </div>

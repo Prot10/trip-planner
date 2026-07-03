@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Loader2, Check, TriangleAlert, ListTodo, ChevronDown, Circle } from 'lucide-react'
 import { useAgentChat } from '../agent/socket'
 
 /* Live progress of the agent's planning work, driven by report_progress */
 export default function PlanningStepper() {
+  const { t } = useTranslation()
   const progress = useAgentChat((s) => s.progress)
   const thinking = useAgentChat((s) => s.thinking)
   const [collapsed, setCollapsed] = useState(false)
@@ -23,7 +25,7 @@ export default function PlanningStepper() {
           {allDone ? <Check size={14} strokeWidth={3} /> : <Loader2 size={14} className="animate-spin" />}
         </span>
         <span className="min-w-0 flex-1 text-[12.5px] font-bold text-violet-900">
-          {allDone ? 'Pianificazione completata' : 'Sto costruendo il viaggio…'}
+          {allDone ? t('stepper.done') : t('stepper.building')}
           <span className="ml-1.5 font-semibold text-violet-500">{doneCount}/{progress.length}</span>
         </span>
         <ChevronDown size={14} className={`shrink-0 text-violet-400 transition-transform ${collapsed ? '-rotate-90' : ''}`} />
@@ -58,7 +60,7 @@ export default function PlanningStepper() {
           ))}
           {thinking && (
             <li className="flex items-center gap-2.5 pt-0.5 text-[11px] font-medium text-violet-400">
-              <ListTodo size={13} className="ml-0.5" /> il piano si aggiorna in tempo reale nell'itinerario
+              <ListTodo size={13} className="ml-0.5" /> {t('stepper.liveNote')}
             </li>
           )}
         </ol>

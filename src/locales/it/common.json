@@ -1,0 +1,529 @@
+{
+  "common": {
+    "save": "Salva",
+    "cancel": "Annulla",
+    "delete": "Elimina",
+    "edit": "Modifica",
+    "close": "Chiudi",
+    "add": "Aggiungi",
+    "yes": "sì",
+    "no": "no",
+    "day": "Giorno",
+    "dayN": "Giorno {{n}}",
+    "seeInItinerary": "Vedi nel programma",
+    "addToTrip": "Aggiungi al viaggio",
+    "notAvailable": "—"
+  },
+  "units": {
+    "durMin": "{{m}} min",
+    "durH": "{{h}}h",
+    "durHM": "{{h}}h {{m}}"
+  },
+  "types": {
+    "activity": "Tappa",
+    "drive": "Guida",
+    "food": "Cibo",
+    "hotel": "Hotel",
+    "info": "Info"
+  },
+  "modes": {
+    "car": "Auto",
+    "walk": "A piedi",
+    "bus": "Bus",
+    "train": "Treno",
+    "plane": "Aereo",
+    "boat": "Traghetto"
+  },
+  "cats": {
+    "attraction": "Attrazioni",
+    "museum": "Musei",
+    "restaurant": "Ristoranti",
+    "cafe": "Caffè & bar",
+    "hotel": "Hotel",
+    "park": "Natura"
+  },
+  "fields": {
+    "title": "titolo",
+    "type": "tipo",
+    "time": "orario",
+    "dur": "durata",
+    "price": "costo",
+    "notes": "note",
+    "links": "link",
+    "linkCount_one": "{{count}} link",
+    "linkCount_other": "{{count}} link",
+    "must": "imperdibile",
+    "done": "fatto",
+    "position": "posizione",
+    "night": "notte",
+    "startDate": "partenza",
+    "consumption": "consumo",
+    "fuel": "carburante",
+    "fuelUnit": "unità carburante",
+    "car": "auto",
+    "stop": "tappa",
+    "removed": "rimossa",
+    "day": "giorno",
+    "dayRemoved": "giorno rimosso",
+    "order": "ordine",
+    "positionN": "posizione {{n}}",
+    "subtitle": "sottotitolo",
+    "transport": "trasporto",
+    "currency": "valuta",
+    "checklist": "checklist",
+    "doneState": "fatto",
+    "todoState": "da fare",
+    "suggestion": "consiglio"
+  },
+  "gas": {
+    "usd_gal": "$ / gallone",
+    "usd_l": "$ / litro",
+    "eur_l": "€ / litro"
+  },
+  "datePicker": {
+    "startDate": "Data di partenza",
+    "pickAria": "Scegli la data di partenza",
+    "setToast": "Partenza {{date}} — date assegnate ai giorni",
+    "prevMonth": "Mese precedente",
+    "nextMonth": "Mese successivo",
+    "untilN_one": "{{count}} giorno · fino a {{date}}",
+    "untilN_other": "{{count}} giorni · fino a {{date}}",
+    "pickHint": "Scegli il giorno di partenza",
+    "remove": "Rimuovi"
+  },
+  "map": {
+    "poi": {
+      "button": "Luoghi",
+      "showTitle": "Mostra luoghi sulla mappa",
+      "title": "Luoghi sulla mappa",
+      "on": "Attivo",
+      "off": "Spento",
+      "srcAll": "Tutti",
+      "srcTrip": "Nel viaggio",
+      "srcSuggestions": "Consigli",
+      "inSuggestions": "nei consigli",
+      "emptyHint": "Nessun consiglio ancora: chiedi a Ulisse idee extra e le vedrai qui sulla mappa"
+    },
+    "search": {
+      "placeholder": "Cerca un luogo sulla mappa…",
+      "noResults": "Nessun risultato — prova ad aggiungere la città o lo stato",
+      "networkError": "Errore di rete nella ricerca",
+      "clear": "Pulisci"
+    },
+    "dir": {
+      "directions": "Indicazioni",
+      "roadDirections": "Indicazioni stradali",
+      "close": "Chiudi indicazioni",
+      "fromPlaceholder": "Partenza…",
+      "toPlaceholder": "Arrivo…",
+      "swap": "Inverti partenza e arrivo",
+      "pickOnMap": "Scegli sulla mappa",
+      "remove": "Rimuovi",
+      "mapPoint": "Punto sulla mappa",
+      "clickToSetStart": "Clicca sulla mappa per impostare la partenza",
+      "clickToSetEnd": "Clicca sulla mappa per impostare l'arrivo",
+      "calculating": "Calcolo percorso…",
+      "showSteps_one": "Mostra indicazioni ({{count}} svolta)",
+      "showSteps_other": "Mostra indicazioni ({{count}} svolte)",
+      "hideSteps": "Nascondi indicazioni"
+    },
+    "legend": {
+      "all": "Tutto il viaggio",
+      "dayShort": "G{{n}}",
+      "fitAll": "Inquadra tutto il viaggio",
+      "fit": "Inquadra viaggio"
+    },
+    "leg": {
+      "straightLine": "in linea d'aria",
+      "hm": "{{h}} h {{m}} min",
+      "m": "{{m}} min"
+    },
+    "toasts": {
+      "routeNotFound": "Percorso non trovato",
+      "positionSet": "Posizione impostata"
+    }
+  },
+  "chat": {
+    "toasts": {
+      "turnUndone": "Modifiche del turno annullate",
+      "editUndone": "Modifica annullata",
+      "undoFailed": "Impossibile annullare: {{error}}",
+      "accountLinked": "Account collegato!"
+    },
+    "tools": {
+      "get_trip": "Lettura del viaggio",
+      "get_route_info": "Lettura percorso e km",
+      "get_place_images": "Ricerca foto del luogo",
+      "activityFallback": "attività",
+      "add_activity": "Aggiunta: {{title}}",
+      "update_activity": "Modifica: {{title}}",
+      "remove_activity": "Rimozione: {{title}}",
+      "move_activity": "Spostamento: {{title}}",
+      "add_day": "Nuovo giorno: {{title}}",
+      "update_day": "Modifica giorno {{n}}",
+      "remove_day": "Eliminazione giorno {{n}}",
+      "move_day": "Spostamento giorno {{n}}",
+      "set_trip_meta": "Impostazioni viaggio",
+      "checklist_add": "Checklist: {{text}}",
+      "checklist_toggle": "Checklist aggiornata",
+      "checklist_remove": "Voce checklist rimossa",
+      "search_places": "Ricerca luogo: {{query}}",
+      "list_suggestions": "Lettura tappe consigliate",
+      "suggestion_removed": "Consiglio rimosso: {{title}}",
+      "suggestion_enabled": "Consiglio attivato: {{title}}",
+      "add_suggestion": "Nuovo consiglio: {{title}}",
+      "remove_suggestion": "Consiglio eliminato",
+      "update_notes": "Blocco note aggiornato",
+      "set_trip_brief": "Brief del viaggio salvato",
+      "start_planning": "Apertura del planner",
+      "estimate_travel": "Stima spostamento ({{mode}})",
+      "web_search": "Ricerca web: {{query}}",
+      "web_fetch": "Lettura pagina web"
+    },
+    "groups": {
+      "add_activity": "Aggiunte {{count}} attività",
+      "update_activity": "Modificate {{count}} attività",
+      "remove_activity": "Rimosse {{count}} attività",
+      "move_activity": "Spostate {{count}} attività",
+      "add_day": "Creati {{count}} giorni",
+      "search_places": "{{count}} ricerche luogo",
+      "get_place_images": "{{count}} ricerche foto",
+      "estimate_travel": "{{count}} stime spostamento",
+      "web_search": "{{count}} ricerche web",
+      "checklist_add": "{{count}} voci in checklist",
+      "add_suggestion": "{{count}} nuovi consigli",
+      "get_trip": "{{count}} letture del viaggio",
+      "update_notes": "Blocco note aggiornato {{count}} volte"
+    },
+    "setup": {
+      "claude": {
+        "title": "Collega il tuo abbonamento Claude",
+        "account": "account Claude (Pro/Max)",
+        "step1": "Apri il terminale e avvia Claude Code",
+        "step2": "Dentro Claude Code esegui il login col tuo abbonamento"
+      },
+      "codex": {
+        "title": "Collega il tuo account ChatGPT",
+        "account": "account ChatGPT (Plus)",
+        "step1": "Apri il terminale nella cartella del progetto ed esegui",
+        "step2": "Completa l'accesso nel browser con il tuo account ChatGPT (Plus)"
+      },
+      "stepReturn": "Torna qui e rimanda il messaggio.",
+      "done": "Account collegato! Riprovo subito col tuo messaggio.",
+      "verifying": "Verifico il codice…",
+      "completeInTab": "Completa l'accesso nella scheda del browser appena aperta, col tuo {{account}}.",
+      "noTab": "Non si è aperta nessuna scheda? Clicca qui per aprire la pagina di accesso",
+      "codePlaceholder": "Incolla qui il codice mostrato a fine accesso…",
+      "confirm": "Conferma",
+      "oneClick": "Collega con un click",
+      "willOpen": "Si aprirà la pagina di accesso del tuo {{account}}: nessuna API key, nessun terminale.",
+      "needServer": "Serve il server locale: avvia `npm run dev` nella cartella del progetto.",
+      "preferTerminal": "Preferisci il terminale?"
+    },
+    "models": {
+      "claudeNote": "abbonamento Pro/Max",
+      "codexNote": "abbonamento Plus (Codex)",
+      "sonnet": "veloce e brillante — consigliato",
+      "opus": "il più profondo, più lento",
+      "haiku": "leggerissimo, per modifiche rapide",
+      "gpt5_5": "il più capace",
+      "gpt5_4": "equilibrato — consigliato",
+      "gpt5_4_mini": "rapido ed economico",
+      "resolvedNote": "{{note}} · ora: {{model}}",
+      "pickAria": "Scegli motore e modello"
+    },
+    "panel": {
+      "connected": "Connesso",
+      "notConnected": "Server non raggiungibile",
+      "example1": "Aggiungi una cena romantica a Monterey la sera del giorno 2",
+      "example2": "Il giorno 4 è troppo pieno? Suggerisci cosa tagliare",
+      "example3": "Trova una spiaggia poco affollata vicino al percorso del giorno 3",
+      "example4": "Quanto sto spendendo di hotel? Dove posso risparmiare?",
+      "savedChats": "Conversazioni salvate",
+      "newChat": "Nuova conversazione",
+      "closeChat": "Chiudi chat",
+      "intro": "Chiedimi qualsiasi cosa sul viaggio: posso <1>aggiungere, spostare e modificare tappe</1>, cercare luoghi, foto e informazioni aggiornate sul web, e ottimizzare il percorso. Ogni modifica appare subito nell'itinerario e puoi rivederla o annullarla, anche singolarmente.",
+      "working": "sto lavorando…",
+      "edits_one": "{{count}} modifica in questo turno",
+      "edits_other": "{{count}} modifiche in questo turno",
+      "hide": "Nascondi",
+      "show": "Mostra",
+      "undoAll": "Annulla tutto",
+      "serverDown": "Server agente non raggiungibile: avvia l'app con <1>npm run dev</1>.",
+      "answerAbove": "Rispondi alla domanda qui sopra",
+      "placeholder": "Scrivi all'assistente… (@ per taggare un'attività)",
+      "stop": "Interrompi",
+      "send": "Invia",
+      "justNow": "adesso",
+      "minAgo": "{{count}} min fa",
+      "hoursAgo": "{{count}} h fa",
+      "daysAgo": "{{count}} g fa",
+      "tripChats": "Conversazioni di questo viaggio",
+      "noChats": "Ancora nessuna conversazione salvata.",
+      "deleteChat": "Elimina conversazione",
+      "showInItinerary": "Mostra nell'itinerario",
+      "undone": "annullata",
+      "undoOneTitle": "Annulla solo questa modifica",
+      "undoOne": "annulla"
+    }
+  },
+  "suggestions": {
+    "emptyTitle": "Nessun consiglio per questo viaggio, per ora",
+    "emptyBody": "Chiedi all'assistente idee extra lungo il percorso: le salverà qui come consigli attivabili con un click.",
+    "introBefore": "Tappe extra selezionate lungo il vostro percorso. Attivane una e viene inserita",
+    "introBold": "automaticamente nel giorno e nel punto del percorso che aggiunge meno strada",
+    "introAfter": "; disattivala e il percorso torna com'era. Il chilometraggio indicato è la deviazione stimata.",
+    "removeFromTrip": "Rimuovi dal viaggio",
+    "recommended": "consigliata",
+    "removedToast": "Rimosso — percorso aggiornato"
+  },
+  "store": {
+    "newTrip": "Nuovo viaggio",
+    "myTrip": "Il mio viaggio",
+    "newDay": "Nuovo giorno",
+    "copySuffix": "(copia)",
+    "conversation": "Conversazione"
+  },
+  "toasts": {
+    "addedOptimal": "Aggiunto al Giorno {{n}} nel punto ottimale del percorso"
+  },
+  "editor": {
+    "titleNew": "Nuova attività",
+    "titleEdit": "Modifica attività",
+    "confirmDelete": "Eliminare \"{{title}}\"?",
+    "fields": {
+      "type": "Tipo",
+      "transportMode": "Mezzo di trasporto",
+      "title": "Titolo",
+      "titlePlaceholder": "es. Tramonto a Bixby Bridge",
+      "time": "Orario",
+      "duration": "Durata (minuti)",
+      "durationPlaceholder": "es. 90",
+      "pricePlaceholder": "es. 25",
+      "priceHotel": "Prezzo a notte ({{cur}})",
+      "priceFood": "Costo stimato ({{cur}})",
+      "priceDrive": "Costo ({{cur}}) — pedaggi, benzina extra…",
+      "priceActivity": "Costo ({{cur}}) — biglietti, parcheggio…",
+      "priceInfo": "Costo ({{cur}}) — ingressi, pass…",
+      "notes": "Note",
+      "notesPlaceholder": "Consigli, parcheggio, cose da non perdere…"
+    },
+    "links": {
+      "label": "Link",
+      "labelPlaceholder": "Etichetta",
+      "remove": "Rimuovi link",
+      "add": "Aggiungi link"
+    },
+    "photos": {
+      "gallery": "Galleria immagini",
+      "cover": "Copertina",
+      "makeCover": "Clicca per renderla copertina",
+      "remove": "Rimuovi foto",
+      "dropHere": "Trascina qui le foto dal tuo PC",
+      "orClick": "oppure clicca per sceglierle",
+      "urlPlaceholder": "…oppure incolla l'URL di una foto",
+      "addFromUrl": "Aggiungi foto da URL",
+      "wikiHidden": "Foto automatiche di Wikipedia nascoste",
+      "hideWiki": "Nascondi le foto automatiche di Wikipedia"
+    },
+    "location": {
+      "label": "Posizione sulla mappa",
+      "searchPlaceholder": "Cerca un luogo… (es. Bixby Bridge, California)",
+      "search": "Cerca",
+      "noResults": "Nessun risultato — prova ad aggiungere “, California”",
+      "pickOnMap": "Scegli sulla mappa",
+      "remove": "Rimuovi posizione"
+    },
+    "toggles": {
+      "must": "Imperdibile",
+      "done": "Già fatto"
+    },
+    "toasts": {
+      "saved": "Attività salvata",
+      "deleted": "Attività eliminata",
+      "titleRequired": "Inserisci un titolo",
+      "searchNetworkError": "Errore di rete nella ricerca",
+      "invalidImage": "\"{{name}}\" non è un'immagine valida",
+      "photosAdded_one": "Foto aggiunta",
+      "photosAdded_other": "{{count}} foto aggiunte",
+      "invalidUrl": "Inserisci un URL valido (https://…)",
+      "coverSet": "Impostata come copertina"
+    }
+  },
+  "header": {
+    "allTrips": "Tutti i viaggi",
+    "backToTrips": "Torna ai miei viaggi",
+    "tripName": "Nome del viaggio",
+    "aiAssistant": "Assistente AI",
+    "exportTooltip": "Esporta itinerario (JSON)",
+    "importTooltip": "Importa itinerario",
+    "stats": {
+      "days_one": "giorno",
+      "days_other": "giorni",
+      "stops_one": "tappa",
+      "stops_other": "tappe",
+      "driving": "di guida",
+      "total": "totali",
+      "dates": "date"
+    },
+    "budget": {
+      "title": "Budget di viaggio",
+      "badge": "budget",
+      "hotel": "Hotel",
+      "food": "Cibo",
+      "activity": "Attività",
+      "extra": "Extra & ingressi",
+      "fuel": "Benzina (stima)",
+      "totalLabel": "Totale",
+      "fuelNote": "Carburante stimato dai km reali del percorso e dai dati della tua auto (icona auto qui sopra)."
+    },
+    "car": {
+      "tooltip": "La tua auto (per la stima carburante)",
+      "settingsAria": "Impostazioni auto",
+      "title": "La tua auto",
+      "makeModel": "Marca e modello",
+      "modelPlaceholder": "es. Dacia Duster, Toyota RAV4…",
+      "consumption": "Consumo (L/100 km)",
+      "fuelPrice": "Prezzo carburante",
+      "fuelPriceUnit": "Unità del prezzo carburante",
+      "priceHint": "Il prezzo giusto dipende da dove viaggi e cambia nel tempo: chiedi all'assistente di cercare la media aggiornata a destinazione.",
+      "askAgentButton": "Cerca il prezzo aggiornato",
+      "askAgentPrompt": "Cerca sul web il prezzo medio attuale del carburante nella zona di questo viaggio e aggiorna le impostazioni auto con set_trip_meta (usa l’unità locale). Se conosci il consumo tipico della mia auto, aggiorna anche quello."
+    },
+    "toasts": {
+      "exported": "Itinerario esportato — condividilo!",
+      "imported": "Itinerario importato!",
+      "invalidFile": "File non valido"
+    }
+  },
+  "app": {
+    "tabItinerary": "Itinerario",
+    "tabSuggestions": "Consigli",
+    "tabChecklist": "Checklist",
+    "tabMap": "Mappa",
+    "tabAI": "AI",
+    "dragResize": "Trascina per ridimensionare",
+    "pickOnMap": "Clicca sulla mappa per scegliere la posizione"
+  },
+  "globe": {
+    "building": "Ulisse sta costruendo il vostro viaggio…",
+    "subtitle": "Ricerca dei luoghi, verifica di orari e prezzi, costruzione giorno per giorno: le tappe appariranno qui in tempo reale."
+  },
+  "itinerary": {
+    "addDay": "Aggiungi un giorno"
+  },
+  "checklist": {
+    "title": "Da fare prima di partire",
+    "placeholder": "Aggiungi una cosa da fare…",
+    "addedToast": "Aggiunto alla checklist",
+    "markTodo": "Segna da fare",
+    "markDone": "Segna come fatto",
+    "open": "apri"
+  },
+  "question": {
+    "openPlaceholder": "Scrivi la tua risposta…",
+    "otherPlaceholder": "Oppure scrivi altro…",
+    "send": "Invia risposta",
+    "confirm": "Conferma"
+  },
+  "stepper": {
+    "done": "Pianificazione completata",
+    "building": "Sto costruendo il viaggio…",
+    "liveNote": "il piano si aggiorna in tempo reale nell'itinerario"
+  },
+  "day": {
+    "stops_one": "{{count}} tappa",
+    "stops_other": "{{count}} tappe",
+    "showOnMap": "Mostra sulla mappa",
+    "editDay": "Modifica giorno",
+    "moveUp": "Sposta su",
+    "moveDown": "Sposta giù",
+    "deleteDay": "Elimina giorno",
+    "confirmDelete": "Eliminare il giorno \"{{title}}\" e tutte le sue attività?",
+    "deleted": "Giorno eliminato",
+    "empty": "Giornata vuota — trascina qui un’attività o aggiungine una",
+    "addItem": "Aggiungi attività",
+    "newDay": "Nuovo giorno",
+    "saved": "Giorno salvato",
+    "titleLabel": "Titolo / tratta",
+    "titlePlaceholder": "es. San Francisco → Yosemite Valley",
+    "nightLabel": "Dove si dorme",
+    "nightPlaceholder": "es. El Portal / Mariposa",
+    "positionLabel": "Posizione nel viaggio",
+    "colorLabel": "Colore sulla mappa",
+    "colorAria": "Colore {{color}}"
+  },
+  "item": {
+    "markTodo": "Segna da fare",
+    "markDone": "Segna come fatto",
+    "dragReorder": "Trascina per riordinare",
+    "perNight": "/notte",
+    "mustSee": "imperdibile",
+    "map": "mappa",
+    "showOnMap": "Mostra sulla mappa",
+    "confirmDelete": "Eliminare \"{{title}}\"?",
+    "deleted": "Attività eliminata",
+    "photoN": "Foto {{n}}",
+    "photoPrev": "Foto precedente",
+    "photoNext": "Foto successiva"
+  },
+  "confirm": {
+    "confirm": "Conferma"
+  },
+  "mention": {
+    "taggedRef": "\"{{title}}\" → item_id {{id}} (giorno {{day}})",
+    "taggedNote": "[Attività taggate dall'utente: {{refs}}]",
+    "dayShort": "G{{n}}",
+    "hint": "↑↓ scegli · Invio conferma",
+    "ariaLabel": "Scrivi all'assistente"
+  },
+  "dashboard": {
+    "title": "I miei viaggi",
+    "subtitle": "Pianifica, ottimizza e condividi i tuoi itinerari",
+    "import": "Importa",
+    "create": "Crea",
+    "newTripPlaceholder": "Nome del viaggio… (es. Weekend a Roma)",
+    "confirmDelete": "Eliminare definitivamente il viaggio \"{{title}}\"?",
+    "toasts": {
+      "created": "Viaggio creato — buona pianificazione!",
+      "duplicated": "Viaggio duplicato",
+      "deleted": "Viaggio eliminato",
+      "imported": "Viaggio importato!",
+      "invalidFile": "File non valido"
+    },
+    "duplicate": "Duplica",
+    "days_one": "{{count}} giorno",
+    "days_other": "{{count}} giorni",
+    "stops_one": "{{count}} tappa",
+    "stops_other": "{{count}} tappe",
+    "agentHint": "l'assistente lo costruisce con te",
+    "fromScratch": "Preferisci partire da zero?",
+    "createManually": "crea un viaggio manualmente"
+  },
+  "interview": {
+    "starters": [
+      "Un weekend romantico a Parigi a fine settembre, senza auto",
+      "Road trip di 10 giorni in Islanda ad agosto, natura e fotografia",
+      "Una settimana in Giappone tra Tokyo e Kyoto coi mezzi pubblici",
+      "5 giorni in Sicilia con bambini, mare e buon cibo"
+    ],
+    "notebook": "Blocco note",
+    "heroTitle": "Dove andiamo?",
+    "heroIntro": "Sono <b>Ulisse</b>, il tuo agente di viaggio. Raccontami cosa hai in mente: ti farò una domanda alla volta prendendo appunti, poi <b>costruirò l'itinerario completo per te</b> — lo vedrai nascere in tempo reale.",
+    "thinking": "sto pensando…",
+    "placeholderAnswer": "Rispondi alla domanda qui sopra",
+    "placeholderOffline": "Assistente non connesso",
+    "placeholderCurrency": "Scegli la valuta qui sotto, poi descrivi il viaggio che sogni…",
+    "placeholder": "Descrivi il viaggio che sogni…",
+    "stop": "Interrompi",
+    "send": "Invia",
+    "currencyEUR": "€ Euro",
+    "currencyUSD": "$ Dollaro",
+    "footerHint": "L'itinerario si crea solo conversando con Ulisse",
+    "orManually": "oppure crea manualmente",
+    "notebookTitle": "Il blocco note di Ulisse",
+    "notebookEmpty": "Il blocco note di Ulisse si compilerà qui, risposta dopo risposta",
+    "writing": "sta scrivendo…",
+    "notebookClose": "Chiudi blocco note"
+  }
+}

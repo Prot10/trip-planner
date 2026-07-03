@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import {
@@ -10,6 +11,7 @@ import { TYPE_META, itemMeta } from './typeMeta'
 import { ItemThumb } from './ItemImage'
 
 export default function ItemCard({ item, day, isLast, stopNumber }) {
+  const { t } = useTranslation()
   const currency = useTrip((s) => activeTrip(s)?.currency ?? 'USD')
   const toggleDone = useTrip((s) => s.toggleDone)
   const removeItem = useTrip((s) => s.removeItem)
@@ -52,7 +54,7 @@ export default function ItemCard({ item, day, isLast, stopNumber }) {
       <div className="flex w-8 shrink-0 flex-col items-center pt-1.5">
         <button
           onClick={() => toggleDone(day.id, item.id)}
-          title={item.done ? 'Segna da fare' : 'Segna come fatto'}
+          title={item.done ? t('item.markTodo') : t('item.markDone')}
           style={stopNumber && !item.done ? { background: day.color, borderColor: day.color } : undefined}
           className={`grid size-8 shrink-0 place-items-center rounded-full ring-1 transition hover:scale-110 ${
             item.done
@@ -91,8 +93,8 @@ export default function ItemCard({ item, day, isLast, stopNumber }) {
             {...attributes}
             {...listeners}
             onClick={(e) => e.stopPropagation()}
-            title="Trascina per riordinare"
-            aria-label="Trascina per riordinare"
+            title={t('item.dragReorder')}
+            aria-label={t('item.dragReorder')}
             className="-ml-1 mt-0.5 shrink-0 cursor-grab touch-none rounded p-0.5 text-ink-300 transition hover:bg-ink-100 hover:text-ink-500 active:cursor-grabbing"
           >
             <GripVertical size={15} />
@@ -107,7 +109,7 @@ export default function ItemCard({ item, day, isLast, stopNumber }) {
                 </Chip>
               )}
               <Chip className={meta.chip}>
-                <meta.Icon size={11} /> {meta.label}
+                <meta.Icon size={11} /> {t(meta.labelKey)}
               </Chip>
               {item.dur > 0 && (
                 <Chip className="bg-blue-50 text-blue-700 ring-blue-600/20">
@@ -116,12 +118,12 @@ export default function ItemCard({ item, day, isLast, stopNumber }) {
               )}
               {item.price > 0 && (
                 <Chip className="bg-emerald-50 text-emerald-700 ring-emerald-600/20">
-                  {fmtMoney(item.price, currency)}{item.type === 'hotel' ? '/notte' : ''}
+                  {fmtMoney(item.price, currency)}{item.type === 'hotel' ? t('item.perNight') : ''}
                 </Chip>
               )}
               {item.must && (
                 <Chip className="bg-amber-50 text-amber-700 ring-amber-500/30">
-                  <Star size={11} fill="currentColor" /> imperdibile
+                  <Star size={11} fill="currentColor" /> {t('item.mustSee')}
                 </Chip>
               )}
             </div>
@@ -141,7 +143,7 @@ export default function ItemCard({ item, day, isLast, stopNumber }) {
                       onClick={showOnMap}
                       className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-600/20 transition hover:bg-emerald-100"
                     >
-                      <MapPinned size={11.5} /> mappa
+                      <MapPinned size={11.5} /> {t('item.map')}
                     </button>
                     <a
                       href={gmapsUrl(item.lat, item.lng)}
@@ -176,18 +178,18 @@ export default function ItemCard({ item, day, isLast, stopNumber }) {
             className="flex shrink-0 flex-col gap-0.5 opacity-100 transition lg:opacity-0 lg:group-hover/item:opacity-100"
           >
             <button
-              title="Modifica"
+              title={t('common.edit')}
               onClick={() => openEditor(day.id, item.id)}
               className="grid size-6 place-items-center rounded-md text-ink-300 transition hover:bg-ink-100 hover:text-ink-600"
             >
               <Pencil size={13} />
             </button>
             <button
-              title="Elimina"
+              title={t('common.delete')}
               onClick={() =>
-                ask(`Eliminare "${item.title}"?`, () => {
+                ask(t('item.confirmDelete', { title: item.title }), () => {
                   removeItem(day.id, item.id)
-                  toast('Attività eliminata')
+                  toast(t('item.deleted'))
                 })
               }
               className="grid size-6 place-items-center rounded-md text-ink-300 transition hover:bg-rose-50 hover:text-rose-600"

@@ -1,0 +1,1343 @@
+{
+  "title": "California Coast & Parks",
+  "subtitle": "Pasadena → Big Sur → San Francisco → Yosemite → Sequoia · 7 days / 6 nights",
+  "startDate": "2026-07-25",
+  "days": [
+    {
+      "title": "Pasadena → Santa Barbara → Solvang → SLO / Pismo",
+      "night": "San Luis Obispo / Pismo Beach",
+      "color": "#fbbf24",
+      "items": [
+        {
+          "type": "activity",
+          "time": "06:45",
+          "dur": 15,
+          "title": "Departure from Pasadena",
+          "notes": "Start and end point of the loop. Full tank, coffee in hand, and off you go on US-101.",
+          "lat": 34.1478,
+          "lng": -118.1445,
+          "links": []
+        },
+        {
+          "type": "info",
+          "title": "Leave by 7:00 AM",
+          "notes": "A day that packs in Santa Barbara + Santa Ynez + SLO: doable, but no lingering at minor stops. LA morning traffic: the earlier you leave, the better.",
+          "links": []
+        },
+        {
+          "type": "drive",
+          "time": "07:00",
+          "dur": 105,
+          "title": "Pasadena → Santa Barbara",
+          "notes": "US-101 N. About 100 miles.",
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "08:50",
+          "dur": 75,
+          "title": "Stearns Wharf + waterfront",
+          "notes": "A compact visit: pier, beach and palm trees. Park on the wharf or along Cabrillo Blvd.",
+          "lat": 34.4108,
+          "lng": -119.6863,
+          "links": [
+            {
+              "label": "Official site",
+              "url": "https://stearnswharf.org"
+            }
+          ]
+        },
+        {
+          "type": "activity",
+          "time": "10:15",
+          "dur": 45,
+          "title": "Old Mission Santa Barbara (optional)",
+          "notes": "Only if it appeals to you: the 'Queen of the Missions'. Otherwise, spend more time on State Street.",
+          "lat": 34.4381,
+          "lng": -119.7136,
+          "links": [
+            {
+              "label": "Official site",
+              "url": "https://www.santabarbaramission.org"
+            }
+          ],
+          "price": 16
+        },
+        {
+          "type": "food",
+          "time": "11:10",
+          "dur": 50,
+          "title": "State Street — coffee / quick lunch",
+          "notes": "The main pedestrian street, plenty of quick options.",
+          "lat": 34.4208,
+          "lng": -119.6982,
+          "links": [],
+          "price": 40
+        },
+        {
+          "type": "drive",
+          "time": "12:15",
+          "dur": 45,
+          "title": "Santa Barbara → Solvang",
+          "notes": "Via CA-154 (San Marcos Pass, scenic) or US-101.",
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "13:00",
+          "dur": 80,
+          "title": "Solvang / Santa Ynez Valley",
+          "notes": "Danish village: charming but very touristy. A scenic break of 1–1.5 hours max. Try an aebleskiver!",
+          "lat": 34.5958,
+          "lng": -120.1376,
+          "links": [
+            {
+              "label": "Solvang USA",
+              "url": "https://www.solvangusa.com"
+            }
+          ],
+          "price": 15
+        },
+        {
+          "type": "drive",
+          "time": "14:30",
+          "dur": 75,
+          "title": "Solvang → San Luis Obispo",
+          "notes": "US-101 N.",
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "16:00",
+          "dur": 90,
+          "title": "Downtown San Luis Obispo",
+          "notes": "Stroll through downtown: Higuera Street, Bubblegum Alley, Mission Plaza.",
+          "lat": 35.281,
+          "lng": -120.664,
+          "links": []
+        },
+        {
+          "type": "drive",
+          "time": "18:00",
+          "dur": 20,
+          "title": "SLO → Pismo Beach",
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "18:45",
+          "dur": 60,
+          "must": true,
+          "title": "Sunset at Pismo Pier",
+          "notes": "Ocean sunset from the pier. Alternatively, Avila Beach — smaller and more intimate.",
+          "lat": 35.1385,
+          "lng": -120.645,
+          "links": []
+        },
+        {
+          "type": "food",
+          "time": "20:00",
+          "dur": 90,
+          "title": "Dinner in Pismo / SLO",
+          "notes": "Pismo = clam chowder (Splash Café). SLO = wider choice of restaurants downtown.",
+          "links": [],
+          "price": 80
+        },
+        {
+          "type": "hotel",
+          "title": "Night 1 — SLO or Pismo/Avila Beach",
+          "notes": "SLO for convenience and restaurants; Pismo/Avila for coastal atmosphere.",
+          "lat": 35.1428,
+          "lng": -120.6413,
+          "links": [],
+          "price": 180
+        }
+      ]
+    },
+    {
+      "title": "SLO → Morro Bay → Hearst Castle → Big Sur → Carmel",
+      "night": "Monterey / Carmel",
+      "color": "#fb7185",
+      "items": [
+        {
+          "type": "info",
+          "must": true,
+          "title": "Check Highway 1 on Caltrans",
+          "notes": "The trickiest day of the trip. Check the actual road status a few days ahead AND the morning of. Plan B if closed: Paso Robles → US-101 → Salinas → Monterey.",
+          "links": [
+            {
+              "label": "Caltrans Highway Conditions",
+              "url": "https://roads.dot.ca.gov"
+            },
+            {
+              "label": "Caltrans QuickMap",
+              "url": "https://quickmap.dot.ca.gov"
+            }
+          ]
+        },
+        {
+          "type": "drive",
+          "time": "07:00",
+          "dur": 25,
+          "title": "SLO/Pismo → Morro Bay",
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "07:30",
+          "dur": 45,
+          "title": "Morro Rock + breakfast",
+          "notes": "Short stop: views of the 'Gibraltar of the Pacific', coffee by the little harbor. Keep an eye out for sea otters!",
+          "lat": 35.3697,
+          "lng": -120.8679,
+          "links": [],
+          "price": 25
+        },
+        {
+          "type": "drive",
+          "time": "08:20",
+          "dur": 40,
+          "title": "Morro Bay → San Simeon (Elephant Seal Vista Point)",
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "09:00",
+          "dur": 30,
+          "must": true,
+          "title": "Elephant Seal Vista Point",
+          "notes": "A quick but near-mandatory stop: hundreds of elephant seals on the beach. Free, with a scenic boardwalk.",
+          "lat": 35.663,
+          "lng": -121.2572,
+          "links": [
+            {
+              "label": "Friends of the Elephant Seal",
+              "url": "https://elephantseal.org"
+            }
+          ]
+        },
+        {
+          "type": "activity",
+          "time": "09:40",
+          "dur": 150,
+          "title": "Hearst Castle — only if it's a priority",
+          "notes": "DECISION TIME: if you really care about it, book the FIRST tour of the morning. Otherwise skip it and give Big Sur more time (recommended with 7 days). First candidate for the cut.",
+          "lat": 35.6852,
+          "lng": -121.1682,
+          "links": [
+            {
+              "label": "Book a tour",
+              "url": "https://hearstcastle.org"
+            }
+          ],
+          "price": 70
+        },
+        {
+          "type": "drive",
+          "time": "12:15",
+          "dur": 30,
+          "title": "San Simeon → Ragged Point",
+          "notes": "The real Highway 1 begins: curves and cliffs.",
+          "links": []
+        },
+        {
+          "type": "food",
+          "time": "12:45",
+          "dur": 45,
+          "title": "Ragged Point — views + quick lunch",
+          "notes": "The 'Gateway to Big Sur': panoramic terrace and snack bar.",
+          "lat": 35.7794,
+          "lng": -121.3287,
+          "links": [],
+          "price": 45
+        },
+        {
+          "type": "drive",
+          "time": "13:35",
+          "dur": 60,
+          "title": "Ragged Point → McWay Falls",
+          "notes": "The most spectacular stretch of the coast: drive unhurried, with short stops at the turnouts.",
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "14:40",
+          "dur": 45,
+          "must": true,
+          "title": "McWay Falls — Julia Pfeiffer Burns SP",
+          "notes": "The waterfall that drops straight onto the beach. The Overlook Trail is very short (half a mile). Parking $10, or roadside spots.",
+          "lat": 36.1578,
+          "lng": -121.6721,
+          "links": [
+            {
+              "label": "Julia Pfeiffer Burns SP",
+              "url": "https://www.parks.ca.gov/?page_id=578"
+            }
+          ],
+          "price": 10
+        },
+        {
+          "type": "drive",
+          "time": "15:30",
+          "dur": 20,
+          "title": "McWay Falls → Pfeiffer Big Sur SP",
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "15:50",
+          "dur": 40,
+          "title": "Pfeiffer Big Sur State Park — short stop",
+          "notes": "Coast redwoods along the Big Sur River. A brief stop, just long enough to breathe in the forest.",
+          "lat": 36.2465,
+          "lng": -121.7823,
+          "links": [
+            {
+              "label": "Pfeiffer Big Sur SP",
+              "url": "https://www.parks.ca.gov/?page_id=570"
+            }
+          ]
+        },
+        {
+          "type": "drive",
+          "time": "16:40",
+          "dur": 25,
+          "title": "Pfeiffer Big Sur → Bixby Bridge",
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "17:10",
+          "dur": 25,
+          "must": true,
+          "title": "Bixby Creek Bridge",
+          "notes": "The most photographed bridge in California. Turnout on the north side (Castle Rock viewpoint). Best light in the afternoon.",
+          "lat": 36.3715,
+          "lng": -121.9017,
+          "links": []
+        },
+        {
+          "type": "drive",
+          "time": "17:40",
+          "dur": 30,
+          "title": "Bixby Bridge → Carmel-by-the-Sea",
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "18:15",
+          "dur": 60,
+          "title": "Stroll through Carmel-by-the-Sea",
+          "notes": "Fairy-tale cottages, art galleries, and Ocean Avenue all the way down to the beach.",
+          "lat": 36.5552,
+          "lng": -121.9233,
+          "links": []
+        },
+        {
+          "type": "food",
+          "time": "19:45",
+          "dur": 90,
+          "title": "Dinner in Carmel or Monterey",
+          "notes": "Carmel = more atmosphere. Monterey = more choice and better prices.",
+          "links": [],
+          "price": 90
+        },
+        {
+          "type": "hotel",
+          "title": "Night 2 — Monterey or Carmel",
+          "notes": "Carmel for the atmosphere, Monterey for choice/prices. Book well in advance!",
+          "lat": 36.6002,
+          "lng": -121.8947,
+          "links": [],
+          "price": 220
+        }
+      ]
+    },
+    {
+      "title": "Point Lobos → 17-Mile Drive → Santa Cruz → San Francisco",
+      "night": "San Francisco",
+      "color": "#a78bfa",
+      "items": [
+        {
+          "type": "info",
+          "title": "Point Lobos: arrive EARLY",
+          "notes": "Parking is very limited (~150 cars): ideally arrive before 9:30. This day sacrifices the Monterey Bay Aquarium — fitting it in means cutting Santa Cruz / Half Moon Bay (not recommended).",
+          "links": [
+            {
+              "label": "Monterey Bay Aquarium (if you change your mind)",
+              "url": "https://www.montereybayaquarium.org"
+            }
+          ]
+        },
+        {
+          "type": "drive",
+          "time": "07:40",
+          "dur": 15,
+          "title": "Monterey/Carmel → Point Lobos",
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "08:00",
+          "dur": 150,
+          "must": true,
+          "title": "Point Lobos State Natural Reserve",
+          "notes": "One of the most beautiful stops of the whole trip. Do: Sea Lion Point Trail, Cypress Grove Trail, Bird Island Trail (time permitting). Entry $10/car.",
+          "lat": 36.5157,
+          "lng": -121.9515,
+          "links": [
+            {
+              "label": "Point Lobos Foundation",
+              "url": "https://www.pointlobos.org"
+            },
+            {
+              "label": "Parking & info",
+              "url": "https://www.parks.ca.gov/?page_id=571"
+            }
+          ],
+          "price": 10
+        },
+        {
+          "type": "activity",
+          "time": "10:45",
+          "dur": 30,
+          "title": "Carmel Beach",
+          "notes": "White-sand beach framed by cypress trees; a quick stop.",
+          "lat": 36.554,
+          "lng": -121.929,
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "11:20",
+          "dur": 75,
+          "title": "17-Mile Drive — short version",
+          "notes": "Lone Cypress + Pebble Beach viewpoint. Toll ~$12/car (refunded if you have lunch at the restaurants along the route).",
+          "lat": 36.5686,
+          "lng": -121.965,
+          "links": [
+            {
+              "label": "17-Mile Drive map",
+              "url": "https://www.pebblebeach.com/17-mile-drive/"
+            }
+          ],
+          "price": 12
+        },
+        {
+          "type": "drive",
+          "time": "12:45",
+          "dur": 60,
+          "title": "Pebble Beach → Santa Cruz",
+          "notes": "CA-1 N along the bay. Quick lunch on the road or in Santa Cruz.",
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "14:00",
+          "dur": 45,
+          "title": "Santa Cruz Beach Boardwalk",
+          "notes": "Historic beachfront amusement park: even just 45 minutes for the atmosphere. Ride the Giant Dipper if you're up for it!",
+          "lat": 36.9642,
+          "lng": -122.0177,
+          "links": [
+            {
+              "label": "Boardwalk",
+              "url": "https://beachboardwalk.com"
+            }
+          ]
+        },
+        {
+          "type": "activity",
+          "time": "15:00",
+          "dur": 30,
+          "title": "Natural Bridges State Beach",
+          "notes": "Rock arch rising from the sea; a quick stop.",
+          "lat": 36.9506,
+          "lng": -122.0577,
+          "links": []
+        },
+        {
+          "type": "drive",
+          "time": "15:40",
+          "dur": 35,
+          "title": "Santa Cruz → Pigeon Point",
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "16:20",
+          "dur": 25,
+          "title": "Pigeon Point Lighthouse (if on schedule)",
+          "notes": "One of the tallest lighthouses on the West Coast. Only if you're not running late.",
+          "lat": 37.1817,
+          "lng": -122.3939,
+          "links": [
+            {
+              "label": "Pigeon Point",
+              "url": "https://www.parks.ca.gov/?page_id=533"
+            }
+          ]
+        },
+        {
+          "type": "drive",
+          "time": "16:50",
+          "dur": 30,
+          "title": "Pigeon Point → Half Moon Bay",
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "17:25",
+          "dur": 30,
+          "title": "Half Moon Bay (if there's still daylight)",
+          "notes": "One last breath of ocean air before the city.",
+          "lat": 37.4636,
+          "lng": -122.4286,
+          "links": []
+        },
+        {
+          "type": "drive",
+          "time": "18:00",
+          "dur": 50,
+          "title": "Half Moon Bay → San Francisco",
+          "notes": "CA-1 N through Pacifica, entering the city from the south.",
+          "links": []
+        },
+        {
+          "type": "food",
+          "time": "19:30",
+          "dur": 90,
+          "title": "Dinner in San Francisco",
+          "notes": "First evening in the city: North Beach (Italian) or the Mission (Mexican) are both great areas.",
+          "links": [],
+          "price": 90
+        },
+        {
+          "type": "hotel",
+          "title": "Night 3 — San Francisco (1 of 2)",
+          "notes": "Same hotel for 2 nights: pick a convenient area (Union Square, Fisherman's Wharf or the Marina). Watch out for hotel parking fees (~$40-70/night).",
+          "lat": 37.7749,
+          "lng": -122.4194,
+          "links": [],
+          "price": 230
+        }
+      ]
+    },
+    {
+      "title": "San Francisco + Golden Gate + Marin Headlands",
+      "night": "San Francisco",
+      "color": "#38bdf8",
+      "items": [
+        {
+          "type": "info",
+          "title": "Just one full day in SF",
+          "notes": "Not much, but consistent with a coast + parks trip. Do NOT add Napa, Muir Woods or Point Reyes: they would throw the whole trip off balance. City in the morning, Golden Gate/Marin in the afternoon.",
+          "links": []
+        },
+        {
+          "type": "food",
+          "time": "08:30",
+          "dur": 60,
+          "title": "Breakfast at the Ferry Building",
+          "notes": "Gourmet marketplace on the Embarcadero. On Saturday mornings there's a farmers market too.",
+          "lat": 37.7955,
+          "lng": -122.3937,
+          "links": [
+            {
+              "label": "Ferry Building",
+              "url": "https://www.ferrybuildingmarketplace.com"
+            }
+          ],
+          "price": 35
+        },
+        {
+          "type": "activity",
+          "time": "09:45",
+          "dur": 60,
+          "title": "Embarcadero → North Beach on foot",
+          "notes": "Along the waterfront, then into the Italian quarter: Washington Square, City Lights Bookstore.",
+          "lat": 37.806,
+          "lng": -122.4103,
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "11:00",
+          "dur": 45,
+          "title": "Chinatown",
+          "notes": "The oldest in North America: Grant Avenue + Waverly Place, fortune cookie factory in Ross Alley.",
+          "lat": 37.7941,
+          "lng": -122.4078,
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "12:00",
+          "dur": 60,
+          "title": "Cable Car + Nob Hill",
+          "notes": "Hop on the Powell-Hyde line: views of Alcatraz and Lombard Street. $8 per ride (or a MuniMobile day pass).",
+          "lat": 37.793,
+          "lng": -122.4161,
+          "links": [
+            {
+              "label": "Cable car info",
+              "url": "https://www.sfmta.com/getting-around/muni/cable-cars"
+            }
+          ],
+          "price": 16
+        },
+        {
+          "type": "food",
+          "time": "13:15",
+          "dur": 45,
+          "title": "Quick lunch in North Beach / Chinatown",
+          "links": [],
+          "price": 40
+        },
+        {
+          "type": "activity",
+          "time": "14:15",
+          "dur": 30,
+          "title": "Painted Ladies (if you're interested)",
+          "notes": "The Victorian houses of Alamo Square. Skippable if you're running late.",
+          "lat": 37.7762,
+          "lng": -122.4328,
+          "links": []
+        },
+        {
+          "type": "drive",
+          "time": "15:00",
+          "dur": 25,
+          "title": "City → Golden Gate Bridge",
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "15:30",
+          "dur": 45,
+          "title": "Golden Gate Bridge — Welcome Center + walk",
+          "notes": "Walk out onto the bridge on the east side (pedestrians). Dizzying and beautiful.",
+          "lat": 37.8078,
+          "lng": -122.475,
+          "links": [
+            {
+              "label": "Golden Gate",
+              "url": "https://www.goldengate.org"
+            }
+          ]
+        },
+        {
+          "type": "activity",
+          "time": "16:30",
+          "dur": 30,
+          "must": true,
+          "title": "Battery Spencer",
+          "notes": "THE iconic view of the bridge from above, on the Marin side. Tiny parking lot: be patient for a spot.",
+          "lat": 37.8279,
+          "lng": -122.4823,
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "17:10",
+          "dur": 60,
+          "title": "Marin Headlands — Hawk Hill + Rodeo Beach",
+          "notes": "Scenic Conzelman Road, then down to Rodeo Beach (dark sand).",
+          "lat": 37.8323,
+          "lng": -122.5386,
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "18:30",
+          "dur": 45,
+          "title": "Sausalito (only if you have energy left)",
+          "notes": "Drinks with a skyline view. Alternatively: head back and rest up before Yosemite.",
+          "lat": 37.8591,
+          "lng": -122.4853,
+          "links": []
+        },
+        {
+          "type": "food",
+          "time": "20:00",
+          "dur": 90,
+          "title": "Dinner in San Francisco",
+          "notes": "Last evening in the city. Tomorrow is an EARLY start.",
+          "links": [],
+          "price": 90
+        },
+        {
+          "type": "hotel",
+          "title": "Night 4 — San Francisco (2 of 2)",
+          "lat": 37.7749,
+          "lng": -122.4194,
+          "links": [],
+          "price": 230
+        }
+      ]
+    },
+    {
+      "title": "San Francisco → Yosemite Valley",
+      "night": "Yosemite Valley / El Portal / Mariposa",
+      "color": "#34d399",
+      "items": [
+        {
+          "type": "info",
+          "must": true,
+          "title": "Yosemite 2026: no timed-entry reservation, but…",
+          "notes": "No timed-entry reservation is needed, but you do have to pay the entrance fee ($35/car, valid 7 days) or carry an America the Beautiful pass. The real issue: parking and traffic → arrive early. Fill up on gas before entering.",
+          "links": [
+            {
+              "label": "Current NPS conditions",
+              "url": "https://www.nps.gov/yose/planyourvisit/conditions.htm"
+            },
+            {
+              "label": "Park passes",
+              "url": "https://www.nps.gov/planyourvisit/passes.htm"
+            }
+          ],
+          "price": 35
+        },
+        {
+          "type": "drive",
+          "time": "06:45",
+          "dur": 165,
+          "title": "San Francisco → Groveland",
+          "notes": "I-580 → I-205 → CA-120 E via Oakdale (the 'Gateway to Yosemite': last real coffee stop).",
+          "links": []
+        },
+        {
+          "type": "drive",
+          "time": "09:45",
+          "dur": 80,
+          "title": "Groveland → Big Oak Flat Entrance → Yosemite Valley",
+          "notes": "CA-120, northwest entrance. Slow, scenic driving inside the park.",
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "11:30",
+          "dur": 30,
+          "must": true,
+          "title": "Tunnel View",
+          "notes": "THE Yosemite panorama: El Capitan, Half Dome and Bridalveil all in one frame. Mandatory first stop.",
+          "lat": 37.7156,
+          "lng": -119.6773,
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "12:15",
+          "dur": 45,
+          "title": "Bridalveil Fall",
+          "notes": "Short, easy trail to the base of the waterfall (expect spray!).",
+          "lat": 37.7169,
+          "lng": -119.651,
+          "links": []
+        },
+        {
+          "type": "food",
+          "time": "13:15",
+          "dur": 45,
+          "title": "Lunch in the Valley",
+          "notes": "Picnic, or the Village Store / Base Camp Eatery in Yosemite Village.",
+          "links": [],
+          "price": 35
+        },
+        {
+          "type": "activity",
+          "time": "14:15",
+          "dur": 40,
+          "title": "El Capitan Meadow",
+          "notes": "Look straight up: with a bit of luck you'll spot climbers on the wall (binoculars help).",
+          "lat": 37.7289,
+          "lng": -119.6437,
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "15:15",
+          "dur": 60,
+          "must": true,
+          "title": "Lower Yosemite Fall",
+          "notes": "Easy 1-mile loop to the base of North America's tallest waterfall.",
+          "lat": 37.7455,
+          "lng": -119.5964,
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "17:30",
+          "dur": 60,
+          "title": "Cook's Meadow at sunset",
+          "notes": "Golden light on Half Dome and Yosemite Falls. The perfect way to end the day.",
+          "lat": 37.7448,
+          "lng": -119.5946,
+          "links": []
+        },
+        {
+          "type": "food",
+          "time": "19:00",
+          "dur": 75,
+          "title": "Dinner in the Valley or in El Portal",
+          "notes": "Limited options: best not to eat too late.",
+          "links": [],
+          "price": 70
+        },
+        {
+          "type": "hotel",
+          "must": true,
+          "title": "Night 5 — THE MOST IMPORTANT one to book",
+          "notes": "Order of preference: 1) inside Yosemite Valley (if you can find a spot), 2) El Portal (best compromise), 3) Mariposa (farther but affordable), 4) Oakhurst only if you're heading out south afterwards. Sleep too far away and the itinerary loses its magic.",
+          "lat": 37.6752,
+          "lng": -119.783,
+          "links": [
+            {
+              "label": "In-park lodging",
+              "url": "https://www.travelyosemite.com"
+            }
+          ],
+          "price": 250
+        }
+      ]
+    },
+    {
+      "title": "Yosemite (Glacier Point) → Three Rivers / Visalia",
+      "night": "Three Rivers / Visalia",
+      "color": "#f97316",
+      "items": [
+        {
+          "type": "info",
+          "must": true,
+          "title": "Check that Glacier Point Road is open",
+          "notes": "OPTION A (recommended): Glacier Point + Washburn Point if the road is open (closed in winter/spring). OPTION B: Mariposa Grove instead of Glacier Point — though it overlaps a bit with day 7 at Sequoia.",
+          "links": [
+            {
+              "label": "Glacier Point NPS",
+              "url": "https://www.nps.gov/yose/planyourvisit/glacierpoint.htm"
+            }
+          ]
+        },
+        {
+          "type": "drive",
+          "time": "07:00",
+          "dur": 65,
+          "title": "Valley → Glacier Point",
+          "notes": "Wawona Road + Glacier Point Road. Leave very early.",
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "08:15",
+          "dur": 60,
+          "must": true,
+          "title": "Glacier Point",
+          "notes": "The grand overview of all of Yosemite: Half Dome face to face, Vernal and Nevada Falls from above. Worth every mile of the detour.",
+          "lat": 37.7281,
+          "lng": -119.5729,
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "09:30",
+          "dur": 20,
+          "title": "Washburn Point",
+          "notes": "Half a mile from Glacier Point, a different angle on Half Dome. Quick stop.",
+          "lat": 37.7204,
+          "lng": -119.5665,
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "10:00",
+          "dur": 90,
+          "title": "Sentinel Dome or Taft Point (short hike, optional)",
+          "notes": "~2.2 miles round trip each. Sentinel Dome = 360° views. Taft Point = a heart-stopping sheer drop. Only if your legs and schedule allow.",
+          "lat": 37.7123,
+          "lng": -119.5865,
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "12:00",
+          "dur": 120,
+          "title": "OPTION B — Mariposa Grove (alternative to Glacier Point)",
+          "notes": "Only if Glacier Point Road is closed: Grizzly Giant and the California Tunnel Tree. Shuttle from the Welcome Plaza near the South Entrance.",
+          "lat": 37.5017,
+          "lng": -119.6067,
+          "links": [
+            {
+              "label": "Mariposa Grove",
+              "url": "https://www.nps.gov/yose/planyourvisit/mg.htm"
+            }
+          ]
+        },
+        {
+          "type": "drive",
+          "time": "12:00",
+          "dur": 70,
+          "title": "Glacier Point Rd → Wawona → south exit (CA-41)",
+          "notes": "Exit via the South Entrance toward Oakhurst.",
+          "links": []
+        },
+        {
+          "type": "food",
+          "time": "13:20",
+          "dur": 45,
+          "title": "Lunch in Oakhurst",
+          "notes": "The last proper town before the agricultural valley.",
+          "lat": 37.3277,
+          "lng": -119.6488,
+          "links": [],
+          "price": 40
+        },
+        {
+          "type": "drive",
+          "time": "14:15",
+          "dur": 160,
+          "title": "Oakhurst → Fresno → Three Rivers",
+          "notes": "CA-41 S → CA-180/CA-99 → CA-198 E. A transfer leg, not particularly scenic.",
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "17:15",
+          "dur": 45,
+          "title": "Relax along the Kaweah River",
+          "notes": "Three Rivers is a small riverside town at the foot of Sequoia: stroll and decompress.",
+          "lat": 36.4388,
+          "lng": -118.9045,
+          "links": []
+        },
+        {
+          "type": "food",
+          "time": "19:00",
+          "dur": 90,
+          "title": "Dinner in Three Rivers / Visalia",
+          "links": [],
+          "price": 80
+        },
+        {
+          "type": "hotel",
+          "title": "Night 6 — Three Rivers or Visalia",
+          "notes": "Three Rivers = close to the Sequoia entrance (recommended). Visalia = more convenient/cheaper, but +40 min of driving tomorrow morning.",
+          "lat": 36.4388,
+          "lng": -118.9045,
+          "links": [],
+          "price": 170
+        }
+      ]
+    },
+    {
+      "title": "Sequoia National Park → Pasadena",
+      "night": "Pasadena — end of the trip",
+      "color": "#e879f9",
+      "items": [
+        {
+          "type": "info",
+          "title": "Kings Canyon: cut (for good reason)",
+          "notes": "With 7 days, a full Kings Canyon visit is the first practical cut: not because it isn't worth it, but because it's logistically inefficient. At most, Grant Grove — if you leave very early and accept a long drive home.",
+          "links": [
+            {
+              "label": "Sequoia & Kings Canyon NPS",
+              "url": "https://www.nps.gov/seki"
+            }
+          ],
+          "price": 35
+        },
+        {
+          "type": "drive",
+          "time": "06:30",
+          "dur": 60,
+          "title": "Three Rivers → Giant Forest",
+          "notes": "Generals Highway: steep, full of switchbacks, ~5,000 ft of climbing. Not recommended for long vehicles. Gas up before heading up (there's none in the park).",
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "07:45",
+          "dur": 60,
+          "must": true,
+          "title": "General Sherman Tree",
+          "notes": "The largest tree on Earth (by volume). Early = easy parking and few people.",
+          "lat": 36.5819,
+          "lng": -118.7511,
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "09:00",
+          "dur": 75,
+          "title": "Congress Trail (at least part of it)",
+          "notes": "A 2-mile loop among the giants: the House and Senate Groups, the President Tree. Even half an hour is worth it.",
+          "lat": 36.5805,
+          "lng": -118.749,
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "10:30",
+          "dur": 45,
+          "must": true,
+          "title": "Moro Rock",
+          "notes": "~350 steps carved into the granite, with jaw-dropping views of the Great Western Divide. Not to be missed if the sky is clear.",
+          "lat": 36.5468,
+          "lng": -118.7654,
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "11:30",
+          "dur": 20,
+          "title": "Tunnel Log",
+          "notes": "The sequoia that fell in 1937 — and you drive right through it. Obligatory photo.",
+          "lat": 36.539,
+          "lng": -118.7616,
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "12:00",
+          "dur": 45,
+          "title": "Crescent Meadow (if you have time)",
+          "notes": "The 'Gem of the Sierra' according to John Muir. Bears sometimes graze here — keep your distance.",
+          "lat": 36.5546,
+          "lng": -118.749,
+          "links": []
+        },
+        {
+          "type": "food",
+          "time": "13:00",
+          "dur": 45,
+          "title": "Quick lunch / picnic in the park",
+          "links": [],
+          "price": 30
+        },
+        {
+          "type": "drive",
+          "time": "14:00",
+          "dur": 150,
+          "title": "Sequoia → Bakersfield",
+          "notes": "Descend the Generals Highway (use engine braking!), then CA-65 S.",
+          "links": []
+        },
+        {
+          "type": "drive",
+          "time": "16:45",
+          "dur": 110,
+          "title": "Bakersfield → Pasadena",
+          "notes": "CA-99 → I-5 S over the Grapevine → CA-134. Expect possible traffic heading back into LA.",
+          "links": []
+        },
+        {
+          "type": "activity",
+          "time": "18:45",
+          "dur": 30,
+          "title": "Arrival in Pasadena",
+          "notes": "End of the loop: ~1,500 miles of coast, cities and parks. Celebration dinner!",
+          "lat": 34.1478,
+          "lng": -118.1445,
+          "links": []
+        }
+      ]
+    }
+  ],
+  "checklist": [
+    {
+      "text": "Book night 5 near Yosemite (Valley > El Portal > Mariposa) — THE MOST IMPORTANT",
+      "link": "https://www.travelyosemite.com"
+    },
+    {
+      "text": "Book hotel in Monterey / Carmel (night 2)"
+    },
+    {
+      "text": "Book hotel in Three Rivers / Visalia (night 6)"
+    },
+    {
+      "text": "Book hotel in San Francisco (nights 3-4) — check parking costs"
+    },
+    {
+      "text": "Check Highway 1 / Big Sur on Caltrans a few days before",
+      "link": "https://roads.dot.ca.gov"
+    },
+    {
+      "text": "Buy the 'America the Beautiful' pass ($80, worth it with 2+ parks) or single entries",
+      "link": "https://www.nps.gov/planyourvisit/passes.htm"
+    },
+    {
+      "text": "Check that Glacier Point Road is open",
+      "link": "https://www.nps.gov/yose/planyourvisit/glacierpoint.htm"
+    },
+    {
+      "text": "(Only if it's a priority) Book the first morning tour at Hearst Castle",
+      "link": "https://hearstcastle.org"
+    },
+    {
+      "text": "Download offline maps (Google Maps): Yosemite and Sequoia have no signal"
+    },
+    {
+      "text": "Confirm car rental + check insurance"
+    },
+    {
+      "text": "Cash for the 17-Mile Drive toll (~$12) and state park parking"
+    }
+  ],
+  "suggestions": [
+    {
+      "id": "el-matador",
+      "type": "activity",
+      "dur": 45,
+      "title": "El Matador State Beach (Malibu)",
+      "notes": "Postcard-perfect beach with sea stacks and rock arches. Requires the scenic detour via PCH instead of US-101: beautiful, but slower.",
+      "lat": 34.0384,
+      "lng": -118.8747,
+      "links": [
+        {
+          "label": "Park info",
+          "url": "https://www.parks.ca.gov/?page_id=633"
+        }
+      ]
+    },
+    {
+      "id": "sb-courthouse",
+      "type": "activity",
+      "dur": 30,
+      "title": "Santa Barbara Courthouse — observation tower",
+      "notes": "Free climb up the clock tower: 360° views over red-tile roofs, ocean and mountains. Steps away from State Street.",
+      "lat": 34.4244,
+      "lng": -119.7027,
+      "links": [
+        {
+          "label": "Official site",
+          "url": "https://www.santabarbaraca.gov/gov/brdcomm/nz/courthouse/"
+        }
+      ]
+    },
+    {
+      "id": "ostrichland",
+      "type": "activity",
+      "dur": 30,
+      "title": "OstrichLand USA (Buellton)",
+      "notes": "Feed ostriches and emus just two minutes from Solvang. A gloriously absurd, fun stop — perfect for a break.",
+      "lat": 34.635,
+      "lng": -120.1935,
+      "links": [
+        {
+          "label": "Website",
+          "url": "https://www.ostrichlandusa.com"
+        }
+      ]
+    },
+    {
+      "id": "madonna-inn",
+      "type": "food",
+      "dur": 30,
+      "title": "Madonna Inn (San Luis Obispo)",
+      "notes": "America's kitschiest hotel: shocking-pink dining room, giant desserts. Stop just for a coffee and the famous Pink Champagne Cake.",
+      "lat": 35.2646,
+      "lng": -120.6749,
+      "links": [
+        {
+          "label": "Website",
+          "url": "https://www.madonnainn.com"
+        }
+      ]
+    },
+    {
+      "id": "montana-de-oro",
+      "type": "activity",
+      "dur": 90,
+      "must": true,
+      "title": "Montaña de Oro State Park",
+      "notes": "Wild, crowd-free cliffs near Morro Bay. The Bluff Trail (2 miles, flat) is one of California's finest coastal walks.",
+      "lat": 35.2748,
+      "lng": -120.8882,
+      "links": [
+        {
+          "label": "Park info",
+          "url": "https://www.parks.ca.gov/?page_id=592"
+        }
+      ]
+    },
+    {
+      "id": "moonstone-beach",
+      "type": "activity",
+      "dur": 40,
+      "title": "Moonstone Beach (Cambria)",
+      "notes": "Wooden boardwalk above a beach of polished pebbles. A relaxing stop between Morro Bay and Hearst Castle.",
+      "lat": 35.5786,
+      "lng": -121.1073
+    },
+    {
+      "id": "nepenthe",
+      "type": "food",
+      "dur": 60,
+      "title": "Nepenthe (Big Sur)",
+      "notes": "Legendary terrace 800 feet above the ocean, beloved by writers and artists since 1949. Even just a coffee at Café Kevah makes the stop worthwhile.",
+      "lat": 36.2222,
+      "lng": -121.758,
+      "links": [
+        {
+          "label": "Website",
+          "url": "https://www.nepenthe.com"
+        }
+      ]
+    },
+    {
+      "id": "pfeiffer-beach",
+      "type": "activity",
+      "dur": 60,
+      "title": "Pfeiffer Beach — purple sand",
+      "notes": "A beach with purple-tinged sand and the Keyhole Arch (spectacular at sunset). Narrow, unsigned access road; parking $12.",
+      "lat": 36.2381,
+      "lng": -121.8164
+    },
+    {
+      "id": "point-sur",
+      "type": "activity",
+      "dur": 30,
+      "title": "Point Sur Lighthouse",
+      "notes": "An 1889 lighthouse on a volcanic rock rising out of the sea. Dramatic view from the Highway 1 turnout; interior tours run on fixed schedules.",
+      "lat": 36.3069,
+      "lng": -121.9016,
+      "links": [
+        {
+          "label": "Lighthouse info",
+          "url": "https://pointsur.org"
+        }
+      ]
+    },
+    {
+      "id": "monterey-aquarium",
+      "type": "activity",
+      "dur": 150,
+      "must": true,
+      "title": "Monterey Bay Aquarium",
+      "notes": "One of the world's best aquariums: sea otters, giant tuna, hypnotic jellyfish. Fair warning: those 2.5 hours come out of Santa Cruz / Half Moon Bay.",
+      "lat": 36.6182,
+      "lng": -121.9018,
+      "links": [
+        {
+          "label": "Tickets",
+          "url": "https://www.montereybayaquarium.org"
+        }
+      ]
+    },
+    {
+      "id": "fishermans-wharf-monterey",
+      "type": "food",
+      "dur": 45,
+      "title": "Old Fisherman’s Wharf (Monterey)",
+      "notes": "Historic wharf with free clam chowder samples and sea lions lounging under the walkways. A great pick for dinner on night 2.",
+      "lat": 36.6034,
+      "lng": -121.8933
+    },
+    {
+      "id": "mystery-spot",
+      "type": "activity",
+      "dur": 60,
+      "title": "The Mystery Spot (Santa Cruz)",
+      "notes": "A cabin in the woods where gravity seems to go haywire: impossible slopes and optical illusions. Very touristy but fun; book online.",
+      "lat": 37.0165,
+      "lng": -122.0011,
+      "links": [
+        {
+          "label": "Book",
+          "url": "https://www.mysteryspot.com"
+        }
+      ]
+    },
+    {
+      "id": "lombard-street",
+      "type": "activity",
+      "dur": 20,
+      "title": "Lombard Street (San Francisco)",
+      "notes": "The world's most crooked street: eight flower-lined hairpin turns on Russian Hill. Steps from the Powell-Hyde cable car terminus.",
+      "lat": 37.8021,
+      "lng": -122.4187
+    },
+    {
+      "id": "twin-peaks",
+      "type": "activity",
+      "dur": 30,
+      "title": "Twin Peaks (San Francisco)",
+      "notes": "The city's highest viewpoint: skyline, bay and Golden Gate all at once. Magical at sunset — bring a hoodie (it's windy!).",
+      "lat": 37.7544,
+      "lng": -122.4477
+    },
+    {
+      "id": "alcatraz",
+      "type": "activity",
+      "dur": 180,
+      "title": "Alcatraz",
+      "notes": "The world's most famous prison, with an excellent audio tour. HEADS UP: tickets must be booked weeks in advance, and the visit takes half a day.",
+      "lat": 37.8267,
+      "lng": -122.423,
+      "links": [
+        {
+          "label": "Official tickets",
+          "url": "https://www.cityexperiences.com/san-francisco/city-cruises/alcatraz/"
+        }
+      ]
+    },
+    {
+      "id": "muir-woods",
+      "type": "activity",
+      "dur": 90,
+      "title": "Muir Woods National Monument",
+      "notes": "Giant coast redwoods 30 minutes from the Golden Gate. Gorgeous, but parking is by ADVANCE RESERVATION ONLY and it eats into city time.",
+      "lat": 37.8912,
+      "lng": -122.5719,
+      "links": [
+        {
+          "label": "Reserve parking",
+          "url": "https://gomuirwoods.com"
+        }
+      ]
+    },
+    {
+      "id": "valley-view",
+      "type": "activity",
+      "dur": 20,
+      "must": true,
+      "title": "Valley View (Yosemite)",
+      "notes": "El Capitan and Bridalveil reflected in the Merced River: the photo spot almost everyone misses. A small turnout on Northside Drive on the way out of the Valley.",
+      "lat": 37.7183,
+      "lng": -119.666
+    },
+    {
+      "id": "mirror-lake",
+      "type": "activity",
+      "dur": 75,
+      "title": "Mirror Lake (Yosemite)",
+      "notes": "Easy walk (2 miles round trip) to the little lake that mirrors Half Dome. It can be nearly dry by late summer: at its best in spring/early summer.",
+      "lat": 37.7413,
+      "lng": -119.5488
+    },
+    {
+      "id": "vernal-fall",
+      "type": "activity",
+      "dur": 90,
+      "title": "Vernal Fall Footbridge (Mist Trail)",
+      "notes": "The first stretch of Yosemite's best-loved trail: 1.6 miles round trip with a view of the waterfall from the footbridge. At full flow you will get wet — that's the fun of it.",
+      "lat": 37.7275,
+      "lng": -119.5581
+    },
+    {
+      "id": "grant-grove",
+      "type": "activity",
+      "dur": 75,
+      "title": "General Grant Tree (Kings Canyon)",
+      "notes": "The world's second-largest tree, the “Nation's Christmas Tree”. The only sensible taste of Kings Canyon on a 7-day trip: a ~1-hour detour from the route.",
+      "lat": 36.7473,
+      "lng": -118.9731,
+      "links": [
+        {
+          "label": "NPS info",
+          "url": "https://www.nps.gov/seki/planyourvisit/grant-grove.htm"
+        }
+      ]
+    }
+  ],
+  "notes": ""
+}

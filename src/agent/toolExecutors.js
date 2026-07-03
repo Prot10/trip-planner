@@ -8,7 +8,15 @@
 
 import { useTrip, useUI, useRoutes, activeTrip } from '../store'
 import { bestInsertion, searchPlaces, chainedDayCoords, estimateDayKm, estimateTravel } from '../lib/geo'
-import { dayDate, fmtDate, costByType, fuelCost, uid, GAS_UNITS } from '../lib/utils'
+import { dayDate, fmtDate, fmtMoney, costByType, fuelCost, uid, GAS_UNITS } from '../lib/utils'
+import { classify } from '../lib/categories'
+import i18n from '../i18n'
+
+/* i18n note: `detail` rows and FIELD_LABELS are USER-visible (edit-review
+   chips in the chat) and follow the UI language. Error messages, `hint`,
+   `note` and `promemoria` strings are MODEL-facing only — they stay Italian
+   on purpose (the model reads them fine in any conversation language):
+   do not "fix" them in future i18n sweeps. */
 import { getPlaceImages } from '../components/ItemImage'
 
 export const WRITE_TOOLS = new Set([
@@ -26,11 +34,12 @@ let notesPending = false
 /* callbacks registered by socket.js (avoids a module cycle) */
 export const hooks = { onProgress: null, onStartPlanning: null, onAskUser: null, onNotebook: null }
 
+/* i18n keys, resolved with i18n.t at execution time (UI language) */
 const FIELD_LABELS = {
-  title: 'titolo', type: 'tipo', time: 'orario', dur: 'durata', price: 'costo',
-  notes: 'note', links: 'link', must: 'imperdibile', done: 'fatto',
-  lat: 'posizione', lng: 'posizione', night: 'notte', startDate: 'partenza',
-  lPer100: 'consumo', gasPrice: 'carburante', gasUnit: 'unità carburante', model: 'auto',
+  title: 'fields.title', type: 'fields.type', time: 'fields.time', dur: 'fields.dur', price: 'fields.price',
+  notes: 'fields.notes', links: 'fields.links', must: 'fields.must', done: 'fields.done',
+  lat: 'fields.position', lng: 'fields.position', night: 'fields.night', startDate: 'fields.startDate',
+  lPer100: 'fields.consumption', gasPrice: 'fields.fuel', gasUnit: 'fields.fuelUnit', model: 'fields.car',
 }
 
 const trip = () => {
@@ -57,10 +66,10 @@ const flash = (itemId, color) => useUI.getState().setFocusItem(itemId, color)
 
 const fmtVal = (field, v) => {
   if (v == null || v === '') return '—'
-  if (field === 'dur') return `${v} min`
-  if (field === 'price') return `$${v}`
-  if (field === 'must' || field === 'done') return v ? 'sì' : 'no'
-  if (field === 'links') return `${v.length} link`
+  if (field === 'dur') return i18n.t('units.durMin', { m: v })
+  if (field === 'price') return fmtMoney(v, activeTrip(useTrip.getState())?.currency ?? 'USD')
+  if (field === 'must' || field === 'done') return v ? i18n.t('common.yes') : i18n.t('common.no')
+  if (field === 'links') return i18n.t('fields.linkCount', { count: v.length })
   if (typeof v === 'number') return String(Math.round(v * 1000) / 1000)
   return String(v).length > 40 ? String(v).slice(0, 37) + '…' : String(v)
 }
@@ -69,7 +78,7 @@ const diffDetail = (prev, patch) => {
   const rows = []
   const seen = new Set()
   for (const k of Object.keys(patch)) {
-    const label = FIELD_LABELS[k] ?? k
+    const label = FIELD_LABELS[k] ? i18n.t(FIELD_LABELS[k]) : k
     if (seen.has(label)) continue
     seen.add(label)
     if (JSON.stringify(prev[k]) === JSON.stringify(patch[k])) continue
@@ -93,6 +102,7 @@ const toPatch = (a) => {
   if (a.done !== undefined) p.done = a.done
   if (a.lat !== undefined) p.lat = a.lat
   if (a.lng !== undefined) p.lng = a.lng
+  if (a.category !== undefined) p.category = a.category
   return p
 }
 
@@ -183,9 +193,9 @@ const EXECUTORS = {
       ok: true, item_id: item.id, day_number: dayNumber, index,
       undo: { op: 'remove_item', dayId, itemId: item.id },
       detail: [
-        { field: 'tappa', from: '—', to: item.title },
-        ...(item.time ? [{ field: 'orario', from: '—', to: item.time }] : []),
-        ...(item.price ? [{ field: 'costo', from: '—', to: `$${item.price}` }] : []),
+        { field: i18n.t('fields.stop'), from: '—', to: item.title },
+        ...(item.time ? [{ field: i18n.t('fields.time'), from: '—', to: item.time }] : []),
+        ...(item.price ? [{ field: i18n.t('fields.price'), from: '—', to: fmtVal('price', item.price) }] : []),
       ],
     }
   },
@@ -210,7 +220,7 @@ const EXECUTORS = {
     return {
       ok: true, removed: item.title, day_number: dayNumber,
       undo: { op: 'insert_item', dayId: day.id, index, item: structuredClone(item) },
-      detail: [{ field: 'rimossa', from: item.title, to: '—' }],
+      detail: [{ field: i18n.t('fields.removed'), from: item.title, to: '—' }],
       lat: item.lat, lng: item.lng,
     }
   },
@@ -235,7 +245,7 @@ const EXECUTORS = {
     return {
       ok: true, item_id: item.id, day_number: dn, index, title: item.title,
       undo: { op: 'relocate_item', itemId: item.id, dayId: fromDay.id, index: fromIndex },
-      detail: [{ field: 'giorno', from: `Giorno ${fromN}`, to: `Giorno ${dn}` }],
+      detail: [{ field: i18n.t('fields.day'), from: i18n.t('common.dayN', { n: fromN }), to: i18n.t('common.dayN', { n: dn }) }],
     }
   },
 
@@ -246,7 +256,7 @@ const EXECUTORS = {
     return {
       ok: true, day_number: t.days.length,
       undo: { op: 'remove_day', dayId: day.id },
-      detail: [{ field: 'giorno', from: '—', to: a.title }],
+      detail: [{ field: i18n.t('fields.day'), from: '—', to: a.title }],
     }
   },
 
@@ -272,7 +282,7 @@ const EXECUTORS = {
     return {
       ok: true, removed: d.title,
       undo: { op: 'insert_day', index, day: structuredClone(d) },
-      detail: [{ field: 'giorno rimosso', from: d.title, to: '—' }],
+      detail: [{ field: i18n.t('fields.dayRemoved'), from: d.title, to: '—' }],
     }
   },
 
@@ -282,7 +292,7 @@ const EXECUTORS = {
     return {
       ok: true,
       undo: { op: 'move_day', dayId: d.id, dir: a.direction === 'up' ? 1 : -1 },
-      detail: [{ field: 'ordine', from: `posizione ${a.day_number}`, to: a.direction === 'up' ? `posizione ${a.day_number - 1}` : `posizione ${a.day_number + 1}` }],
+      detail: [{ field: i18n.t('fields.order'), from: i18n.t('fields.positionN', { n: a.day_number }), to: i18n.t('fields.positionN', { n: a.direction === 'up' ? a.day_number - 1 : a.day_number + 1 }) }],
     }
   },
 
@@ -291,19 +301,19 @@ const EXECUTORS = {
     const s = useTrip.getState()
     const prev = { title: t.title, startDate: t.startDate, car: { ...t.car }, subtitle: t.subtitle, transport: t.transport }
     const detail = []
-    if (a.title !== undefined) { detail.push({ field: 'titolo', from: t.title, to: a.title }); s.setTitle(a.title) }
-    if (a.subtitle !== undefined) { detail.push({ field: 'sottotitolo', from: t.subtitle || '—', to: a.subtitle }); s.setSubtitle(a.subtitle) }
-    if (a.transport !== undefined) { detail.push({ field: 'trasporto', from: t.transport, to: a.transport }); s.setTransport(a.transport) }
-    if (a.currency !== undefined) { detail.push({ field: 'valuta', from: t.currency ?? '—', to: a.currency }); s.setCurrency(a.currency) }
-    if (a.start_date !== undefined) { detail.push({ field: 'partenza', from: t.startDate || '—', to: a.start_date }); s.setStartDate(a.start_date) }
-    if (a.car_l_per_100km !== undefined) { detail.push({ field: 'consumo', from: `${t.car.lPer100} L/100km`, to: `${a.car_l_per_100km} L/100km` }); s.setCar({ lPer100: a.car_l_per_100km }) }
-    if (a.car_model !== undefined) { detail.push({ field: 'auto', from: t.car.model || '—', to: a.car_model }); s.setCar({ model: a.car_model }) }
+    if (a.title !== undefined) { detail.push({ field: i18n.t('fields.title'), from: t.title, to: a.title }); s.setTitle(a.title) }
+    if (a.subtitle !== undefined) { detail.push({ field: i18n.t('fields.subtitle'), from: t.subtitle || '—', to: a.subtitle }); s.setSubtitle(a.subtitle) }
+    if (a.transport !== undefined) { detail.push({ field: i18n.t('fields.transport'), from: t.transport, to: a.transport }); s.setTransport(a.transport) }
+    if (a.currency !== undefined) { detail.push({ field: i18n.t('fields.currency'), from: t.currency ?? '—', to: a.currency }); s.setCurrency(a.currency) }
+    if (a.start_date !== undefined) { detail.push({ field: i18n.t('fields.startDate'), from: t.startDate || '—', to: a.start_date }); s.setStartDate(a.start_date) }
+    if (a.car_l_per_100km !== undefined) { detail.push({ field: i18n.t('fields.consumption'), from: `${t.car.lPer100} L/100km`, to: `${a.car_l_per_100km} L/100km` }); s.setCar({ lPer100: a.car_l_per_100km }) }
+    if (a.car_model !== undefined) { detail.push({ field: i18n.t('fields.car'), from: t.car.model || '—', to: a.car_model }); s.setCar({ model: a.car_model }) }
     if (a.car_gas_price !== undefined) {
       const unit = GAS_UNITS[a.car_gas_unit] ? a.car_gas_unit : t.car.gasUnit
-      detail.push({ field: 'carburante', from: `${t.car.gasPrice} ${GAS_UNITS[t.car.gasUnit].short}`, to: `${a.car_gas_price} ${GAS_UNITS[unit].short}` })
+      detail.push({ field: i18n.t('fields.fuel'), from: `${t.car.gasPrice} ${GAS_UNITS[t.car.gasUnit].short}`, to: `${a.car_gas_price} ${GAS_UNITS[unit].short}` })
       s.setCar({ gasPrice: a.car_gas_price, gasUnit: unit })
     } else if (a.car_gas_usd_per_gal !== undefined) {
-      detail.push({ field: 'carburante', from: `${t.car.gasPrice} ${GAS_UNITS[t.car.gasUnit].short}`, to: `${a.car_gas_usd_per_gal} $/gal` })
+      detail.push({ field: i18n.t('fields.fuel'), from: `${t.car.gasPrice} ${GAS_UNITS[t.car.gasUnit].short}`, to: `${a.car_gas_usd_per_gal} $/gal` })
       s.setCar({ gasPrice: a.car_gas_usd_per_gal, gasUnit: 'usd_gal' })
     }
     return { ok: true, undo: { op: 'set_meta', prev }, detail }
@@ -315,7 +325,7 @@ const EXECUTORS = {
     return {
       ok: true, check_id: id,
       undo: { op: 'check_remove', id },
-      detail: [{ field: 'checklist', from: '—', to: a.text }],
+      detail: [{ field: i18n.t('fields.checklist'), from: '—', to: a.text }],
     }
   },
   checklist_toggle(a) {
@@ -325,7 +335,7 @@ const EXECUTORS = {
     return {
       ok: true,
       undo: { op: 'check_toggle', id: a.check_id },
-      detail: [{ field: c.text.slice(0, 40), from: c.done ? 'fatto' : 'da fare', to: c.done ? 'da fare' : 'fatto' }],
+      detail: [{ field: c.text.slice(0, 40), from: i18n.t(c.done ? 'fields.doneState' : 'fields.todoState'), to: i18n.t(c.done ? 'fields.todoState' : 'fields.doneState') }],
     }
   },
   checklist_remove(a) {
@@ -337,7 +347,7 @@ const EXECUTORS = {
     return {
       ok: true,
       undo: { op: 'check_insert', index, item },
-      detail: [{ field: 'checklist', from: item.text, to: '—' }],
+      detail: [{ field: i18n.t('fields.checklist'), from: item.text, to: '—' }],
     }
   },
 
@@ -355,10 +365,12 @@ const EXECUTORS = {
   },
 
   add_suggestion(a) {
+    const type = ['activity', 'food', 'hotel'].includes(a.type) ? a.type : 'activity'
     const sug = {
       id: uid(),
       title: a.title,
-      type: ['activity', 'food', 'hotel'].includes(a.type) ? a.type : 'activity',
+      type,
+      category: a.category ?? classify(type, a.title),
       dur: a.duration_min ?? 60,
       notes: a.notes ?? '',
       lat: a.lat ?? null,
@@ -370,7 +382,7 @@ const EXECUTORS = {
     return {
       ok: true, suggestion_id: sug.id,
       undo: { op: 'remove_suggestion', id: sug.id },
-      detail: [{ field: 'consiglio', from: '—', to: sug.title }],
+      detail: [{ field: i18n.t('fields.suggestion'), from: '—', to: sug.title }],
     }
   },
 
@@ -382,7 +394,7 @@ const EXECUTORS = {
     return {
       ok: true,
       undo: { op: 'add_suggestion', sug: structuredClone(sug) },
-      detail: [{ field: 'consiglio', from: sug.title, to: '—' }],
+      detail: [{ field: i18n.t('fields.suggestion'), from: sug.title, to: '—' }],
     }
   },
 
@@ -492,7 +504,7 @@ const EXECUTORS = {
       return {
         ok: true, action: 'removed', title: sug.title,
         undo: { op: 'insert_item', dayId: found.day.id, index: found.idx, item: structuredClone(found.item) },
-        detail: [{ field: 'consiglio', from: sug.title, to: '—' }],
+        detail: [{ field: i18n.t('fields.suggestion'), from: sug.title, to: '—' }],
         lat: sug.lat, lng: sug.lng,
       }
     }
@@ -508,7 +520,7 @@ const EXECUTORS = {
     return {
       ok: true, action: 'added', title: sug.title, day_number: dn, added_km: spot.addedKm, item_id: item.id,
       undo: { op: 'remove_item', dayId: spot.dayId, itemId: item.id },
-      detail: [{ field: 'consiglio', from: '—', to: sug.title }],
+      detail: [{ field: i18n.t('fields.suggestion'), from: '—', to: sug.title }],
     }
   },
 

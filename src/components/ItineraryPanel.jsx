@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   DndContext, DragOverlay, PointerSensor, useSensor, useSensors, closestCorners,
 } from '@dnd-kit/core'
@@ -10,6 +11,7 @@ import BuildingGlobe from './BuildingGlobe'
 import { ItemCardGhost } from './ItemCard'
 
 export default function ItineraryPanel() {
+  const { t } = useTranslation()
   const days = useTrip((s) => activeTrip(s).days)
   const relocateItem = useTrip((s) => s.relocateItem)
   const openDayEditor = useUI((s) => s.openDayEditor)
@@ -75,7 +77,7 @@ export default function ItineraryPanel() {
           className={`mb-2 flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-ink-300 py-4 font-display text-sm font-bold text-ink-400 transition hover:border-brand-400 hover:bg-brand-50/50 hover:text-brand-600 ${building ? 'hidden' : ''}`}
         >
           <Plus size={18} strokeWidth={2.6} />
-          Aggiungi un giorno
+          {t('itinerary.addDay')}
         </button>
       </div>
 

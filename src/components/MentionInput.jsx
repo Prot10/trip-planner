@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { MapPin, CarFront, UtensilsCrossed, BedDouble, Lightbulb } from 'lucide-react'
 import { useTrip, activeTrip } from '../store'
 
@@ -8,6 +9,7 @@ const TYPE_ICON = { activity: MapPin, drive: CarFront, food: UtensilsCrossed, ho
    trip's activities; the pick becomes an inline chip (same size as the text)
    and the outgoing message carries the exact item ids for the agent. */
 const MentionInput = forwardRef(function MentionInput({ disabled, placeholder, onSend, onEmptyChange }, ref) {
+  const { t } = useTranslation()
   const days = useTrip((s) => activeTrip(s)?.days ?? [])
   const box = useRef(null)
   const [menu, setMenu] = useState(null) // { query, at: Range-anchor info }
@@ -101,8 +103,8 @@ const MentionInput = forwardRef(function MentionInput({ disabled, placeholder, o
     }
     let text = [...(box.current?.childNodes ?? [])].map(walk).join('').replace(/ /g, ' ').trim()
     if (mentions.length) {
-      const refs = mentions.map((m) => `"${m.title}" → item_id ${m.id} (giorno ${m.day})`).join(' · ')
-      text += `\n\n[Attività taggate dall'utente: ${refs}]`
+      const refs = mentions.map((m) => t('mention.taggedRef', { title: m.title, id: m.id, day: m.day })).join(' · ')
+      text += `\n\n${t('mention.taggedNote', { refs })}`
     }
     return text
   }
@@ -148,12 +150,12 @@ const MentionInput = forwardRef(function MentionInput({ disabled, placeholder, o
                 </span>
                 <span className="min-w-0 flex-1 truncate text-[12.5px] font-semibold text-ink-800">{c.title}</span>
                 <span className="shrink-0 text-[10.5px] font-medium text-ink-400">
-                  G{c.day}{c.time ? ` · ${c.time}` : ''}
+                  {t('mention.dayShort', { n: c.day })}{c.time ? ` · ${c.time}` : ''}
                 </span>
               </button>
             )
           })}
-          <p className="border-t border-ink-100 px-3 pb-0.5 pt-1 text-[10px] text-ink-300">↑↓ scegli · Invio conferma</p>
+          <p className="border-t border-ink-100 px-3 pb-0.5 pt-1 text-[10px] text-ink-300">{t('mention.hint')}</p>
         </div>
       )}
 
@@ -162,7 +164,7 @@ const MentionInput = forwardRef(function MentionInput({ disabled, placeholder, o
         contentEditable={!disabled}
         role="textbox"
         aria-multiline="true"
-        aria-label="Scrivi all'assistente"
+        aria-label={t('mention.ariaLabel')}
         data-mention-input
         onInput={() => { refreshMenu(); notifyEmpty() }}
         onKeyUp={refreshMenu}

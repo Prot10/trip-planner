@@ -1,4 +1,7 @@
 import { eurUsd } from './fx'
+import { CATS, classify } from './categories'
+import i18n from '../i18n'
+import { intlLocale } from '../i18n/locale'
 
 export const DAY_COLORS = [
   '#f59e0b', '#f43f5e', '#8b5cf6', '#0ea5e9', '#10b981',
@@ -13,8 +16,8 @@ export function fmtDur(min) {
   if (!min) return ''
   const h = Math.floor(min / 60)
   const m = min % 60
-  if (!h) return `${m} min`
-  return m ? `${h}h ${String(m).padStart(2, '0')}` : `${h}h`
+  if (!h) return i18n.t('units.durMin', { m })
+  return m ? i18n.t('units.durHM', { h, m: String(m).padStart(2, '0') }) : i18n.t('units.durH', { h })
 }
 
 export function dayDate(startDate, index) {
@@ -26,7 +29,7 @@ export function dayDate(startDate, index) {
 }
 
 export function fmtDate(d, opts = { weekday: 'short', day: 'numeric', month: 'short' }) {
-  return d.toLocaleDateString('it-IT', opts)
+  return d.toLocaleDateString(intlLocale(), opts)
 }
 
 export function dayDriveMin(day) {
@@ -49,19 +52,23 @@ export function gmapsUrl(lat, lng) {
 }
 
 export function fmtMoney(v, currency = 'USD') {
-  const n = Math.round(v).toLocaleString('it-IT')
-  return currency === 'EUR' ? `${n} €` : '$' + n
+  return new Intl.NumberFormat(intlLocale(), {
+    style: 'currency', currency, maximumFractionDigits: 0,
+  }).format(Math.round(v))
 }
 
 export function fmtKm(v) {
-  return Math.round(v).toLocaleString('it-IT') + ' km'
+  return new Intl.NumberFormat(intlLocale(), {
+    style: 'unit', unit: 'kilometer', maximumFractionDigits: 0,
+  }).format(Math.round(v))
 }
 
-/* fuel price units: how the user (or the agent) expressed the pump price */
+/* fuel price units: how the user (or the agent) expressed the pump price.
+   labelKey resolves through i18n at render time; `short` is symbol-only. */
 export const GAS_UNITS = {
-  usd_gal: { label: '$ / gallone', short: '$/gal', toUsdPerLiter: (p) => p / 3.78541 },
-  usd_l: { label: '$ / litro', short: '$/L', toUsdPerLiter: (p) => p },
-  eur_l: { label: '€ / litro', short: '€/L', toUsdPerLiter: (p) => p * eurUsd() },
+  usd_gal: { labelKey: 'gas.usd_gal', short: '$/gal', toUsdPerLiter: (p) => p / 3.78541 },
+  usd_l: { labelKey: 'gas.usd_l', short: '$/L', toUsdPerLiter: (p) => p },
+  eur_l: { labelKey: 'gas.eur_l', short: '€/L', toUsdPerLiter: (p) => p * eurUsd() },
 }
 
 /* fuel cost from car settings, in the trip currency: L/100km consumption +
@@ -101,7 +108,7 @@ export const TRANSPORT_MODES = ['car', 'walk', 'bus', 'train', 'plane', 'boat']
 export function normalizeTrip(raw) {
   const t = structuredClone(raw)
   t.id ||= uid()
-  t.title ||= 'Il mio viaggio'
+  t.title ||= i18n.t('store.myTrip')
   t.subtitle ||= ''
   t.startDate ||= ''
   t.phase = t.phase === 'interview' ? 'interview' : 'active'
@@ -118,6 +125,7 @@ export function normalizeTrip(raw) {
         id: s.id ?? uid(),
         title: s.title ?? '',
         type: ['activity', 'food', 'hotel'].includes(s.type) ? s.type : 'activity',
+        category: CATS[s.category] ? s.category : classify(s.type, s.title),
         dur: Number(s.dur) || 60,
         notes: s.notes ?? '',
         lat: typeof s.lat === 'number' ? s.lat : null,
@@ -137,7 +145,7 @@ export function normalizeTrip(raw) {
   t.checklist = Array.isArray(t.checklist) ? t.checklist : []
   t.days.forEach((d, i) => {
     d.id ||= uid()
-    d.title ||= 'Nuovo giorno'
+    d.title ||= i18n.t('store.newDay')
     d.night ||= ''
     d.color ||= DAY_COLORS[i % DAY_COLORS.length]
     d.items = Array.isArray(d.items) ? d.items : []
@@ -158,6 +166,7 @@ export function normalizeTrip(raw) {
       delete it.img
       it.noWiki = !!it.noWiki
       it.sug ||= null
+      it.category = CATS[it.category] ? it.category : null
       it.price = Number(it.price) || 0
       if (typeof it.lat !== 'number' || typeof it.lng !== 'number') { it.lat = null; it.lng = null }
     })

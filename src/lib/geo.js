@@ -1,3 +1,4 @@
+import i18n from '../i18n'
 /* Geo helpers: distances, optimal insertion of a stop, free road routing (OSRM) */
 
 export function haversineKm([lat1, lng1], [lat2, lng2]) {
@@ -111,7 +112,7 @@ export async function estimateTravel(from, to, mode) {
 
 export async function searchPlaces(q) {
   const r = await fetch(
-    `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&accept-language=it&q=${encodeURIComponent(q)}`,
+    `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&accept-language=${i18n.language}&q=${encodeURIComponent(q)}`,
   )
   if (!r.ok) return []
   const data = await r.json()

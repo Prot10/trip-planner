@@ -1,13 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
 import { CalendarDays, ChevronLeft, ChevronRight, X, PlaneTakeoff } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useTrip, toast, activeTrip } from '../store'
+import { fmtDate } from '../lib/utils'
 
-const WEEKDAYS = ['L', 'M', 'M', 'G', 'V', 'S', 'D']
 const toISO = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
+/* Monday-first weekday initials in the current locale (2024-01-01 is a Monday) */
+const weekdayInitials = () =>
+  Array.from({ length: 7 }, (_, i) =>
+    fmtDate(new Date(2024, 0, 1 + i), { weekday: 'narrow' }).toUpperCase())
+
 /* Start-date picker: calendar popover that highlights the whole trip span */
 export default function DatePicker() {
+  const { t } = useTranslation()
   const startDate = useTrip((s) => activeTrip(s).startDate)
   const nDays = useTrip((s) => activeTrip(s).days.length)
   const setStartDate = useTrip((s) => s.setStartDate)
@@ -34,7 +41,7 @@ export default function DatePicker() {
   const pick = (d) => {
     setStartDate(toISO(d))
     setOpen(false)
-    toast(`Partenza ${d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })} — date assegnate ai giorni`)
+    toast(t('datePicker.setToast', { date: fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long' }) }))
   }
 
   /* calendar grid for the viewed month, Monday-first */
@@ -48,6 +55,7 @@ export default function DatePicker() {
   const today = new Date()
   const sameDay = (a, b) => a && b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
   const inTrip = (d) => start && end && d >= new Date(start.getFullYear(), start.getMonth(), start.getDate()) && d <= end
+  const weekdays = weekdayInitials() // useTranslation re-renders us on language change
 
   return (
     <div ref={ref} className="relative">
@@ -56,12 +64,12 @@ export default function DatePicker() {
         className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold shadow-sm transition ${
           open ? 'border-brand-400 ring-2 ring-brand-400/20' : 'border-ink-200 hover:border-ink-300'
         } ${start ? 'text-ink-800' : 'text-ink-400'}`}
-        aria-label="Scegli la data di partenza"
+        aria-label={t('datePicker.pickAria')}
       >
         <PlaneTakeoff size={15} className="shrink-0 text-brand-500" />
         {start
-          ? start.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
-          : 'Data di partenza'}
+          ? fmtDate(start, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+          : t('datePicker.startDate')}
       </button>
 
       {open && (
@@ -70,17 +78,17 @@ export default function DatePicker() {
           <div className="mb-3 flex items-center justify-between">
             <button
               onClick={() => setView(new Date(view.getFullYear(), view.getMonth() - 1, 1))}
-              aria-label="Mese precedente"
+              aria-label={t('datePicker.prevMonth')}
               className="grid size-8 place-items-center rounded-lg text-ink-500 transition hover:bg-ink-100"
             >
               <ChevronLeft size={17} />
             </button>
             <span className="font-display text-sm font-bold capitalize text-ink-900">
-              {view.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' })}
+              {fmtDate(view, { month: 'long', year: 'numeric' })}
             </span>
             <button
               onClick={() => setView(new Date(view.getFullYear(), view.getMonth() + 1, 1))}
-              aria-label="Mese successivo"
+              aria-label={t('datePicker.nextMonth')}
               className="grid size-8 place-items-center rounded-lg text-ink-500 transition hover:bg-ink-100"
             >
               <ChevronRight size={17} />
@@ -89,7 +97,7 @@ export default function DatePicker() {
 
           {/* weekday header */}
           <div className="mb-1 grid grid-cols-7 text-center">
-            {WEEKDAYS.map((w, i) => (
+            {weekdays.map((w, i) => (
               <span key={i} className="py-1 text-[10.5px] font-bold uppercase text-ink-400">{w}</span>
             ))}
           </div>
@@ -126,15 +134,15 @@ export default function DatePicker() {
             <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-ink-500">
               <CalendarDays size={12} className="text-brand-500" />
               {start && end
-                ? `${nDays} giorni · fino a ${end.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' })}`
-                : 'Scegli il giorno di partenza'}
+                ? t('datePicker.untilN', { count: nDays, date: fmtDate(end) })
+                : t('datePicker.pickHint')}
             </span>
             {start && (
               <button
                 onClick={() => { setStartDate(''); setOpen(false) }}
                 className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold text-ink-400 transition hover:bg-rose-50 hover:text-rose-600"
               >
-                <X size={11} strokeWidth={3} /> Rimuovi
+                <X size={11} strokeWidth={3} /> {t('datePicker.remove')}
               </button>
             )}
           </div>

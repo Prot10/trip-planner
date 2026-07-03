@@ -1,11 +1,14 @@
 import { Star, Timer, Route, ExternalLink, Sparkles } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useTrip, useUI, toast, activeTrip } from '../store'
 import { bestInsertion } from '../lib/geo'
 import { fmtDur } from '../lib/utils'
-import { TYPE_META } from './typeMeta'
+import { CATS, classify } from '../lib/categories'
 import { SuggestionImage } from './ItemImage'
+import i18n from '../i18n'
 
 export default function Suggestions() {
+  const { t } = useTranslation()
   const trip = useTrip((s) => activeTrip(s))
   const insertItemAt = useTrip((s) => s.insertItemAt)
   const removeSuggestionItem = useTrip((s) => s.removeSuggestionItem)
@@ -20,7 +23,7 @@ export default function Suggestions() {
   const onToggle = (sug) => {
     if (active.has(sug.id)) {
       removeSuggestionItem(sug.id)
-      toast('Rimosso — percorso aggiornato')
+      toast(i18n.t('suggestions.removedToast'))
       return
     }
     const spot = bestInsertion(trip, sug)
@@ -39,8 +42,9 @@ export default function Suggestions() {
       lng: sug.lng,
       img: '',
       sug: sug.id,
+      category: sug.category ?? classify(sug.type, sug.title),
     })
-    toast(`Aggiunto al Giorno ${dayIndex + 1} nel punto ottimale del percorso`)
+    toast(i18n.t('toasts.addedOptimal', { n: dayIndex + 1 }))
   }
 
   const goToItem = (sugId) => {
@@ -54,9 +58,9 @@ export default function Suggestions() {
     <div className="mx-auto flex max-w-2xl flex-col gap-4">
       {trip.suggestions.length === 0 && (
         <div className="rounded-2xl border border-ink-200 bg-white p-6 text-center">
-          <p className="text-sm font-semibold text-ink-700">Nessun consiglio per questo viaggio, per ora</p>
+          <p className="text-sm font-semibold text-ink-700">{t('suggestions.emptyTitle')}</p>
           <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-ink-400">
-            Chiedi all'assistente idee extra lungo il percorso: le salverà qui come consigli attivabili con un click.
+            {t('suggestions.emptyBody')}
           </p>
         </div>
       )}
@@ -66,9 +70,9 @@ export default function Suggestions() {
           <Sparkles size={17} />
         </div>
         <p className="text-[13px] leading-relaxed text-ink-700">
-          Tappe extra selezionate lungo il vostro percorso. Attivane una e viene inserita
-          <b> automaticamente nel giorno e nel punto del percorso che aggiunge meno strada</b>;
-          disattivala e il percorso torna com’era. Il chilometraggio indicato è la deviazione stimata.
+          {t('suggestions.introBefore')}
+          <b> {t('suggestions.introBold')}</b>
+          {t('suggestions.introAfter')}
         </p>
       </div>
       )}
@@ -76,7 +80,7 @@ export default function Suggestions() {
       <ul className="flex flex-col gap-3">
         {trip.suggestions.map((sug) => {
           const isOn = active.has(sug.id)
-          const meta = TYPE_META[sug.type]
+          const cat = CATS[sug.category] ?? CATS[classify(sug.type, sug.title)]
           const preview = isOn ? null : bestInsertion(trip, sug)
           const dayNumber = isOn
             ? active.get(sug.id).dayIndex + 1
@@ -95,20 +99,22 @@ export default function Suggestions() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
                     <h4 className="text-[13.5px] font-bold leading-snug text-ink-900">{sug.title}</h4>
-                    <Switch on={isOn} onClick={() => onToggle(sug)} label={isOn ? 'Rimuovi dal viaggio' : 'Aggiungi al viaggio'} />
+                    <Switch on={isOn} onClick={() => onToggle(sug)} label={isOn ? t('suggestions.removeFromTrip') : t('common.addToTrip')} />
                   </div>
 
                   <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                    <Chip className={meta.chip}><meta.Icon size={11} /> {meta.label}</Chip>
+                    <Chip className="text-white ring-0" style={{ background: cat.color }}>
+                      <cat.Icon size={11} /> {t(cat.labelKey)}
+                    </Chip>
                     <Chip className="bg-blue-50 text-blue-700 ring-blue-600/20"><Timer size={11} /> {fmtDur(sug.dur)}</Chip>
                     {sug.must && (
                       <Chip className="bg-amber-50 text-amber-700 ring-amber-500/30">
-                        <Star size={11} fill="currentColor" /> consigliata
+                        <Star size={11} fill="currentColor" /> {t('suggestions.recommended')}
                       </Chip>
                     )}
                     {dayNumber && (
                       <Chip className="bg-ink-100 text-ink-700 ring-ink-500/15">
-                        <Route size={11} /> Giorno {dayNumber}{!isOn && preview ? ` · +${preview.addedKm} km` : ''}
+                        <Route size={11} /> {t('common.dayN', { n: dayNumber })}{!isOn && preview ? ` · +${preview.addedKm} km` : ''}
                       </Chip>
                     )}
                   </div>
@@ -132,7 +138,7 @@ export default function Suggestions() {
                         onClick={() => goToItem(sug.id)}
                         className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-600/20 transition hover:bg-emerald-100"
                       >
-                        <Route size={11.5} /> Vedi nel programma
+                        <Route size={11.5} /> {t('common.seeInItinerary')}
                       </button>
                     )}
                   </div>
@@ -167,9 +173,9 @@ function Switch({ on, onClick, label }) {
   )
 }
 
-function Chip({ className, children }) {
+function Chip({ className, style, children }) {
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-bold ring-1 ${className}`}>
+    <span style={style} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-bold ring-1 ${className}`}>
       {children}
     </span>
   )

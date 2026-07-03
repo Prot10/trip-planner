@@ -1,7 +1,10 @@
+import { useTranslation } from 'react-i18next'
+
 /* Big animated globe + orbiting plane, shown while Ulisse is still building
    an empty itinerary. Pure SVG: SMIL meridians give the spin illusion, a CSS
    rotation carries the plane around a dashed orbit. */
-export default function BuildingGlobe({ label = 'Ulisse sta costruendo il vostro viaggio…' }) {
+export default function BuildingGlobe({ label }) {
+  const { t } = useTranslation()
   return (
     <div className="anim-fade-in flex flex-col items-center justify-center gap-6 py-14">
       <div className="relative">
@@ -76,10 +79,9 @@ export default function BuildingGlobe({ label = 'Ulisse sta costruendo il vostro
       </div>
 
       <div className="text-center">
-        <p className="font-display text-[15px] font-bold text-ink-900">{label}</p>
+        <p className="font-display text-[15px] font-bold text-ink-900">{label ?? t('globe.building')}</p>
         <p className="mx-auto mt-1 max-w-xs text-[12px] leading-relaxed text-ink-400">
-          Ricerca dei luoghi, verifica di orari e prezzi, costruzione giorno per giorno:
-          le tappe appariranno qui in tempo reale.
+          {t('globe.subtitle')}
         </p>
       </div>
     </div>

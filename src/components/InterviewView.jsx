@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation, Trans } from 'react-i18next'
 import {
   Send, Square, ChevronLeft, Sparkles, TriangleAlert, NotebookPen, X,
 } from 'lucide-react'
@@ -8,16 +9,12 @@ import Markdown from './Markdown'
 import PlanningStepper from './PlanningStepper'
 import QuestionCard, { QARecord } from './QuestionCard'
 import { groupMessages, ToolChipGroup, SetupCard, ModelPicker, AgentAvatar } from './chatShared'
-
-const STARTERS = [
-  'Un weekend romantico a Parigi a fine settembre, senza auto',
-  'Road trip di 10 giorni in Islanda ad agosto, natura e fotografia',
-  'Una settimana in Giappone tra Tokyo e Kyoto coi mezzi pubblici',
-  '5 giorni in Sicilia con bambini, mare e buon cibo',
-]
+import LanguageSwitcher from './LanguageSwitcher'
 
 /* Full-screen chat: a new trip can only be born through Ulisse's interview */
 export default function InterviewView() {
+  const { t } = useTranslation()
+  const starters = t('interview.starters', { returnObjects: true })
   const {
     connected, thinking, messages, streamText, pendingQuestion,
     send, stop,
@@ -62,7 +59,7 @@ export default function InterviewView() {
           onClick={closeTrip}
           className="flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-sm font-semibold text-ink-500 transition hover:bg-white/70 hover:text-ink-800"
         >
-          <ChevronLeft size={16} /> I miei viaggi
+          <ChevronLeft size={16} /> {t('dashboard.title')}
         </button>
         <div className="ml-auto flex items-center gap-2">
           {notes && (
@@ -70,7 +67,7 @@ export default function InterviewView() {
               onClick={() => setShowNotesMobile((v) => !v)}
               className="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[12px] font-bold text-violet-600 transition hover:bg-white/70 xl:hidden"
             >
-              <NotebookPen size={14} /> Blocco note
+              <NotebookPen size={14} /> {t('interview.notebook')}
             </button>
           )}
         </div>
@@ -88,17 +85,15 @@ export default function InterviewView() {
             >
               <div className="mx-auto w-fit"><AgentAvatar className="size-16" iconSize={30} /></div>
               <h1 className="mt-5 font-display text-2xl font-extrabold text-ink-900 sm:text-3xl">
-                Dove andiamo?
+                {t('interview.heroTitle')}
               </h1>
               <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-ink-500">
-                Sono <b>Ulisse</b>, il tuo agente di viaggio. Raccontami cosa hai in mente:
-                ti farò una domanda alla volta prendendo appunti, poi <b>costruirò l'itinerario
-                completo per te</b> — lo vedrai nascere in tempo reale.
+                <Trans i18nKey="interview.heroIntro" components={{ b: <b /> }} />
               </p>
 
               {connected ? (
                 <div className="mx-auto mt-6 grid max-w-lg gap-2">
-                  {STARTERS.map((ex) => (
+                  {starters.map((ex) => (
                     <button
                       key={ex}
                       onClick={() => sendStarter(ex)}
@@ -133,7 +128,7 @@ export default function InterviewView() {
                     <span className="size-1.5 animate-bounce rounded-full bg-violet-400" style={{ animationDelay: '150ms' }} />
                     <span className="size-1.5 animate-bounce rounded-full bg-violet-400" style={{ animationDelay: '300ms' }} />
                   </span>
-                  sto pensando…
+                  {t('interview.thinking')}
                 </div>
               )}
             </div>
@@ -168,14 +163,14 @@ export default function InterviewView() {
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit() }
               }}
               rows={Math.min(4, Math.max(1, text.split('\n').length))}
-              placeholder={pendingQuestion ? 'Rispondi alla domanda qui sopra' : !connected ? 'Assistente non connesso' : needCurrency ? 'Scegli la valuta qui sotto, poi descrivi il viaggio che sogni…' : 'Descrivi il viaggio che sogni…'}
+              placeholder={pendingQuestion ? t('interview.placeholderAnswer') : !connected ? t('interview.placeholderOffline') : needCurrency ? t('interview.placeholderCurrency') : t('interview.placeholder')}
               disabled={!connected || !!pendingQuestion}
               className="max-h-32 min-h-10 w-full resize-none bg-transparent px-2 py-2 text-sm text-ink-800 outline-none placeholder:text-ink-300 disabled:opacity-50"
             />
             {thinking ? (
               <button
                 onClick={stop}
-                aria-label="Interrompi"
+                aria-label={t('interview.stop')}
                 className="grid size-10 shrink-0 place-items-center rounded-xl bg-ink-900 text-white transition hover:bg-ink-700"
               >
                 <Square size={14} fill="currentColor" />
@@ -184,7 +179,7 @@ export default function InterviewView() {
               <button
                 onClick={submit}
                 disabled={!connected || !text.trim()}
-                aria-label="Invia"
+                aria-label={t('interview.send')}
                 className="grid size-10 shrink-0 place-items-center rounded-xl bg-violet-600 text-white shadow-md shadow-violet-600/30 transition hover:bg-violet-700 active:scale-95 disabled:opacity-40 disabled:shadow-none"
               >
                 <Send size={15} />
@@ -198,7 +193,7 @@ export default function InterviewView() {
                   currencyNudge ? 'animate-bounce bg-rose-50 ring-2 ring-rose-300' : needCurrency ? 'bg-violet-50 ring-1 ring-violet-200' : ''
                 }`}
               >
-                {[['EUR', '€ Euro'], ['USD', '$ Dollaro']].map(([code, label]) => (
+                {[['EUR', t('interview.currencyEUR')], ['USD', t('interview.currencyUSD')]].map(([code, label]) => (
                   <button
                     key={code}
                     onClick={() => setCurrency(code)}
@@ -211,12 +206,15 @@ export default function InterviewView() {
                 ))}
               </div>
               <ModelPicker up />
+              <div className="absolute right-1">
+                <LanguageSwitcher compact up />
+              </div>
             </div>
           </div>
           <p className="mt-2 text-center text-[11px] text-ink-400">
-            L'itinerario si crea solo conversando con Ulisse ·{' '}
+            {t('interview.footerHint')} ·{' '}
             <button onClick={() => setPhase('active')} className="pointer-events-auto font-semibold text-ink-500 underline decoration-ink-300 underline-offset-2 hover:text-ink-700">
-              oppure crea manualmente
+              {t('interview.orManually')}
             </button>
           </p>
         </div>
@@ -227,6 +225,7 @@ export default function InterviewView() {
 
 /* the agent's notebook, filling in live while it asks questions */
 function NotebookCard({ notes, onClose }) {
+  const { t } = useTranslation()
   const flash = useAgentChat((s) => s.notebookFlash)
   const [highlight, setHighlight] = useState(false)
   const first = useRef(true)
@@ -243,7 +242,7 @@ function NotebookCard({ notes, onClose }) {
       <div className="pointer-events-auto mt-10 w-full rounded-2xl border border-dashed border-violet-200 bg-white/60 p-4 text-center backdrop-blur">
         <NotebookPen size={18} className="mx-auto text-violet-300" />
         <p className="mt-2 text-[11.5px] font-semibold text-ink-400">
-          Il blocco note di Ulisse si compilerà qui, risposta dopo risposta
+          {t('interview.notebookEmpty')}
         </p>
       </div>
     )
@@ -257,10 +256,10 @@ function NotebookCard({ notes, onClose }) {
     >
       <div className="flex items-center gap-2 border-b border-ink-100 bg-gradient-to-r from-violet-50 to-brand-50/60 px-3.5 py-2.5">
         <NotebookPen size={14} className={`text-violet-600 transition-transform ${highlight ? 'animate-bounce' : ''}`} />
-        <p className="flex-1 text-[12px] font-bold text-ink-800">Il blocco note di Ulisse</p>
-        {highlight && <span className="text-[10px] font-bold uppercase tracking-wide text-violet-500">sta scrivendo…</span>}
+        <p className="flex-1 text-[12px] font-bold text-ink-800">{t('interview.notebookTitle')}</p>
+        {highlight && <span className="text-[10px] font-bold uppercase tracking-wide text-violet-500">{t('interview.writing')}</span>}
         {onClose && (
-          <button onClick={onClose} aria-label="Chiudi blocco note" className="grid size-6 place-items-center rounded text-ink-400 hover:bg-white">
+          <button onClick={onClose} aria-label={t('interview.notebookClose')} className="grid size-6 place-items-center rounded text-ink-400 hover:bg-white">
             <X size={13} />
           </button>
         )}

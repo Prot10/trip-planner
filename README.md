@@ -59,6 +59,10 @@ Ships pre-loaded with a real 7-day / 6-night California loop (Pasadena → Big S
 ### Sharing
 - **Export / import JSON** — your own photos are inlined into the export, so the file you send carries everything. Data persists locally (localStorage + IndexedDB); nothing ever leaves the browser.
 
+### Languages
+- **Fully internationalized** (i18next): Italian and English out of the box, picked from the browser on first visit and switchable anytime from the language selector (dashboard, planner header, interview composer). Dates, numbers and currencies follow the locale (`it-IT` / `en-US`).
+- **Ulisse speaks your language natively** — the system prompts, the interview, the notebook and every suggestion exist per language (`server/prompts/<lang>/`), and even the demo trip ships in both languages. Adding a language = one locale JSON + one prompts folder + one registry entry.
+
 ![Dashboard](docs/dashboard.png)
 
 ## Tech stack
@@ -66,6 +70,7 @@ Ships pre-loaded with a real 7-day / 6-night California loop (Pasadena → Big S
 | | |
 |---|---|
 | UI | React 19 · Tailwind CSS 4 · lucide-react |
+| i18n | i18next · react-i18next (it/en, extensible) |
 | State | zustand (persisted, versioned migrations) |
 | Map | Leaflet / react-leaflet · CARTO Voyager tiles |
 | Drag & drop | dnd-kit |
@@ -94,7 +99,14 @@ src/
   App.jsx                  layout, tabs, overlays
   store.js                 zustand stores: trips (persisted + migrations), routes, UI
   data/
-    seed.json              the pre-loaded California itinerary (incl. its suggestions)
+    seed.it.json           the pre-loaded California itinerary (incl. its suggestions)
+    seed.en.json           the same demo trip, English edition
+  i18n/
+    index.js               i18next init, browser detection, persisted choice
+    langs.js               language registry (add a language here)
+  locales/
+    it/common.json         every UI string, Italian (source language)
+    en/common.json         every UI string, English
   lib/
     utils.js               dates, durations, costs, fuel units, trip normalization
     geo.js                 haversine, optimal insertion, OSRM routing & turn-by-turn
@@ -121,13 +133,16 @@ src/
     QuestionCard.jsx       interactive one-question-at-a-time answer cards
     ChatPanel.jsx          in-app agent chat (stream, edits review, saved chats)
     chatShared.jsx         tool chips, model picker, guided sign-in cards
+    LanguageSwitcher.jsx   language picker popover
+    PoiLayer.jsx           category pins for trip stops and suggestions
 server/
   index.mjs                local agent server (WebSocket + MCP over HTTP)
   agent.mjs                Claude Agent SDK + Codex CLI engines, dynamic models
   auth.mjs                 guided in-app sign-in flows for both engines
   bridge.mjs               browser bridge: tool calls in, live edits out
   tools.mjs                shared tool definitions (SDK + MCP)
-  prompts/                 persona, interview and planning rules
+  prompts/<lang>/          persona, interview and planning rules, per language
+  codex-workspace/<lang>/  AGENTS.md generated at boot from the prompts
 ```
 
 ## Notes

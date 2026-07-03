@@ -6,18 +6,35 @@
 
 import { query } from '@anthropic-ai/claude-agent-sdk'
 import { spawn } from 'node:child_process'
-import { readFileSync, existsSync } from 'node:fs'
+import { readFileSync, existsSync, readdirSync, mkdirSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { homedir } from 'node:os'
 import { createTripTools, TRIP_TOOL_NAMES } from './tools.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const read = (f) => readFileSync(join(__dirname, 'prompts', f), 'utf8')
-const PLANNING_RULES = read('planning-rules.md')
-const PLANNER_PROMPT = `${read('system.md')}\n\n${PLANNING_RULES}`
-const INTERVIEW_PROMPT = `${read('interview.md')}\n\n${PLANNING_RULES}`
-const CODEX_WORKSPACE = join(__dirname, 'codex-workspace')
+
+/* System prompts are fully per-language (prompts/<lang>/*.md): the agent is
+   never asked to translate on the fly — it thinks in the user's language.
+   Codex reads AGENTS.md from a per-language workspace, regenerated at boot
+   so it can never drift from the prompt sources. */
+const read = (lang, f) => readFileSync(join(__dirname, 'prompts', lang, f), 'utf8')
+const PROMPT_LANGS = readdirSync(join(__dirname, 'prompts'), { withFileTypes: true })
+  .filter((d) => d.isDirectory()).map((d) => d.name)
+const PROMPTS = Object.fromEntries(PROMPT_LANGS.map((lang) => {
+  const rules = read(lang, 'planning-rules.md')
+  return [lang, {
+    planner: `${read(lang, 'system.md')}\n\n${rules}`,
+    interview: `${read(lang, 'interview.md')}\n\n${rules}`,
+    agentsMd: `${read(lang, 'system.md')}\n${rules}\n${read(lang, 'codex.md')}`,
+  }]
+}))
+const promptsFor = (language) => PROMPTS[language] ?? PROMPTS.it
+const codexWorkspace = (language) => join(__dirname, 'codex-workspace', PROMPTS[language] ? language : 'it')
+for (const lang of PROMPT_LANGS) {
+  mkdirSync(join(__dirname, 'codex-workspace', lang), { recursive: true })
+  writeFileSync(join(__dirname, 'codex-workspace', lang, 'AGENTS.md'), PROMPTS[lang].agentsMd)
+}
 /* prefer the project-pinned Codex CLI over whatever brew has */
 const LOCAL_CODEX = join(__dirname, '..', 'node_modules', '.bin', 'codex')
 export const CODEX_BIN = existsSync(LOCAL_CODEX) ? LOCAL_CODEX : 'codex'
@@ -46,11 +63,30 @@ function pickCodexModel(model) {
   return list.find((m) => m.id === 'gpt-5.4')?.id ?? list[0].id
 }
 
-/* notebook + currency ride along on every turn: the agent's working memory */
-const withNotes = (prompt, notes, currency) => {
+/* notebook + currency ride along on every turn: the agent's working memory.
+   Section headers follow the prompt language. */
+const RIDE_ALONG = {
+  it: {
+    currency: (c) => `\n\n## Valuta del viaggio\nTutti i prezzi (tool e messaggi) in ${c}.`,
+    notes: (n) => `\n\n## Il tuo blocco note per questo viaggio (memoria corrente)\n${n}`,
+    codexCurrency: (c) => `<valuta_viaggio>${c} — tutti i prezzi in questa valuta</valuta_viaggio>`,
+    codexNotes: (n) => `<blocco_note_viaggio>\n${n}\n</blocco_note_viaggio>`,
+    codexInterview: (p, text) => `<istruzioni_fase_intervista>\n${p}\n</istruzioni_fase_intervista>\n\nMessaggio dell'utente: ${text}`,
+  },
+  en: {
+    currency: (c) => `\n\n## Trip currency\nAll prices (tools and messages) in ${c}.`,
+    notes: (n) => `\n\n## Your notebook for this trip (current memory)\n${n}`,
+    codexCurrency: (c) => `<trip_currency>${c} — all prices in this currency</trip_currency>`,
+    codexNotes: (n) => `<trip_notebook>\n${n}\n</trip_notebook>`,
+    codexInterview: (p, text) => `<interview_phase_instructions>\n${p}\n</interview_phase_instructions>\n\nUser message: ${text}`,
+  },
+}
+const rideAlong = (language) => RIDE_ALONG[language] ?? RIDE_ALONG.it
+const withNotes = (prompt, notes, currency, language) => {
+  const L = rideAlong(language)
   let out = prompt
-  if (currency) out += `\n\n## Valuta del viaggio\nTutti i prezzi (tool e messaggi) in ${currency}.`
-  if (notes?.trim()) out += `\n\n## Il tuo blocco note per questo viaggio (memoria corrente)\n${notes}`
+  if (currency) out += L.currency(currency)
+  if (notes?.trim()) out += L.notes(notes)
   return out
 }
 
@@ -59,14 +95,14 @@ export function createAgent(bridge, { mcpPort, auth }) {
   let active = null // { abort() }
 
   /* ---------- Claude (Agent SDK) ---------- */
-  async function runClaude(text, { model, sessionId, mode, notes, currency }) {
+  async function runClaude(text, { model, sessionId, mode, notes, currency, language }) {
     const abort = new AbortController()
     active = { abort: () => abort.abort() }
     try {
       const q = query({
         prompt: text,
         options: {
-          systemPrompt: withNotes(mode === 'interview' ? INTERVIEW_PROMPT : PLANNER_PROMPT, notes, currency),
+          systemPrompt: withNotes(mode === 'interview' ? promptsFor(language).interview : promptsFor(language).planner, notes, currency, language),
           mcpServers: { trip: tripServer },
           tools: ['WebSearch', 'WebFetch'],
           allowedTools: [...TRIP_TOOL_NAMES, 'WebSearch', 'WebFetch'],
@@ -128,17 +164,19 @@ export function createAgent(bridge, { mcpPort, auth }) {
   }
 
   /* ---------- Codex (ChatGPT subscription) ---------- */
-  function runCodex(text, { model, sessionId, mode, notes, currency }) {
-    /* Codex reads AGENTS.md (planner persona); interview rules ride along
-       with the first message of an interview chat, the notebook every turn */
+  function runCodex(text, { model, sessionId, mode, notes, currency, language }) {
+    /* Codex reads AGENTS.md (planner persona) from the per-language workspace;
+       interview rules ride along with the first message of an interview chat,
+       the notebook every turn */
+    const L = rideAlong(language)
     if (mode === 'interview' && !sessionId) {
-      text = `<istruzioni_fase_intervista>\n${INTERVIEW_PROMPT}\n</istruzioni_fase_intervista>\n\nMessaggio dell'utente: ${text}`
+      text = L.codexInterview(promptsFor(language).interview, text)
     }
     if (notes?.trim()) {
-      text = `<blocco_note_viaggio>\n${notes}\n</blocco_note_viaggio>\n\n${text}`
+      text = `${L.codexNotes(notes)}\n\n${text}`
     }
     if (currency) {
-      text = `<valuta_viaggio>${currency} — tutti i prezzi in questa valuta</valuta_viaggio>\n\n${text}`
+      text = `${L.codexCurrency(currency)}\n\n${text}`
     }
     return new Promise((resolve) => {
       /* `exec resume` only takes --json/-m/-c flags (before the session id):
@@ -153,7 +191,7 @@ export function createAgent(bridge, { mcpPort, auth }) {
       ]
       const args = sessionId
         ? ['exec', 'resume', ...flags, '-c', 'sandbox_mode="read-only"', sessionId, text]
-        : ['exec', ...flags, '--sandbox', 'read-only', '--cd', CODEX_WORKSPACE, text]
+        : ['exec', ...flags, '--sandbox', 'read-only', '--cd', codexWorkspace(language), text]
 
       console.log(`[codex] ${sessionId ? `resume ${sessionId.slice(0, 8)}…` : 'nuova sessione'} · modello ${pickCodexModel(model)}${model !== pickCodexModel(model) ? ` (richiesto: ${model})` : ''}`)
       let child

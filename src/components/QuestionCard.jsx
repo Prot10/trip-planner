@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Check, Send, CircleHelp } from 'lucide-react'
 import { useAgentChat } from '../agent/socket'
 
@@ -13,6 +14,7 @@ export default function QuestionCard() {
 }
 
 function QuestionCardInner({ q, answer }) {
+  const { t } = useTranslation()
   const [selected, setSelected] = useState([])
   const [other, setOther] = useState('')
 
@@ -85,7 +87,7 @@ function QuestionCardInner({ q, answer }) {
                 }
               }}
               rows={Math.min(3, Math.max(1, other.split('\n').length))}
-              placeholder={q.kind === 'open' ? 'Scrivi la tua risposta…' : 'Oppure scrivi altro…'}
+              placeholder={q.kind === 'open' ? t('question.openPlaceholder') : t('question.otherPlaceholder')}
               autoFocus={q.kind === 'open'}
               className="min-h-9 w-full resize-none rounded-xl border border-ink-200 bg-ink-50 px-3 py-2 text-[13px] text-ink-800 outline-none transition placeholder:text-ink-300 focus:border-violet-400 focus:bg-white focus:ring-2 focus:ring-violet-400/20"
             />
@@ -93,7 +95,7 @@ function QuestionCardInner({ q, answer }) {
               <button
                 onClick={submitOther}
                 disabled={!other.trim()}
-                aria-label="Invia risposta"
+                aria-label={t('question.send')}
                 className="grid size-9 shrink-0 place-items-center rounded-xl bg-violet-600 text-white transition hover:bg-violet-700 disabled:opacity-40"
               >
                 <Send size={14} />
@@ -108,7 +110,7 @@ function QuestionCardInner({ q, answer }) {
             disabled={selected.length === 0 && !other.trim()}
             className="mt-1 rounded-xl bg-violet-600 py-2 text-[12.5px] font-bold text-white transition hover:bg-violet-700 disabled:opacity-40"
           >
-            Conferma {selected.length > 0 ? `(${selected.length})` : ''}
+            {t('question.confirm')} {selected.length > 0 ? `(${selected.length})` : ''}
           </button>
         )}
       </div>

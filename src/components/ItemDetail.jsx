@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   X, ChevronLeft, ChevronRight, Clock, Timer, Star, Pencil, Navigation, MapPinned,
   ExternalLink, ImageOff, BedDouble,
@@ -11,6 +12,7 @@ import Modal from './Modal'
 
 /* Read-only detail card: big photo carousel + all the item's info */
 export default function ItemDetail() {
+  const { t } = useTranslation()
   const currency = useTrip((s) => activeTrip(s)?.currency ?? 'USD')
   const detail = useUI((s) => s.detail)
   const closeDetail = useUI((s) => s.closeDetail)
@@ -60,7 +62,7 @@ export default function ItemDetail() {
                 <button
                   key={i}
                   onClick={() => setIdx(i)}
-                  aria-label={`Foto ${i + 1}`}
+                  aria-label={t('item.photoN', { n: i + 1 })}
                   className={`h-1.5 rounded-full transition-all ${
                     i === idx ? 'w-5 bg-white' : 'w-1.5 bg-white/60 hover:bg-white/90'
                   }`}
@@ -77,7 +79,7 @@ export default function ItemDetail() {
         )}
         <button
           onClick={closeDetail}
-          aria-label="Chiudi"
+          aria-label={t('common.close')}
           className="absolute right-3 top-3 grid size-8 place-items-center rounded-full bg-ink-900/60 text-white backdrop-blur transition hover:bg-ink-900/85"
         >
           <X size={16} />
@@ -86,18 +88,18 @@ export default function ItemDetail() {
 
       <div className="px-5 py-4 sm:px-6">
         <div className="flex flex-wrap items-center gap-1.5">
-          <Chip className="bg-ink-100 text-ink-700 ring-ink-500/15">Giorno {dayIndex + 1}</Chip>
-          <Chip className={meta.chip}><meta.Icon size={11} /> {meta.label}</Chip>
+          <Chip className="bg-ink-100 text-ink-700 ring-ink-500/15">{t('common.dayN', { n: dayIndex + 1 })}</Chip>
+          <Chip className={meta.chip}><meta.Icon size={11} /> {t(meta.labelKey)}</Chip>
           {item.time && <Chip className="bg-ink-100 text-ink-700 ring-ink-500/15"><Clock size={11} /> {item.time}</Chip>}
           {item.dur > 0 && <Chip className="bg-blue-50 text-blue-700 ring-blue-600/20"><Timer size={11} /> {fmtDur(item.dur)}</Chip>}
           {item.price > 0 && (
             <Chip className="bg-emerald-50 text-emerald-700 ring-emerald-600/20">
-              {item.type === 'hotel' && <BedDouble size={11} />} {fmtMoney(item.price, currency)}{item.type === 'hotel' ? '/notte' : ''}
+              {item.type === 'hotel' && <BedDouble size={11} />} {fmtMoney(item.price, currency)}{item.type === 'hotel' ? t('item.perNight') : ''}
             </Chip>
           )}
           {item.must && (
             <Chip className="bg-amber-50 text-amber-700 ring-amber-500/30">
-              <Star size={11} fill="currentColor" /> imperdibile
+              <Star size={11} fill="currentColor" /> {t('item.mustSee')}
             </Chip>
           )}
         </div>
@@ -113,7 +115,7 @@ export default function ItemDetail() {
                   onClick={showOnMap}
                   className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-600/20 transition hover:bg-emerald-100"
                 >
-                  <MapPinned size={13} /> Mostra sulla mappa
+                  <MapPinned size={13} /> {t('item.showOnMap')}
                 </button>
                 <a
                   href={gmapsUrl(item.lat, item.lng)}
@@ -145,13 +147,13 @@ export default function ItemDetail() {
           onClick={closeDetail}
           className="rounded-xl border border-ink-200 px-4 py-2 text-sm font-semibold text-ink-600 transition hover:bg-ink-50"
         >
-          Chiudi
+          {t('common.close')}
         </button>
         <button
           onClick={() => openEditor(detail.dayId, detail.itemId)}
           className="flex items-center gap-1.5 rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-brand-500/30 transition hover:bg-brand-600"
         >
-          <Pencil size={14} /> Modifica
+          <Pencil size={14} /> {t('common.edit')}
         </button>
       </div>
     </Modal>
@@ -159,10 +161,11 @@ export default function ItemDetail() {
 }
 
 function CarouselBtn({ side, onClick, children }) {
+  const { t } = useTranslation()
   return (
     <button
       onClick={onClick}
-      aria-label={side === 'left' ? 'Foto precedente' : 'Foto successiva'}
+      aria-label={side === 'left' ? t('item.photoPrev') : t('item.photoNext')}
       className={`absolute top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-full bg-ink-900/55 text-white backdrop-blur transition hover:bg-ink-900/80 ${
         side === 'left' ? 'left-2.5' : 'right-2.5'
       }`}

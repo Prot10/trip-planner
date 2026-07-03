@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useDroppable } from '@dnd-kit/core'
 import {
@@ -9,6 +10,7 @@ import { dayDate, fmtDate, fmtDur, dayDriveMin } from '../lib/utils'
 import ItemCard from './ItemCard'
 
 export default function DayCard({ day, index, total }) {
+  const { t } = useTranslation()
   const startDate = useTrip((s) => activeTrip(s).startDate)
   const removeDay = useTrip((s) => s.removeDay)
   const moveDay = useTrip((s) => s.moveDay)
@@ -72,7 +74,7 @@ export default function DayCard({ day, index, total }) {
                 <CarFront size={12} /> {fmtDur(drive)}
               </span>
             )}
-            <span>{nStops} tappe</span>
+            <span>{t('day.stops', { count: nStops })}</span>
           </div>
         </div>
 
@@ -81,19 +83,19 @@ export default function DayCard({ day, index, total }) {
           onClick={(e) => e.stopPropagation()}
           className="flex items-center gap-0.5 opacity-100 transition lg:opacity-0 lg:group-hover/day:opacity-100"
         >
-          <Tool title="Mostra sulla mappa" onClick={showOnMap}><MapPinned size={15} /></Tool>
-          <Tool title="Modifica giorno" onClick={() => openDayEditor(day.id)}><Pencil size={15} /></Tool>
+          <Tool title={t('day.showOnMap')} onClick={showOnMap}><MapPinned size={15} /></Tool>
+          <Tool title={t('day.editDay')} onClick={() => openDayEditor(day.id)}><Pencil size={15} /></Tool>
           <div className="hidden items-center gap-0.5 sm:flex">
-            <Tool title="Sposta su" disabled={index === 0} onClick={() => moveDay(day.id, -1)}><ArrowUp size={15} /></Tool>
-            <Tool title="Sposta giù" disabled={index === total - 1} onClick={() => moveDay(day.id, 1)}><ArrowDown size={15} /></Tool>
+            <Tool title={t('day.moveUp')} disabled={index === 0} onClick={() => moveDay(day.id, -1)}><ArrowUp size={15} /></Tool>
+            <Tool title={t('day.moveDown')} disabled={index === total - 1} onClick={() => moveDay(day.id, 1)}><ArrowDown size={15} /></Tool>
           </div>
           <Tool
-            title="Elimina giorno"
+            title={t('day.deleteDay')}
             danger
             onClick={() =>
-              ask(`Eliminare il giorno "${day.title}" e tutte le sue attività?`, () => {
+              ask(t('day.confirmDelete', { title: day.title }), () => {
                 removeDay(day.id)
-                toast('Giorno eliminato')
+                toast(t('day.deleted'))
               })
             }
           >
@@ -134,7 +136,7 @@ export default function DayCard({ day, index, total }) {
 
             {day.items.length === 0 && (
               <p className="py-3 text-center text-xs italic text-ink-400">
-                Giornata vuota — trascina qui un’attività o aggiungine una
+                {t('day.empty')}
               </p>
             )}
 
@@ -143,7 +145,7 @@ export default function DayCard({ day, index, total }) {
               className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl border-[1.5px] border-dashed border-ink-300 py-2 text-xs font-semibold text-ink-400 transition hover:border-brand-400 hover:bg-brand-50/50 hover:text-brand-600"
             >
               <Plus size={14} strokeWidth={2.6} />
-              Aggiungi attività
+              {t('day.addItem')}
             </button>
           </div>
         </div>

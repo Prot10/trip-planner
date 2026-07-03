@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 /* Minimal, dependency-free markdown for chat messages: bold/italic/code,
@@ -169,6 +170,7 @@ function inline(text) {
 /* ---------- images: single photo or carousel ---------- */
 
 function ImageGroup({ images }) {
+  const { t } = useTranslation()
   const [idx, setIdx] = useState(0)
   const [broken, setBroken] = useState(new Set())
   const good = images.filter((_, i) => !broken.has(i))
@@ -203,7 +205,7 @@ function ImageGroup({ images }) {
               <button
                 key={i}
                 onClick={() => setIdx(i)}
-                aria-label={`Foto ${i + 1}`}
+                aria-label={t('item.photoN', { n: i + 1 })}
                 className={`h-1 rounded-full transition-all ${i === idx ? 'w-4 bg-white' : 'w-1 bg-white/60'}`}
               />
             ))}
@@ -215,10 +217,11 @@ function ImageGroup({ images }) {
 }
 
 function CarouselBtn({ side, onClick, children }) {
+  const { t } = useTranslation()
   return (
     <button
       onClick={onClick}
-      aria-label={side === 'left' ? 'Foto precedente' : 'Foto successiva'}
+      aria-label={side === 'left' ? t('item.photoPrev') : t('item.photoNext')}
       className={`absolute top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-full bg-ink-900/55 text-white backdrop-blur transition hover:bg-ink-900/80 ${
         side === 'left' ? 'left-1.5' : 'right-1.5'
       }`}
