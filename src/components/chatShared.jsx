@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   Wrench, MapPin, Trash2, Pencil, CalendarPlus, Search, Sparkles, ListChecks, Route,
-  Settings2, Camera, Globe, ChevronDown, TerminalSquare, Copy, Check, NotebookPen, Bot,
+  Settings2, Camera, Globe, ChevronDown, TerminalSquare, Copy, Check, NotebookPen, Bot, Loader2, LogIn,
 } from 'lucide-react'
 import { useAgentChat } from '../agent/socket'
 
@@ -109,46 +109,142 @@ export function ToolChipGroup({ group }) {
   )
 }
 
-/* ---------- guided engine setup (auth errors) ---------- */
+/* ---------- guided engine sign-in (auth errors) ---------- */
 
 const SETUP = {
   claude: {
     title: 'Collega il tuo abbonamento Claude',
+    account: 'account Claude (Pro/Max)',
     steps: [
       { text: 'Apri il terminale e avvia Claude Code', cmd: 'claude' },
       { text: 'Dentro Claude Code esegui il login col tuo abbonamento', cmd: '/login' },
-      { text: "Torna qui e rimanda il messaggio: userò il tuo piano Pro/Max, senza API key." },
+      { text: 'Torna qui e rimanda il messaggio.' },
     ],
   },
   codex: {
     title: 'Collega il tuo account ChatGPT',
+    account: 'account ChatGPT (Plus)',
     steps: [
       { text: 'Apri il terminale nella cartella del progetto ed esegui', cmd: 'npx codex login' },
-      { text: 'Completa l\'accesso nel browser con il tuo account ChatGPT (Plus)' },
-      { text: 'Torna qui e rimanda il messaggio: userò il tuo piano, senza API key.' },
+      { text: "Completa l'accesso nel browser con il tuo account ChatGPT (Plus)" },
+      { text: 'Torna qui e rimanda il messaggio.' },
     ],
   },
 }
 
+/* one-click sign-in: the local server runs the CLI login for the user; the
+   browser opens by itself, Claude additionally asks to paste back a code */
 export function SetupCard({ engine, error }) {
   const cfg = SETUP[engine] ?? SETUP.claude
+  const connected = useAgentChat((s) => s.connected)
+  const auth = useAgentChat((s) => s.auth)
+  const startAuth = useAgentChat((s) => s.startAuth)
+  const sendAuthCode = useAgentChat((s) => s.sendAuthCode)
+  const [code, setCode] = useState('')
+  const [manual, setManual] = useState(false)
+
+  const mine = auth.engine === engine ? auth : { phase: 'idle' }
+
   return (
     <div className="anim-fade-up mb-3 overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-sm">
       <div className="flex items-center gap-2.5 border-b border-ink-100 bg-ink-50/70 px-3.5 py-2.5">
         <TerminalSquare size={15} className="text-violet-600" />
         <p className="text-[12.5px] font-bold text-ink-900">{cfg.title}</p>
       </div>
-      <ol className="flex flex-col gap-2 p-3.5">
-        {cfg.steps.map((s, i) => (
-          <li key={i} className="flex items-start gap-2.5">
-            <span className="mt-px grid size-5 shrink-0 place-items-center rounded-full bg-violet-100 text-[10.5px] font-bold text-violet-700">{i + 1}</span>
-            <div className="min-w-0 flex-1">
-              <p className="text-[12px] leading-snug text-ink-600">{s.text}</p>
-              {s.cmd && <CopyCmd cmd={s.cmd} />}
+
+      <div className="p-3.5">
+        {mine.phase === 'done' ? (
+          <div className="flex items-center gap-2.5 rounded-xl bg-emerald-50 px-3 py-2.5 ring-1 ring-emerald-200">
+            <Check size={15} strokeWidth={3} className="shrink-0 text-emerald-600" />
+            <p className="text-[12px] font-semibold leading-snug text-emerald-800">
+              Account collegato! Riprovo subito col tuo messaggio.
+            </p>
+          </div>
+        ) : mine.phase === 'waiting' || mine.phase === 'verifying' ? (
+          <div className="flex flex-col gap-2.5">
+            <div className="flex items-center gap-2.5 rounded-xl bg-violet-50 px-3 py-2.5 ring-1 ring-violet-200">
+              <Loader2 size={15} className="shrink-0 animate-spin text-violet-600" />
+              <p className="text-[12px] font-semibold leading-snug text-violet-900">
+                {mine.phase === 'verifying'
+                  ? 'Verifico il codice…'
+                  : `Completa l'accesso nella scheda del browser appena aperta, col tuo ${cfg.account}.`}
+              </p>
             </div>
-          </li>
-        ))}
-      </ol>
+            {mine.url && mine.phase === 'waiting' && (
+              <a
+                href={mine.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] font-semibold text-violet-600 underline decoration-violet-300 underline-offset-2 hover:text-violet-800"
+              >
+                Non si è aperta nessuna scheda? Clicca qui per aprire la pagina di accesso
+              </a>
+            )}
+            {mine.needsCode && mine.phase === 'waiting' && (
+              <div className="flex items-center gap-2">
+                <input
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') sendAuthCode(code) }}
+                  placeholder="Incolla qui il codice mostrato a fine accesso…"
+                  spellCheck={false}
+                  className="min-w-0 flex-1 rounded-xl border border-ink-200 bg-ink-50 px-3 py-2 font-mono text-[11.5px] text-ink-800 outline-none transition placeholder:font-sans placeholder:text-ink-300 focus:border-violet-400 focus:bg-white"
+                />
+                <button
+                  onClick={() => sendAuthCode(code)}
+                  disabled={!code.trim()}
+                  className="rounded-xl bg-violet-600 px-3 py-2 text-[11.5px] font-bold text-white transition hover:bg-violet-700 disabled:opacity-40"
+                >
+                  Conferma
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            <button
+              onClick={() => startAuth(engine)}
+              disabled={!connected}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 py-2.5 text-[12.5px] font-bold text-white shadow-md shadow-violet-600/25 transition hover:bg-violet-700 active:scale-[.98] disabled:opacity-40 disabled:shadow-none"
+            >
+              <LogIn size={14} /> Collega con un click
+            </button>
+            <p className="mt-1.5 text-center text-[10.5px] leading-snug text-ink-400">
+              {connected
+                ? `Si aprirà la pagina di accesso del tuo ${cfg.account}: nessuna API key, nessun terminale.`
+                : 'Serve il server locale: avvia `npm run dev` nella cartella del progetto.'}
+            </p>
+            {mine.phase === 'error' && (
+              <p className="mt-2 rounded-lg bg-rose-50 px-2.5 py-1.5 text-[11px] leading-snug text-rose-700 ring-1 ring-rose-200">
+                {mine.error}
+              </p>
+            )}
+          </>
+        )}
+
+        {/* terminal fallback for who prefers it */}
+        <button
+          onClick={() => setManual((m) => !m)}
+          className="mt-2.5 flex items-center gap-1 text-[10.5px] font-semibold text-ink-400 transition hover:text-ink-600"
+        >
+          <ChevronDown size={10} className={`transition-transform ${manual ? 'rotate-180' : ''}`} />
+          Preferisci il terminale?
+        </button>
+        {manual && (
+          <ol className="mt-2 flex flex-col gap-2">
+            {cfg.steps.map((s, i) => (
+              <li key={i} className="flex items-start gap-2.5">
+                <span className="mt-px grid size-5 shrink-0 place-items-center rounded-full bg-violet-100 text-[10.5px] font-bold text-violet-700">{i + 1}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[12px] leading-snug text-ink-600">{s.text}</p>
+                  {s.cmd && <CopyCmd cmd={s.cmd} />}
+                </div>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
+
       {error && (
         <p className="border-t border-ink-100 px-3.5 py-2 text-[10.5px] leading-snug text-ink-400">{error}</p>
       )}

@@ -58,8 +58,24 @@ export const useAgentChat = create((set, get) => ({
   undoSnapshot: null,
   undoReady: false,
   showEdits: false,
+  auth: { engine: null, phase: 'idle', url: null, needsCode: false, error: null }, // guided sign-in flow
 
   setOpen: (open) => set({ open }),
+
+  /* guided sign-in: the server drives the CLI login, we render progress */
+  startAuth(engine) {
+    set({ auth: { engine, phase: 'waiting', url: null, needsCode: engine === 'claude', error: null } })
+    sendWs({ type: 'auth_start', engine })
+  },
+  sendAuthCode(code) {
+    if (!code.trim()) return
+    sendWs({ type: 'auth_code', code: code.trim() })
+    set((s) => ({ auth: { ...s.auth, phase: 'verifying' } }))
+  },
+  cancelAuth() {
+    sendWs({ type: 'auth_cancel' })
+    set({ auth: { engine: null, phase: 'idle', url: null, needsCode: false, error: null } })
+  },
   setShowEdits: (showEdits) => set({ showEdits }),
   /* explicit engine+model selection: nothing is ever picked at random */
   select(engine, model) {
@@ -99,6 +115,23 @@ export const useAgentChat = create((set, get) => ({
   },
 
   stop: () => sendWs({ type: 'stop' }),
+
+  /* after a successful guided sign-in: retry the message that hit the auth
+     error, without duplicating the user bubble */
+  resendLast() {
+    const lastUser = [...get().messages].reverse().find((m) => m.role === 'user')
+    if (!lastUser || get().thinking || !get().connected) return
+    set({ undoReady: false, undoSnapshot: null, edits: [], progress: [], showEdits: false, streamText: '' })
+    const trip = activeTrip(useTrip.getState())
+    sendWs({
+      type: 'chat', text: lastUser.text,
+      model: get().models[get().engine],
+      engine: get().engine,
+      sessionId: get().sessionId,
+      mode: trip?.phase === 'interview' ? 'interview' : 'planner',
+      notes: trip?.notes ?? '',
+    })
+  },
 
   newChat() {
     if (get().thinking) sendWs({ type: 'stop' })
@@ -258,6 +291,18 @@ function handleEvent(msg) {
       if (msg.auth) push({ role: 'setup', engine: msg.auth, text: msg.error })
       else push({ role: 'error', text: msg.error })
       break
+    case 'auth_event': {
+      const cur = useAgentChat.getState().auth
+      if (msg.engine !== cur.engine && msg.phase !== 'done') break
+      if (msg.phase === 'started') useAgentChat.setState({ auth: { ...cur, phase: 'waiting' } })
+      else if (msg.phase === 'url') useAgentChat.setState({ auth: { ...cur, phase: 'waiting', url: msg.url, needsCode: !!msg.needsCode || cur.needsCode } })
+      else if (msg.phase === 'done') {
+        useAgentChat.setState({ auth: { ...cur, engine: msg.engine, phase: 'done', error: null } })
+        toast('Account collegato!')
+        setTimeout(() => useAgentChat.getState().resendLast(), 800)
+      } else if (msg.phase === 'error') useAgentChat.setState({ auth: { ...cur, phase: 'error', error: msg.error } })
+      break
+    }
     case 'model':
       break
     case 'session':

@@ -13,6 +13,7 @@ export function createBridge(httpServer) {
   const pending = new Map() // rpc id -> { resolve, timer }
   let nextId = 1
   let chatHandler = null // set by agent.mjs: (msg, ws) => void
+  let authHandler = null // set by auth.mjs: guided sign-in flows
 
   wss.on('connection', (ws) => {
     tabs.add(ws)
@@ -31,6 +32,9 @@ export function createBridge(httpServer) {
       }
       if (msg.type === 'chat' || msg.type === 'stop' || msg.type === 'reset') {
         chatHandler?.(msg, ws)
+      }
+      if (msg.type?.startsWith('auth_')) {
+        authHandler?.(msg, ws)
       }
     })
 
@@ -67,6 +71,7 @@ export function createBridge(httpServer) {
     callBrowser,
     broadcast,
     onChat(fn) { chatHandler = fn },
+    onAuth(fn) { authHandler = fn },
     get tabCount() { return tabs.size },
   }
 }
