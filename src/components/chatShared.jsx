@@ -358,13 +358,13 @@ export function ModelPicker({ up = false }) {
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label={t('chat.models.pickAria')}
-        className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-[11.5px] font-bold transition ${
+        className={`flex max-w-full min-w-0 items-center gap-1.5 rounded-lg px-2 py-1 text-[11.5px] font-bold transition ${
           open ? 'bg-violet-50 text-violet-700' : 'text-ink-500 hover:bg-ink-100 hover:text-ink-700'
         }`}
       >
-        <span className={`size-1.5 rounded-full ${engine === 'claude' ? 'bg-brand-500' : 'bg-emerald-500'}`} />
-        {eng.name} · {model.label}
-        <ChevronDown size={11} className={`text-ink-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <span className={`size-1.5 shrink-0 rounded-full ${engine === 'claude' ? 'bg-brand-500' : 'bg-emerald-500'}`} />
+        <span className="truncate">{eng.name} · {model.label}</span>
+        <ChevronDown size={11} className={`shrink-0 text-ink-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (

@@ -61,15 +61,18 @@ export default function DatePicker() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold shadow-sm transition ${
+        className={`flex items-center gap-2 rounded-xl border p-2 text-sm font-semibold shadow-sm transition @[56rem]:px-3 ${
           open ? 'border-brand-400 ring-2 ring-brand-400/20' : 'border-ink-200 hover:border-ink-300'
         } ${start ? 'text-ink-800' : 'text-ink-400'}`}
         aria-label={t('datePicker.pickAria')}
+        title={start ? fmtDate(start, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : t('datePicker.startDate')}
       >
         <PlaneTakeoff size={15} className="shrink-0 text-brand-500" />
-        {start
-          ? fmtDate(start, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
-          : t('datePicker.startDate')}
+        <span className="hidden whitespace-nowrap @[56rem]:inline">
+          {start
+            ? fmtDate(start, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+            : t('datePicker.startDate')}
+        </span>
       </button>
 
       {open && (

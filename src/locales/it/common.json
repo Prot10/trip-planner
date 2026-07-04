@@ -394,7 +394,9 @@
       "exported": "Itinerario esportato — condividilo!",
       "imported": "Itinerario importato!",
       "invalidFile": "File non valido"
-    }
+    },
+    "statsChip": "Statistiche del viaggio",
+    "moreMenu": "Altre azioni"
   },
   "app": {
     "tabItinerary": "Itinerario",

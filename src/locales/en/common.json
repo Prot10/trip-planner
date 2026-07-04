@@ -230,7 +230,9 @@
       "exported": "Itinerary exported — share it!",
       "imported": "Itinerary imported!",
       "invalidFile": "Invalid file"
-    }
+    },
+    "statsChip": "Trip stats",
+    "moreMenu": "More actions"
   },
   "app": {
     "tabItinerary": "Itinerary",

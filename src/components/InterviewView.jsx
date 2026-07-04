@@ -76,11 +76,11 @@ export default function InterviewView() {
       {/* conversation + notebook side by side on xl */}
       <div className="relative z-0 min-h-0 flex-1">
         <div ref={scrollRef} className="nice-scroll h-full overflow-y-auto px-4">
-          <div className="mx-auto flex max-w-2xl flex-col pb-40">
+          <div className="mx-auto flex min-h-full max-w-2xl flex-col">
             {/* hero, fades away after the first message */}
             <div
               className={`text-center transition-all duration-700 ${
-                empty ? 'mt-[7vh] opacity-100' : 'mt-4 max-h-0 scale-95 overflow-hidden opacity-0'
+                empty ? 'mt-[6vh] opacity-100' : 'mt-0 max-h-0 scale-95 overflow-hidden opacity-0'
               }`}
             >
               <div className="mx-auto w-fit"><AgentAvatar className="size-16" iconSize={30} /></div>
@@ -90,25 +90,6 @@ export default function InterviewView() {
               <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-ink-500">
                 <Trans i18nKey="interview.heroIntro" components={{ b: <b /> }} />
               </p>
-
-              {connected ? (
-                <div className="mx-auto mt-6 grid max-w-lg gap-2">
-                  {starters.map((ex) => (
-                    <button
-                      key={ex}
-                      onClick={() => sendStarter(ex)}
-                      className="rounded-2xl border border-ink-200 bg-white/80 px-4 py-3 text-left text-[13px] font-medium text-ink-600 shadow-sm backdrop-blur transition hover:border-violet-300 hover:bg-white hover:shadow-md"
-                    >
-                      <Sparkles size={12} className="mr-1.5 inline text-violet-500" />
-                      {ex}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="mx-auto mt-6 max-w-md text-left">
-                  <SetupCard engine="claude" />
-                </div>
-              )}
             </div>
 
             <div className={empty ? '' : 'pt-2'}>
@@ -132,6 +113,53 @@ export default function InterviewView() {
                 </div>
               )}
             </div>
+
+            {/* pushes the composer to the bottom once the conversation starts */}
+            <div className={`transition-[flex-grow] duration-700 ease-in-out ${empty ? 'grow-0' : 'grow'}`} />
+
+            {/* composer: in the flow on the empty hero (it can never cover
+                anything), docked to the bottom while chatting */}
+            <div className={`z-10 pt-3 ${empty ? '' : 'sticky bottom-0'}`}>
+              <Composer
+                text={text} setText={setText} submit={submit} stop={stop}
+                connected={connected} thinking={thinking} pendingQuestion={pendingQuestion}
+                needCurrency={needCurrency} currency={currency} setCurrency={setCurrency}
+                currencyNudge={currencyNudge}
+              />
+              <p className="pb-2 pt-2 text-center text-[11px] text-ink-400">
+                {t('interview.footerHint')} ·{' '}
+                <button onClick={() => setPhase('active')} className="font-semibold text-ink-500 underline decoration-ink-300 underline-offset-2 hover:text-ink-700">
+                  {t('interview.orManually')}
+                </button>
+              </p>
+            </div>
+
+            {/* starter ideas / sign-in, below the composer on the empty hero */}
+            <div
+              className={`transition-all duration-500 ${
+                empty ? 'max-h-[480px] opacity-100' : 'max-h-0 overflow-hidden opacity-0'
+              }`}
+            >
+              {connected ? (
+                <div className="mx-auto grid max-w-lg gap-2 pt-1">
+                  {starters.map((ex) => (
+                    <button
+                      key={ex}
+                      onClick={() => sendStarter(ex)}
+                      className="rounded-2xl border border-ink-200 bg-white/80 px-4 py-3 text-left text-[13px] font-medium text-ink-600 shadow-sm backdrop-blur transition hover:border-violet-300 hover:bg-white hover:shadow-md"
+                    >
+                      <Sparkles size={12} className="mr-1.5 inline text-violet-500" />
+                      {ex}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="mx-auto max-w-md pt-1 text-left">
+                  <SetupCard engine="claude" />
+                </div>
+              )}
+            </div>
+            <div className="shrink-0 pb-4" />
           </div>
         </div>
 
@@ -147,76 +175,74 @@ export default function InterviewView() {
         )}
       </div>
 
-      {/* composer: centered on the empty hero, glides to the bottom afterwards */}
-      <div
-        className={`pointer-events-none absolute inset-x-0 z-10 transition-all duration-700 ease-in-out ${
-          empty ? 'bottom-[38vh]' : 'bottom-0'
-        }`}
-      >
-        <div className="pointer-events-auto mx-auto max-w-2xl px-4 pb-4">
-          <div className="rounded-2xl border border-ink-200 bg-white p-2 shadow-lg">
-            <div className="flex items-end gap-2">
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit() }
-              }}
-              rows={Math.min(4, Math.max(1, text.split('\n').length))}
-              placeholder={pendingQuestion ? t('interview.placeholderAnswer') : !connected ? t('interview.placeholderOffline') : needCurrency ? t('interview.placeholderCurrency') : t('interview.placeholder')}
-              disabled={!connected || !!pendingQuestion}
-              className="max-h-32 min-h-10 w-full resize-none bg-transparent px-2 py-2 text-sm text-ink-800 outline-none placeholder:text-ink-300 disabled:opacity-50"
-            />
-            {thinking ? (
-              <button
-                onClick={stop}
-                aria-label={t('interview.stop')}
-                className="grid size-10 shrink-0 place-items-center rounded-xl bg-ink-900 text-white transition hover:bg-ink-700"
-              >
-                <Square size={14} fill="currentColor" />
-              </button>
-            ) : (
-              <button
-                onClick={submit}
-                disabled={!connected || !text.trim()}
-                aria-label={t('interview.send')}
-                className="grid size-10 shrink-0 place-items-center rounded-xl bg-violet-600 text-white shadow-md shadow-violet-600/30 transition hover:bg-violet-700 active:scale-95 disabled:opacity-40 disabled:shadow-none"
-              >
-                <Send size={15} />
-              </button>
-            )}
-            </div>
-            {/* currency (required before the first message) + engine/model, inside the composer */}
-            <div className="relative mt-1.5 flex items-center justify-center border-t border-ink-100 pt-1.5">
-              <div
-                className={`absolute left-1 flex items-center gap-1 rounded-xl p-0.5 transition ${
-                  currencyNudge ? 'animate-bounce bg-rose-50 ring-2 ring-rose-300' : needCurrency ? 'bg-violet-50 ring-1 ring-violet-200' : ''
-                }`}
-              >
-                {[['EUR', t('interview.currencyEUR')], ['USD', t('interview.currencyUSD')]].map(([code, label]) => (
-                  <button
-                    key={code}
-                    onClick={() => setCurrency(code)}
-                    className={`rounded-lg px-2 py-1 text-[11px] font-bold transition ${
-                      currency === code ? 'bg-violet-600 text-white shadow-sm' : 'text-ink-500 hover:bg-ink-100 hover:text-ink-800'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-              <ModelPicker up />
-              <div className="absolute right-1">
-                <LanguageSwitcher compact up />
-              </div>
-            </div>
-          </div>
-          <p className="mt-2 text-center text-[11px] text-ink-400">
-            {t('interview.footerHint')} ·{' '}
-            <button onClick={() => setPhase('active')} className="pointer-events-auto font-semibold text-ink-500 underline decoration-ink-300 underline-offset-2 hover:text-ink-700">
-              {t('interview.orManually')}
+    </div>
+  )
+}
+
+/* the input box: textarea + send/stop, currency pills, engine/model, language */
+function Composer({
+  text, setText, submit, stop, connected, thinking, pendingQuestion,
+  needCurrency, currency, setCurrency, currencyNudge,
+}) {
+  const { t } = useTranslation()
+  return (
+    <div className="rounded-2xl border border-ink-200 bg-white p-2 shadow-lg">
+      <div className="flex items-end gap-2">
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit() }
+          }}
+          rows={Math.min(4, Math.max(1, text.split('\n').length))}
+          placeholder={pendingQuestion ? t('interview.placeholderAnswer') : !connected ? t('interview.placeholderOffline') : needCurrency ? t('interview.placeholderCurrency') : t('interview.placeholder')}
+          disabled={!connected || !!pendingQuestion}
+          className="max-h-32 min-h-10 w-full resize-none bg-transparent px-2 py-2 text-sm text-ink-800 outline-none placeholder:text-ink-300 disabled:opacity-50"
+        />
+        {thinking ? (
+          <button
+            onClick={stop}
+            aria-label={t('interview.stop')}
+            className="grid size-10 shrink-0 place-items-center rounded-xl bg-ink-900 text-white transition hover:bg-ink-700"
+          >
+            <Square size={14} fill="currentColor" />
+          </button>
+        ) : (
+          <button
+            onClick={submit}
+            disabled={!connected || !text.trim()}
+            aria-label={t('interview.send')}
+            className="grid size-10 shrink-0 place-items-center rounded-xl bg-violet-600 text-white shadow-md shadow-violet-600/30 transition hover:bg-violet-700 active:scale-95 disabled:opacity-40 disabled:shadow-none"
+          >
+            <Send size={15} />
+          </button>
+        )}
+      </div>
+      {/* currency (required before the first message) + engine/model, inside
+          the composer — one flex row that compacts instead of overlapping */}
+      <div className="mt-1.5 flex items-center justify-between gap-1 border-t border-ink-100 pt-1.5">
+        <div
+          className={`flex shrink-0 items-center gap-1 rounded-xl p-0.5 transition ${
+            currencyNudge ? 'animate-bounce bg-rose-50 ring-2 ring-rose-300' : needCurrency ? 'bg-violet-50 ring-1 ring-violet-200' : ''
+          }`}
+        >
+          {[['EUR', t('interview.currencyEUR')], ['USD', t('interview.currencyUSD')]].map(([code, label]) => (
+            <button
+              key={code}
+              onClick={() => setCurrency(code)}
+              className={`rounded-lg px-2 py-1 text-[11px] font-bold transition ${
+                currency === code ? 'bg-violet-600 text-white shadow-sm' : 'text-ink-500 hover:bg-ink-100 hover:text-ink-800'
+              }`}
+            >
+              {label}
             </button>
-          </p>
+          ))}
+        </div>
+        <div className="min-w-0">
+          <ModelPicker up />
+        </div>
+        <div className="shrink-0">
+          <LanguageSwitcher compact up />
         </div>
       </div>
     </div>

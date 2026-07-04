@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  Palmtree, PlaneTakeoff, Download, Upload, Plus, CarFront, MapPin,
-  CalendarDays, Route, BedDouble, Fuel, Wallet, ChevronLeft, ChevronDown, UtensilsCrossed, Ticket, Receipt, Bot,
+  Palmtree, PlaneTakeoff, Download, Upload, Plus, CarFront, MapPin, CalendarDays, Route, BedDouble,
+  Fuel, Wallet, ChevronLeft, ChevronDown, UtensilsCrossed, Ticket, Receipt, Bot, Gauge, MoreHorizontal, Languages,
 } from 'lucide-react'
+import { LANGS } from '../i18n/langs'
 import { useTrip, useUI, useRoutes, toast, activeTrip } from '../store'
 import { useAgentChat } from '../agent/socket'
 import { tripStats, fmtDur, fmtKm, fmtMoney, dayDate, fmtDate, fuelCost, costByType, tripUsesCar, GAS_UNITS } from '../lib/utils'
@@ -72,11 +73,27 @@ export default function Header() {
     reader.readAsText(file)
   }
 
+  /* every stat as data: rendered as chips when there is room, aggregated
+     into a single popover chip when there is not */
+  const statRows = [
+    { Icon: CalendarDays, value: String(stats.days), label: t('header.stats.days', { count: stats.days }) },
+    { Icon: MapPin, value: String(stats.stops), label: t('header.stats.stops', { count: stats.stops }) },
+    { Icon: CarFront, value: fmtDur(stats.driveMin) || '0', label: t('header.stats.driving') },
+    ...(totalKm > 50 ? [{ Icon: Route, value: fmtKm(totalKm), label: t('header.stats.total') }] : []),
+    ...(d0 && dN ? [{
+      Icon: PlaneTakeoff,
+      value: `${fmtDate(d0, { day: 'numeric', month: 'short' })} – ${fmtDate(dN, { day: 'numeric', month: 'short' })}`,
+      label: t('header.stats.dates'),
+    }] : []),
+  ]
+
   return (
     <header className="relative z-[600] border-b border-ink-200 bg-white lg:mx-3 lg:mt-3 lg:rounded-2xl lg:border lg:shadow-lg">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5 sm:px-5">
-        {/* back to dashboard + brand + title */}
-        <div className="flex min-w-0 items-center gap-2">
+      {/* one row, never wraps: elements compact themselves as the container
+          narrows (container queries, so the ladder follows the real space) */}
+      <div className="@container flex flex-nowrap items-center gap-1.5 px-3 py-2.5 @[40rem]:gap-2 @[64rem]:gap-x-3 sm:px-5">
+        {/* back to dashboard + brand + title (the flexible part: it truncates first) */}
+        <div className="flex min-w-0 flex-1 items-center gap-2">
           <button
             onClick={closeTrip}
             title={t('header.allTrips')}
@@ -85,42 +102,31 @@ export default function Header() {
           >
             <ChevronLeft size={19} />
           </button>
-          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand-400 to-rose-500 text-white shadow-md shadow-brand-500/25">
+          <div className="hidden size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand-400 to-rose-500 text-white shadow-md shadow-brand-500/25 @[30rem]:grid">
             <Palmtree size={21} strokeWidth={2.2} />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <input
               value={trip.title}
               onChange={(e) => setTitle(e.target.value)}
               spellCheck={false}
               aria-label={t('header.tripName')}
-              className="-ml-1.5 w-[38vw] max-w-[300px] truncate rounded-lg border border-transparent px-1.5 py-0.5 font-display text-lg font-bold text-ink-900 outline-none transition hover:border-ink-200 focus:border-brand-400 focus:bg-brand-50/40 sm:text-xl"
+              className="-ml-1.5 w-full max-w-[300px] truncate rounded-lg border border-transparent px-1.5 py-0.5 font-display text-lg font-bold text-ink-900 outline-none transition hover:border-ink-200 focus:border-brand-400 focus:bg-brand-50/40 sm:text-xl"
             />
-            <p className="hidden truncate text-xs text-ink-500 2xl:block">{trip.subtitle}</p>
+            <p className="hidden truncate text-xs text-ink-500 @[100rem]:block">{trip.subtitle}</p>
           </div>
         </div>
 
-        {/* trip stats (budget lives in the strip below) */}
-        <div className="hidden items-center gap-1.5 xl:flex">
-          <Stat Icon={CalendarDays} value={stats.days} label={t('header.stats.days', { count: stats.days })} />
-          <Stat Icon={MapPin} value={stats.stops} label={t('header.stats.stops', { count: stats.stops })} />
-          <Stat Icon={CarFront} value={fmtDur(stats.driveMin) || '0'} label={t('header.stats.driving')} />
-          {totalKm > 50 && <Stat Icon={Route} value={fmtKm(totalKm)} label={t('header.stats.total')} />}
-          {d0 && dN && (
-            <Stat
-              Icon={PlaneTakeoff}
-              value={`${fmtDate(d0, { day: 'numeric', month: 'short' })} – ${fmtDate(dN, { day: 'numeric', month: 'short' })}`}
-              label={t('header.stats.dates')}
-            />
-          )}
-          <BudgetBadge costs={costs} fuelUsd={fuelUsd} totalUsd={totalUsd} currency={currency} />
+        {/* stats: chips with labels → value-only chips → one aggregated chip.
+            the chip row only appears once the title keeps a comfortable width */}
+        <div className="hidden shrink-0 items-center gap-1.5 @[78rem]:flex">
+          {statRows.map((r) => <Stat key={r.label} {...r} />)}
         </div>
+        <StatsChip rows={statRows} className="hidden @[24rem]:block @[78rem]:hidden" />
 
         {/* actions */}
-        <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
-          <div className="xl:hidden">
-            <BudgetBadge costs={costs} fuelUsd={fuelUsd} totalUsd={totalUsd} currency={currency} compact />
-          </div>
+        <div className="flex shrink-0 items-center gap-1.5 @[40rem]:gap-2">
+          <BudgetBadge costs={costs} fuelUsd={fuelUsd} totalUsd={totalUsd} currency={currency} />
           <ChatToggle />
           {usesCar && <CarSettings />}
           <DatePicker />
@@ -129,11 +135,12 @@ export default function Header() {
             className="flex items-center gap-1.5 rounded-xl bg-brand-500 px-3 py-2 text-sm font-semibold text-white shadow-md shadow-brand-500/30 transition hover:bg-brand-600 active:scale-[.97]"
           >
             <Plus size={16} strokeWidth={2.6} />
-            <span className="hidden sm:inline">{t('common.day')}</span>
+            <span className="hidden @[54rem]:inline">{t('common.day')}</span>
           </button>
-          <IconBtn title={t('header.exportTooltip')} onClick={onExport}><Download size={17} /></IconBtn>
-          <IconBtn title={t('header.importTooltip')} onClick={() => fileRef.current?.click()}><Upload size={17} /></IconBtn>
-          <LanguageSwitcher compact />
+          <IconBtn className="hidden @[48rem]:grid" title={t('header.exportTooltip')} onClick={onExport}><Download size={17} /></IconBtn>
+          <IconBtn className="hidden @[48rem]:grid" title={t('header.importTooltip')} onClick={() => fileRef.current?.click()}><Upload size={17} /></IconBtn>
+          <div className="hidden @[34rem]:block"><LanguageSwitcher compact /></div>
+          <MoreMenu onExport={onExport} onImport={() => fileRef.current?.click()} />
           <input ref={fileRef} type="file" accept=".json,application/json" hidden onChange={onImportFile} />
         </div>
       </div>
@@ -142,8 +149,113 @@ export default function Header() {
   )
 }
 
+/* all the trip stats behind one small chip, for when chips don't fit */
+function StatsChip({ rows, className }) {
+  const { t } = useTranslation()
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey) }
+  }, [open])
+
+  return (
+    <div ref={ref} className={`relative shrink-0 ${className ?? ''}`}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        title={t('header.statsChip')}
+        aria-label={t('header.statsChip')}
+        aria-expanded={open}
+        className={`grid size-9 place-items-center rounded-xl border transition ${
+          open ? 'border-brand-400 bg-brand-50 text-brand-600 ring-2 ring-brand-400/20' : 'border-ink-200 bg-ink-50 text-ink-500 hover:border-ink-300'
+        }`}
+      >
+        <Gauge size={17} />
+      </button>
+      {open && (
+        <div className="anim-fade-up absolute right-0 top-[calc(100%+8px)] z-[950] w-60 rounded-2xl border border-ink-200 bg-white p-2 shadow-xl">
+          {rows.map((r) => (
+            <div key={r.label} className="flex items-center gap-2.5 rounded-xl px-2.5 py-2">
+              <r.Icon size={15} className="shrink-0 text-brand-500" />
+              <span className="flex-1 text-[11px] font-medium uppercase tracking-wide text-ink-400">{r.label}</span>
+              <span className="whitespace-nowrap text-[13px] font-bold text-ink-800">{r.value}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* overflow menu: hosts export/import (and the language picker on phones) */
+function MoreMenu({ onExport, onImport }) {
+  const { t, i18n } = useTranslation()
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey) }
+  }, [open])
+
+  const Row = ({ Icon, label, onClick }) => (
+    <button
+      onClick={() => { setOpen(false); onClick() }}
+      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-semibold text-ink-600 transition hover:bg-ink-50"
+    >
+      <Icon size={15} className="text-ink-400" /> {label}
+    </button>
+  )
+
+  return (
+    <div ref={ref} className="relative @[48rem]:hidden">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        title={t('header.moreMenu')}
+        aria-label={t('header.moreMenu')}
+        aria-expanded={open}
+        className={`grid size-9 place-items-center rounded-xl transition ${
+          open ? 'bg-ink-100 text-ink-700' : 'text-ink-500 hover:bg-ink-100 hover:text-ink-700'
+        }`}
+      >
+        <MoreHorizontal size={18} />
+      </button>
+      {open && (
+        <div className="anim-fade-up absolute right-0 top-[calc(100%+8px)] z-[950] w-52 rounded-2xl border border-ink-200 bg-white p-1.5 shadow-xl">
+          <Row Icon={Download} label={t('header.exportTooltip')} onClick={onExport} />
+          <Row Icon={Upload} label={t('header.importTooltip')} onClick={onImport} />
+          {/* language switch lives here only while the inline picker is hidden */}
+          <div className="mt-1 border-t border-ink-100 pt-1 @[34rem]:hidden">
+            {LANGS.map((l) => (
+              <button
+                key={l.code}
+                onClick={() => { i18n.changeLanguage(l.code); setOpen(false) }}
+                className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] transition ${
+                  l.code === i18n.language ? 'bg-brand-50 font-bold text-brand-700' : 'font-semibold text-ink-600 hover:bg-ink-50'
+                }`}
+              >
+                <Languages size={15} className={l.code === i18n.language ? 'text-brand-500' : 'text-ink-400'} />
+                {l.native}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 /* total-budget badge: hover or click reveals the category breakdown */
-function BudgetBadge({ costs, fuelUsd, totalUsd, currency, compact }) {
+function BudgetBadge({ costs, fuelUsd, totalUsd, currency }) {
   const { t } = useTranslation()
   const [hover, setHover] = useState(false)
   const [pinned, setPinned] = useState(false)
@@ -178,16 +290,14 @@ function BudgetBadge({ costs, fuelUsd, totalUsd, currency, compact }) {
         onClick={() => setPinned((p) => !p)}
         aria-label={t('header.budget.title')}
         aria-expanded={open}
-        className={`flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 transition hover:border-emerald-300 ${
-          compact ? '' : ''
-        }`}
+        className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-2 py-1.5 transition hover:border-emerald-300 @[86rem]:px-2.5"
       >
         <Wallet size={14} className="text-emerald-600" />
-        <div className="leading-tight">
+        <div className="hidden leading-tight @[26rem]:block">
           <div className="whitespace-nowrap text-[12.5px] font-bold text-emerald-800">{fmtMoney(totalUsd, currency)}</div>
-          <div className="hidden text-[9.5px] font-medium uppercase tracking-wide text-emerald-600/70 sm:block">{t('header.budget.badge')}</div>
+          <div className="hidden text-[9.5px] font-medium uppercase tracking-wide text-emerald-600/70 @[86rem]:block">{t('header.budget.badge')}</div>
         </div>
-        <ChevronDown size={12} className={`text-emerald-500 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown size={12} className={`hidden text-emerald-500 transition-transform @[26rem]:block ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
@@ -375,31 +485,27 @@ function CarSettings() {
   )
 }
 
-function Stat({ Icon, value, label, tone }) {
-  const tones = {
-    violet: 'text-violet-600',
-    sky: 'text-sky-600',
-    emerald: 'text-emerald-600',
-  }
+/* chip with icon + value; the caption appears only when the header is wide */
+function Stat({ Icon, value, label }) {
   return (
-    <div className="flex items-center gap-1.5 rounded-xl border border-ink-200 bg-ink-50 px-2.5 py-1.5">
-      <Icon size={14} className={tones[tone] ?? 'text-brand-500'} />
+    <div className="flex items-center gap-1.5 rounded-xl border border-ink-200 bg-ink-50 px-2 py-1.5 @[86rem]:px-2.5" title={label}>
+      <Icon size={14} className="text-brand-500" />
       <div className="leading-tight">
         <div className="whitespace-nowrap text-[12.5px] font-bold text-ink-800">{value}</div>
-        <div className="text-[9.5px] font-medium uppercase tracking-wide text-ink-400">{label}</div>
+        <div className="hidden text-[9.5px] font-medium uppercase tracking-wide text-ink-400 @[86rem]:block">{label}</div>
       </div>
     </div>
   )
 }
 
 
-function IconBtn({ title, onClick, children }) {
+function IconBtn({ title, onClick, className, children }) {
   return (
     <button
       title={title}
       aria-label={title}
       onClick={onClick}
-      className="grid size-9 place-items-center rounded-xl text-ink-500 transition hover:bg-ink-100 hover:text-ink-700 active:scale-95"
+      className={`${className ?? 'grid'} size-9 place-items-center rounded-xl text-ink-500 transition hover:bg-ink-100 hover:text-ink-700 active:scale-95`}
     >
       {children}
     </button>
