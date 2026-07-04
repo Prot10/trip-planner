@@ -41,7 +41,8 @@ export default function App() {
   /* agent bridge: keep the WebSocket to the local agent server alive */
   const chatOpen = useAgentChat((s) => s.open)
   const setChatOpen = useAgentChat((s) => s.setOpen)
-  useEffect(() => { connectAgent(); startStorageSync() }, [])
+  /* demo builds have no local server: no storage sync, scripted agent */
+  useEffect(() => { connectAgent(); if (import.meta.env.VITE_DEMO !== '1') startStorageSync() }, [])
 
   /* the floating header's real bottom edge drives map-overlay offsets */
   const hdrRef = useRef(null)

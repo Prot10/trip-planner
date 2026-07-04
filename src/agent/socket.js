@@ -12,6 +12,11 @@ import i18n from '../i18n'
 const AGENT_PORT = import.meta.env.VITE_AGENT_PORT ?? 5200
 const WS_URL = `ws://${location.hostname}:${AGENT_PORT}/agent`
 
+/* demo builds (the public showcase) replace the WebSocket with a scripted
+   agent that emits the same event protocol — see src/demo/agent.js */
+const DEMO = import.meta.env.VITE_DEMO === '1'
+let demoAgent = null
+
 /* ---------- saved conversations, per trip ---------- */
 export const useChats = create(
   persist(
@@ -29,7 +34,8 @@ export const useChats = create(
           byTrip: { ...s.byTrip, [tripId]: (s.byTrip[tripId] ?? []).filter((c) => c.id !== chatId) },
         })),
     }),
-    { name: 'tripplanner.chats.v1', storage: createJSONStorage(() => localStorage) },
+    /* demo builds keep everything per-session: every visit starts pristine */
+    { name: 'tripplanner.chats.v1', storage: createJSONStorage(() => (import.meta.env.VITE_DEMO === '1' ? sessionStorage : localStorage)) },
   ),
 )
 
@@ -258,6 +264,7 @@ let ws = null
 let retryTimer = null
 
 function sendWs(obj) {
+  if (DEMO) { demoAgent?.send(obj); return }
   if (ws?.readyState === 1) ws.send(JSON.stringify(obj))
 }
 
@@ -365,6 +372,15 @@ function handleEvent(msg) {
 }
 
 export function connectAgent() {
+  if (DEMO) {
+    if (demoAgent) return
+    import('../demo/agent').then((m) => {
+      demoAgent = m.createDemoAgent(handleEvent)
+      useAgentChat.setState({ connected: true })
+      sendWs({ type: 'models_get' })
+    })
+    return
+  }
   if (ws && (ws.readyState === 0 || ws.readyState === 1)) return
   try {
     ws = new WebSocket(WS_URL)

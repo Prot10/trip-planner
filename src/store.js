@@ -201,7 +201,8 @@ export const useTrip = create(
     {
       name: 'tripplanner.v2',
       version: 11,
-      storage: createJSONStorage(() => localStorage),
+      /* demo builds keep everything per-session: every visit starts pristine */
+      storage: createJSONStorage(() => (import.meta.env.VITE_DEMO === '1' ? sessionStorage : localStorage)),
       partialize: (s) => ({ trips: s.trips, activeId: s.activeId }),
       migrate: (persisted, fromVersion) => {
         /* v≤3 stored a single { trip } */
