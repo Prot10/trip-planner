@@ -1,5 +1,7 @@
 node_modules
 dist
+dist-site
+dist-demo-test
 .DS_Store
 server/.auth.json
 

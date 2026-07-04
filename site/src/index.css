@@ -1,0 +1,120 @@
+@import 'tailwindcss';
+
+/* same design tokens as the app, so the site and the product feel like one */
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Sora', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --color-brand-50: #fff7ed;
+  --color-brand-100: #ffedd5;
+  --color-brand-200: #fed7aa;
+  --color-brand-300: #fdba74;
+  --color-brand-400: #fb923c;
+  --color-brand-500: #f97316;
+  --color-brand-600: #ea580c;
+  --color-brand-700: #c2410c;
+  --color-ink-50: #f8fafc;
+  --color-ink-100: #f1f5f9;
+  --color-ink-200: #e2e8f0;
+  --color-ink-300: #cbd5e1;
+  --color-ink-400: #94a3b8;
+  --color-ink-500: #64748b;
+  --color-ink-600: #475569;
+  --color-ink-700: #334155;
+  --color-ink-800: #1e293b;
+  --color-ink-900: #0f172a;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  @apply bg-white text-ink-800 font-sans antialiased;
+  overflow-x: hidden;
+}
+::selection { background: #fed7aa; color: #7c2d12; }
+
+/* ---------- scroll-reveal (driven by fx.js IntersectionObserver) ---------- */
+.rv { opacity: 0; transform: translateY(26px); transition: opacity .7s cubic-bezier(.2,.6,.2,1), transform .7s cubic-bezier(.2,.6,.2,1); transition-delay: var(--rv-d, 0ms); }
+.rv.rv-in { opacity: 1; transform: none; }
+.rv-scale { opacity: 0; transform: translateY(20px) scale(.96); transition: opacity .8s cubic-bezier(.2,.6,.2,1), transform .8s cubic-bezier(.2,.6,.2,1); transition-delay: var(--rv-d, 0ms); }
+.rv-scale.rv-in { opacity: 1; transform: none; }
+
+/* ---------- hero word reveal ---------- */
+@keyframes word-up { from { opacity: 0; transform: translateY(115%) rotate(2.5deg); } to { opacity: 1; transform: none; } }
+.word-mask { display: inline-block; overflow: hidden; padding-bottom: .08em; margin-bottom: -.08em; vertical-align: bottom; }
+.word-mask > span { display: inline-block; animation: word-up .85s cubic-bezier(.2,.65,.2,1) both; animation-delay: var(--wd, 0ms); }
+
+/* animated gradient text for the key word */
+@keyframes hue-drift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+.grad-text {
+  background: linear-gradient(90deg, #f97316, #f43f5e, #8b5cf6, #f97316);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: hue-drift 7s ease-in-out infinite;
+}
+
+/* ---------- floating blobs + grain ---------- */
+@keyframes blob-drift { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(40px,-50px) scale(1.08); } 66% { transform: translate(-35px,30px) scale(.94); } }
+.blob { position: absolute; border-radius: 9999px; filter: blur(90px); opacity: .5; animation: blob-drift 18s ease-in-out infinite; pointer-events: none; }
+
+/* ---------- floating ui chips in the hero ---------- */
+@keyframes floaty { 0%,100% { transform: translateY(0) rotate(var(--fr, 0deg)); } 50% { transform: translateY(-11px) rotate(var(--fr, 0deg)); } }
+.floaty { animation: floaty var(--fd, 5s) ease-in-out infinite; animation-delay: var(--fdel, 0s); }
+
+/* ---------- route line drawing ---------- */
+@keyframes dash-draw { to { stroke-dashoffset: 0; } }
+.route-draw { stroke-dasharray: 1400; stroke-dashoffset: 1400; animation: dash-draw 2.6s .5s cubic-bezier(.4,0,.2,1) forwards; }
+@keyframes pin-pop { 0% { opacity: 0; transform: scale(0) translateY(6px); } 70% { transform: scale(1.25); } 100% { opacity: 1; transform: scale(1); } }
+.pin-pop { opacity: 0; transform-origin: center bottom; animation: pin-pop .5s cubic-bezier(.3,1.4,.5,1) both; animation-delay: var(--pd, 0ms); }
+
+/* ---------- marquee ---------- */
+@keyframes marquee { to { transform: translateX(-50%); } }
+.marquee-track { display: flex; width: max-content; animation: marquee 36s linear infinite; }
+.marquee:hover .marquee-track { animation-play-state: paused; }
+
+/* ---------- tilt cards (JS sets --rx/--ry/--gx/--gy) ---------- */
+.tilt { transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .18s ease-out; will-change: transform; }
+.tilt-glare::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(600px circle at var(--gx, 50%) var(--gy, 50%), rgb(255 255 255 / .28), transparent 45%);
+  opacity: var(--go, 0); transition: opacity .3s;
+}
+
+/* feature card glow border */
+.glow-card { position: relative; }
+.glow-card::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(420px circle at var(--gx, 50%) var(--gy, 50%), rgb(249 115 22 / .16), transparent 55%);
+  opacity: var(--go, 0); transition: opacity .35s;
+}
+
+/* ---------- typing chat loop ---------- */
+@keyframes caret-blink { 50% { opacity: 0; } }
+.caret { display: inline-block; width: 2px; height: 1em; vertical-align: -0.15em; background: #8b5cf6; animation: caret-blink 1s steps(1) infinite; }
+@keyframes bubble-in { from { opacity: 0; transform: translateY(12px) scale(.97); } to { opacity: 1; transform: none; } }
+.bubble-in { animation: bubble-in .45s cubic-bezier(.2,.8,.3,1.1) both; }
+
+@keyframes dot-bounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-4px); } }
+.tdot { animation: dot-bounce 1.2s ease-in-out infinite; }
+
+/* ---------- shimmering button sheen ---------- */
+.sheen { position: relative; overflow: hidden; }
+.sheen::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 40%; left: -60%;
+  background: linear-gradient(105deg, transparent, rgb(255 255 255 / .35), transparent);
+  transform: skewX(-20deg); transition: left .6s ease;
+}
+.sheen:hover::after { left: 130%; }
+
+/* ---------- scroll progress ---------- */
+.progress-bar { transform-origin: left; transform: scaleX(var(--sp, 0)); }
+
+/* subtle dotted world-grid background for sections */
+.dot-grid { background-image: radial-gradient(circle, #cbd5e1 1px, transparent 1px); background-size: 26px 26px; }
+
+/* reduced motion: calm everything down */
+@media (prefers-reduced-motion: reduce) {
+  .word-mask > span, .route-draw, .pin-pop, .floaty, .blob, .marquee-track { animation: none !important; opacity: 1; stroke-dashoffset: 0; }
+  .rv, .rv-scale { transition: none; opacity: 1; transform: none; }
+  html { scroll-behavior: auto; }
+}

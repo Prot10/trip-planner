@@ -1,0 +1,47 @@
+# Builds the promo site (site/) and the interactive demo (the app with
+# VITE_DEMO=1, scripted agent, no server) and publishes both to GitHub Pages:
+#   https://prot10.github.io/trip-planner/        ← site
+#   https://prot10.github.io/trip-planner/demo/   ← live demo
+name: Deploy site and demo to Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build site
+        run: SITE_BASE=/trip-planner/ npm run site:build
+      - name: Build demo app
+        run: VITE_DEMO=1 npx vite build --base=/trip-planner/demo/ --outDir dist-site/demo --emptyOutDir
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist-site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -9,7 +9,10 @@
     "agent-server": "node server/index.mjs",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "npm run build && node server/index.mjs"
+    "start": "npm run build && node server/index.mjs",
+    "site:dev": "cd site && vite",
+    "site:build": "cd site && vite build",
+    "demo:build": "VITE_DEMO=1 vite build --base=/demo/ --outDir dist-site/demo --emptyOutDir"
   },
   "engines": {
     "node": ">=20.19"

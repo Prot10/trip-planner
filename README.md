@@ -8,6 +8,8 @@
 
 A polished, self-hosted road-trip planner. Build day-by-day itineraries with a drag-and-drop timeline, see the whole route as one continuous loop on an interactive map, track your budget per category, and get Google-Maps-style directions — all powered exclusively by **free APIs**, with no accounts and no keys.
 
+**[Website](https://prot10.github.io/trip-planner/)** · **[Live demo](https://prot10.github.io/trip-planner/demo/)** — the real app in your browser, with a scripted Ulisse that interviews you and builds an Iceland itinerary in front of your eyes. Nothing to install.
+
 Ships pre-loaded with a real 7-day / 6-night California loop (Pasadena → Big Sur → San Francisco → Yosemite → Sequoia → Pasadena), complete with timings, drive legs, nightly hotels, entry fees, practical warnings and official booking links.
 
 ![Trip planner](docs/planner.png)
