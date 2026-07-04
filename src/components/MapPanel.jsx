@@ -38,6 +38,7 @@ export default function MapPanel() {
   const [route, setRoute] = useState(null)              // { latlngs, km, min, steps }
   const [routing, setRouting] = useState(false)
   const [dirPick, setDirPick] = useState(null)          // 'a' | 'b' — next map click sets it
+  const [fitNonce, setFitNonce] = useState(0)           // fit-all must refit even when unfiltered
 
   useEffect(() => {
     if (!dir.a || !dir.b) { setRoute(null); return }
@@ -181,7 +182,7 @@ export default function MapPanel() {
             (e.g. the agent starts building a brand-new destination) */}
         <FitOnChange
           coords={allCoords}
-          depKey={`${mapFilter ?? 'all'}|${allCoords[0] ? allCoords[0].map((v) => v.toFixed(1)).join(',') : 'none'}`}
+          depKey={`${mapFilter ?? 'all'}|${fitNonce}|${allCoords[0] ? allCoords[0].map((v) => v.toFixed(1)).join(',') : 'none'}`}
         />
         <FlyToConsumer markerRefs={markerRefs} />
         <PickConsumer />
@@ -299,7 +300,7 @@ export default function MapPanel() {
       {/* fit-all + POI discovery */}
       <div className="absolute bottom-6 left-3 z-[500] flex items-center gap-2 lg:bottom-3 lg:left-[calc(0.75rem+var(--left-w,0px))]">
         <button
-          onClick={() => setMapFilter(null)}
+          onClick={() => { setMapFilter(null); setFitNonce((n) => n + 1) }}
           title={t('map.legend.fitAll')}
           className="flex items-center gap-2 rounded-xl border border-ink-200 bg-white/95 px-3.5 py-2.5 text-xs font-bold text-ink-700 shadow-lg backdrop-blur transition hover:border-brand-400 hover:text-brand-600"
         >
