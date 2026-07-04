@@ -9,18 +9,13 @@
 import i18n from '../i18n'
 import { useTrip, activeTrip } from '../store'
 import {
-  DEMO_STARTERS, questions, texts, tripMeta, carMeta, days, checklist,
+  questions, texts, tripMeta, carMeta, days, checklist,
   suggestions, plannerChecklistExtras,
 } from './content'
 
 const ABORTED = Symbol('demo-aborted')
 
 export function createDemoAgent(emit) {
-  /* the hero starter pills should match the scripted Iceland conversation */
-  for (const [lng, starters] of Object.entries(DEMO_STARTERS)) {
-    i18n.addResourceBundle(lng, 'common', { interview: { starters } }, true, true)
-  }
-
   let seq = 0
   const pending = new Map() // tool_call id -> resolve(tool_result msg)
   let playing = null // { aborted } of the turn in flight

@@ -503,11 +503,28 @@
     "createManually": "crea un viaggio manualmente"
   },
   "interview": {
-    "starters": [
-      "Un weekend romantico a Parigi a fine settembre, senza auto",
-      "Road trip di 10 giorni in Islanda ad agosto, natura e fotografia",
-      "Una settimana in Giappone tra Tokyo e Kyoto coi mezzi pubblici",
-      "5 giorni in Sicilia con bambini, mare e buon cibo"
+    "ideasKicker": "Serve ispirazione?",
+    "ideas": [
+      {
+        "t": "Parigi romantica",
+        "d": "Un weekend a fine settembre, senza auto",
+        "send": "Un weekend romantico a Parigi a fine settembre, senza auto"
+      },
+      {
+        "t": "Islanda on the road",
+        "d": "10 giorni ad agosto: natura e fotografia",
+        "send": "Road trip di 10 giorni in Islanda ad agosto, natura e fotografia"
+      },
+      {
+        "t": "Giappone coi mezzi",
+        "d": "Una settimana tra Tokyo e Kyoto",
+        "send": "Una settimana in Giappone tra Tokyo e Kyoto coi mezzi pubblici"
+      },
+      {
+        "t": "Sicilia coi bambini",
+        "d": "5 giorni di mare, granite e templi",
+        "send": "5 giorni in Sicilia con bambini, mare e buon cibo"
+      }
     ],
     "notebook": "Blocco note",
     "heroTitle": "Dove andiamo?",

@@ -391,11 +391,28 @@
     "createManually": "create a trip manually"
   },
   "interview": {
-    "starters": [
-      "A romantic weekend in Paris in late September, no car",
-      "A 10-day road trip in Iceland in August, nature and photography",
-      "A week in Japan between Tokyo and Kyoto by public transport",
-      "5 days in Sicily with kids, beaches and great food"
+    "ideasKicker": "Need a spark?",
+    "ideas": [
+      {
+        "t": "Romantic Paris",
+        "d": "A late-September weekend, no car",
+        "send": "A romantic weekend in Paris in late September, no car"
+      },
+      {
+        "t": "Iceland road trip",
+        "d": "10 days in August: nature and photography",
+        "send": "A 10-day road trip in Iceland in August, nature and photography"
+      },
+      {
+        "t": "Japan by train",
+        "d": "A week between Tokyo and Kyoto",
+        "send": "A week in Japan between Tokyo and Kyoto by public transport"
+      },
+      {
+        "t": "Sicily with kids",
+        "d": "5 days of beaches and great food",
+        "send": "5 days in Sicily with kids, beaches and great food"
+      }
     ],
     "notebook": "Notebook",
     "heroTitle": "Where are we going?",

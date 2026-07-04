@@ -60,8 +60,8 @@ const STR = {
     restart: { it: 'Riavvia', en: 'Restart' },
     fullscreen: { it: 'Apri a schermo intero', en: 'Open full screen' },
     tip: {
-      it: 'Suggerimento: tocca «Nuovo viaggio», scegli la valuta e poi una delle idee pronte.',
-      en: 'Tip: tap “New trip”, pick a currency, then one of the ready-made ideas.',
+      it: 'Suggerimento: tocca «Nuovo viaggio» e premi invia — il messaggio per Ulisse è già scritto.',
+      en: 'Tip: tap “New trip” and hit send — the message for Ulisse is already written.',
     },
   },
   ulisse: {
