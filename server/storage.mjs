@@ -10,6 +10,7 @@
 import {
   readFileSync, writeFileSync, renameSync, unlinkSync, mkdirSync, readdirSync,
   existsSync, statSync, copyFileSync, cpSync, createReadStream, watch,
+  accessSync, constants as fsConstants,
 } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { join, resolve, dirname, basename, isAbsolute } from 'node:path'
@@ -101,7 +102,9 @@ export function createStorage(bridge) {
   }
   let watcher = null
 
-  /* boot: env override wins, else the pointer file */
+  /* boot: env override wins, else the pointer file, else self-configure on
+     the platform default — a fresh install owns a real data folder without
+     being asked anything (change it later from the dashboard footer) */
   if (process.env.ULISSE_DATA_DIR) {
     dataDir = resolve(expandHome(process.env.ULISSE_DATA_DIR))
     ensureLayout(dataDir)
@@ -111,6 +114,17 @@ export function createStorage(bridge) {
       if (cfg.dataDir && existsSync(cfg.dataDir)) dataDir = cfg.dataDir
       else if (cfg.dataDir) { ensureLayout(cfg.dataDir); dataDir = cfg.dataDir }
     } catch { /* not configured yet */ }
+    if (!dataDir) {
+      try {
+        const dir = defaultDataDir()
+        ensureLayout(dir)
+        accessSync(dir, fsConstants.W_OK)
+        mkdirSync(dirname(configPath()), { recursive: true })
+        writeJsonAtomic(configPath(), { dataDir: dir })
+        dataDir = dir
+        console.log(`[storage] data folder created at ${dir}`)
+      } catch { /* unwritable default: the app falls back to the setup card */ }
+    }
   }
   if (dataDir) {
     adoptLegacyAuth()

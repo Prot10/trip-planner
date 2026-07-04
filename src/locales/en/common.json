@@ -549,6 +549,7 @@
     "gcButton": "Clean unused images",
     "gcToast_one": "{{count}} image removed",
     "gcToast_other": "{{count}} images removed",
-    "errorToast": "Error: {{error}}"
+    "errorToast": "Error: {{error}}",
+    "autoToast": "Your trips are saved in {{path}} — change the folder from the dashboard footer"
   }
 }

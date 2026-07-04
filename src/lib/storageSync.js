@@ -7,8 +7,9 @@
    last-write-wins per trip file across tabs. */
 
 import { create } from 'zustand'
-import { useTrip } from '../store'
+import { useTrip, toast } from '../store'
 import { useChats } from '../agent/socket'
+import i18n from '../i18n'
 import { normalizeTrip } from './utils'
 import { resolveRef } from './imgdb'
 import { storageApi } from './storageClient'
@@ -206,8 +207,20 @@ async function check() {
   await onConfigured(cfg)
 }
 
+/* one-time heads-up: the data folder was configured automatically at boot,
+   tell the user where their files live (changeable from the footer) */
+const NOTICE_KEY = 'ulisse.storageNotice.v1'
+function firstBootNotice(dataDir) {
+  try {
+    if (localStorage.getItem(NOTICE_KEY)) return
+    localStorage.setItem(NOTICE_KEY, '1')
+    toast(i18n.t('storage.autoToast', { path: dataDir }))
+  } catch { /* storage unavailable: skip the notice */ }
+}
+
 async function onConfigured(cfg) {
   const localTrips = useTrip.getState().trips
+  firstBootNotice(cfg.dataDir)
   if (!cfg.hasTrips && localTrips.length) {
     if (isPristineSeed(localTrips)) {
       /* just the demo: move it silently */

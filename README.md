@@ -133,7 +133,7 @@ Documents/Ulisse/
   auth.json                            sign-in token
 ```
 
-Delete a trip file and the trip is gone; delete the folder and the app starts fresh. Pick a different location on first launch (or change it later from the dashboard footer — pointing it at an existing Ulisse folder adopts it, e.g. a restored backup). The browser keeps a fast local copy, so the app opens instantly and works even if the local server is briefly down; everything reconciles to disk automatically. `ULISSE_DATA_DIR` overrides the folder via environment.
+The folder is created automatically on first launch — zero questions asked; a one-time toast tells you where it is. Delete a trip file and the trip is gone; delete the folder and the app starts fresh. Change the location anytime from the dashboard footer — pointing it at an existing Ulisse folder adopts it, e.g. a restored backup. The browser keeps a fast local copy, so the app opens instantly and works even if the local server is briefly down; everything reconciles to disk automatically. `ULISSE_DATA_DIR` overrides the folder via environment.
 
 Note for Windows: storage and the app itself work; the one-click guided *Claude* sign-in currently relies on a Unix pty, so on Windows run `npx claude setup-token` in a terminal instead.
 

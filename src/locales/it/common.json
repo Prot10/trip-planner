@@ -549,6 +549,7 @@
     "gcButton": "Pulisci immagini inutilizzate",
     "gcToast_one": "{{count}} immagine rimossa",
     "gcToast_other": "{{count}} immagini rimosse",
-    "errorToast": "Errore: {{error}}"
+    "errorToast": "Errore: {{error}}",
+    "autoToast": "I tuoi viaggi si salvano in {{path}} — cambia cartella dal fondo della dashboard"
   }
 }
