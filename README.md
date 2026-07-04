@@ -97,7 +97,21 @@ For development, with hot reload:
 npm run dev      # Vite dev server (http://localhost:5199) + agent server (5200)
 ```
 
-On macOS you can also double-click `Avvia Trip Planner.command`, which installs, builds, starts the server and opens the browser.
+### No terminal: double-click to launch
+
+Prefer not to touch a terminal? The repo ships a launcher per platform — double-click it and it installs the dependencies (first run only), builds, starts the local server and opens the browser:
+
+| Platform | File |
+|---|---|
+| macOS | `Start Trip Planner.command` |
+| Windows | `Start Trip Planner.bat` |
+| Linux | `start-trip-planner.sh` |
+
+The only prerequisite is still Node.js — if it's missing, the launcher tells you instead of failing silently. Launching twice is safe: an already-running server is reused.
+
+### Install it as a desktop app
+
+Trip Planner is an installable web app (PWA). With the server running, open it in Chrome or Edge and click the **Install** icon in the address bar (or *menu → Install Trip Planner*): you get a standalone window with its own dock/taskbar icon, like a native app. From then on: double-click the launcher (starts the server), then open the installed app.
 
 ### Docker
 

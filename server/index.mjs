@@ -24,6 +24,7 @@ const MIME = {
   '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon',
   '.woff': 'font/woff', '.woff2': 'font/woff2', '.webp': 'image/webp', '.map': 'application/json',
+  '.webmanifest': 'application/manifest+json',
 }
 
 /* serve the built SPA (index.html fallback for client-side routes) */
