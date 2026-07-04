@@ -5,3 +5,6 @@ server/.auth.json
 
 # generated at server boot from server/prompts/<lang>/
 server/codex-workspace/*/AGENTS.md
+
+# private planning notes — keep out of the public repo
+docs/going-public-plan.md

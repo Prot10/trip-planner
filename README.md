@@ -6,7 +6,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38bdf8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![Free APIs only](https://img.shields.io/badge/APIs-100%25_free-22c55e)](#tech-stack)
 
-A polished, fully client-side road-trip planner. Build day-by-day itineraries with a drag-and-drop timeline, see the whole route as one continuous loop on an interactive map, track your budget per category, and get Google-Maps-style directions — all powered exclusively by **free APIs**, with no accounts and no keys.
+A polished, self-hosted road-trip planner. Build day-by-day itineraries with a drag-and-drop timeline, see the whole route as one continuous loop on an interactive map, track your budget per category, and get Google-Maps-style directions — all powered exclusively by **free APIs**, with no accounts and no keys.
 
 Ships pre-loaded with a real 7-day / 6-night California loop (Pasadena → Big Sur → San Francisco → Yosemite → Sequoia → Pasadena), complete with timings, drive legs, nightly hotels, entry fees, practical warnings and official booking links.
 
@@ -51,7 +51,7 @@ Ships pre-loaded with a real 7-day / 6-night California loop (Pasadena → Big S
 
 ### Photos
 - **Automatic imagery** — every located stop shows photos of the nearest Wikipedia articles (free geosearch API, lazily fetched and cached), browsable in a **carousel** inside each activity's detail card.
-- **Personal galleries** — drag & drop photos from your computer into the editor (compressed client-side, stored in IndexedDB), add by URL, remove, pick the cover, or opt out of the automatic photos per activity.
+- **Personal galleries** — drag & drop photos from your computer into the editor (compressed client-side, saved as real files in your data folder), add by URL, remove, pick the cover, or opt out of the automatic photos per activity.
 
 ### Suggestions
 - A per-trip catalog of extra stops with photos, notes and links — Ulisse fills it with the good ideas that didn't make the itinerary. A single toggle inserts each one **automatically at the optimal point of the route** (with the estimated detour in km) — and removes it just as cleanly.
@@ -149,7 +149,7 @@ src/
     storageSync.js         browser <-> disk sync (hydrate, debounced write-through)
     storageClient.js       /storage API wrappers
     geo.js                 haversine, optimal insertion, OSRM routing & turn-by-turn
-    imgdb.js               IndexedDB photo store, compression, portable export
+    imgdb.js               photo upload to disk (IndexedDB fallback), compression, portable export
     fx.js                  daily-cached EUR/USD rate for fuel prices
   agent/
     socket.js              WebSocket client, chat store, saved chats, guided auth
@@ -187,7 +187,7 @@ server/
 
 ## Notes
 
-- The itinerary and all edits live entirely in your browser. Use **Export** for backups or to share a trip; the recipient imports the file and sees exactly your plan, photos included.
+- The itinerary and all edits live in your own data folder (see *Your data*), with the browser as a fast cache. Use **Export** to share a trip; the recipient imports the file and sees exactly your plan, photos included.
 - Road distances and the fuel estimate refine themselves progressively as OSRM answers; straight dashed lines are shown as a fallback if routing is unavailable.
 
 ## Support
