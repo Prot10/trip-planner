@@ -185,18 +185,20 @@ export function createDemoAgent(emit) {
     const plan = days(lang)
     for (const d of plan) {
       await h.tool('add_day', { title: d.title, night: d.night })
-      await h.sleep(90)
+      await h.sleep(200)
     }
     await h.progress(steps[0], 'done')
 
-    /* 2 — stops, day by day */
+    /* 2 — stops, day by day: unhurried on purpose, so the visitor can
+       actually watch each pin land and the route grow around the island */
     await h.progress(steps[1], 'running', plan[0].title)
     for (const [di, d] of plan.entries()) {
       await h.progress(steps[1], 'running', d.title)
       for (const [ii, item] of d.items.entries()) {
         await h.tool('add_activity', { ...item, day_number: di + 1, index: ii, optimal_placement: false })
-        await h.sleep(di === 0 ? 140 : 70)
+        await h.sleep(di === 0 ? 340 : 190)
       }
+      await h.sleep(260)
     }
     await h.progress(steps[1], 'done')
 
@@ -204,11 +206,11 @@ export function createDemoAgent(emit) {
     await h.progress(steps[2], 'running')
     for (const text of checklist(lang)) {
       await h.tool('checklist_add', { text })
-      await h.sleep(70)
+      await h.sleep(130)
     }
     for (const sug of suggestions(lang)) {
       await h.tool('add_suggestion', sug)
-      await h.sleep(70)
+      await h.sleep(130)
     }
     await h.progress(steps[2], 'done')
 
