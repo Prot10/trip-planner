@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Palmtree, PlaneTakeoff, Download, Upload, Plus, CarFront, MapPin, CalendarDays, Route, BedDouble,
-  Fuel, Wallet, ChevronLeft, ChevronDown, UtensilsCrossed, Ticket, Receipt, Bot, Gauge, MoreHorizontal, Languages,
+  Fuel, Wallet, ChevronLeft, ChevronDown, UtensilsCrossed, Ticket, Receipt, Bot, Gauge, MoreHorizontal, Globe,
 } from 'lucide-react'
 import { LANGS } from '../i18n/langs'
 import { useTrip, useUI, useRoutes, toast, activeTrip } from '../store'
@@ -302,7 +302,7 @@ function MoreMenu({ onExport, onImport, onCar }) {
                   l.code === i18n.language ? 'bg-brand-50 font-bold text-brand-700' : 'font-semibold text-ink-600 hover:bg-ink-50'
                 }`}
               >
-                <Languages size={15} className={l.code === i18n.language ? 'text-brand-500' : 'text-ink-400'} />
+                <Globe size={15} className={l.code === i18n.language ? 'text-brand-500' : 'text-ink-400'} />
                 {l.native}
               </button>
             ))}

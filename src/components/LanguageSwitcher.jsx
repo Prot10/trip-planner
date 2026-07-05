@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Languages, Check } from 'lucide-react'
+import { Globe, Check } from 'lucide-react'
 import { LANGS } from '../i18n/langs'
 
 /* Language picker: pill + popover with native language names (an English
@@ -34,7 +34,7 @@ export default function LanguageSwitcher({ compact = false, up = false, align = 
           compact ? 'p-2' : 'px-3 py-2'
         } ${open ? 'border-brand-400 text-brand-600 ring-2 ring-brand-400/20' : 'border-ink-200 text-ink-600 hover:border-ink-300 hover:text-ink-800'}`}
       >
-        <Languages size={16} className="shrink-0" />
+        <Globe size={16} className="shrink-0" />
         {!compact && <span className="uppercase tracking-wide text-xs font-bold">{cur.code}</span>}
       </button>
 

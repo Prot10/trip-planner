@@ -108,7 +108,9 @@
       "placeholder": "Cerca un luogo sulla mappa…",
       "noResults": "Nessun risultato — prova ad aggiungere la città o lo stato",
       "networkError": "Errore di rete nella ricerca",
-      "clear": "Pulisci"
+      "clear": "Pulisci",
+      "open": "Cerca sulla mappa",
+      "close": "Chiudi ricerca"
     },
     "dir": {
       "directions": "Indicazioni",

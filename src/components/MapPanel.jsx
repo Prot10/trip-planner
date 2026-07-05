@@ -631,10 +631,35 @@ function DirPickConsumer({ dirPick, setDirPick, setDir }) {
 function SearchOverlay({ place, setPlace, dir, setDir, route, routing, dirPick, setDirPick, mapRef }) {
   const { t } = useTranslation()
   const [showSteps, setShowSteps] = useState(false)
+  /* on a squeezed map (itinerary + chat both open) the 320px box would sit
+     on top of the filter chips: collapse it to a single icon until asked.
+     The map is a fullscreen background: both floating panels cover it, so
+     the VISIBLE width is the host minus the itinerary column (--left-w,
+     desktop only) and the chat shift. */
+  const chatShift = useAgentChat((s) => (s.open ? s.panelW : 0))
+  const wrapRef = useRef(null)
+  const [narrow, setNarrow] = useState(false)
+  const [expanded, setExpanded] = useState(false)
+  useEffect(() => {
+    const el = wrapRef.current
+    const host = el?.offsetParent
+    if (!host) return
+    const update = () => {
+      const leftW = window.matchMedia('(min-width: 1024px)').matches
+        ? parseInt(getComputedStyle(el).getPropertyValue('--left-w')) || 0
+        : 0
+      setNarrow(host.clientWidth - leftW - chatShift < 600)
+    }
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(host)
+    return () => ro.disconnect()
+  }, [chatShift])
 
   const selectPlace = (p) => {
     setPlace(p)
     mapRef.current?.flyTo([p.lat, p.lng], Math.max(mapRef.current.getZoom(), 13), { duration: 0.8 })
+    if (narrow) setExpanded(false)
   }
 
   const closeDirections = () => {
@@ -643,8 +668,24 @@ function SearchOverlay({ place, setPlace, dir, setDir, route, routing, dirPick, 
     setShowSteps(false)
   }
 
+  if (narrow && !expanded && !dir.open) {
+    return (
+      <div ref={wrapRef} className="absolute right-[calc(0.75rem+var(--chat-w,0px))] top-[var(--hdr-b,96px)] z-[520] transition-[right] duration-200">
+        <button
+          onClick={() => setExpanded(true)}
+          title={t('map.search.open')}
+          aria-label={t('map.search.open')}
+          aria-expanded={false}
+          className="grid size-10 place-items-center rounded-2xl border border-ink-200 bg-white text-ink-500 shadow-lg transition hover:border-brand-300 hover:text-brand-600"
+        >
+          <Search size={16} />
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <div className="absolute right-[calc(0.75rem+var(--chat-w,0px))] top-[var(--hdr-b,96px)] z-[520] w-80 max-w-[calc(100vw-24px)] transition-[right] duration-200 lg:top-[var(--hdr-b,96px)]">
+    <div ref={wrapRef} className="absolute right-[calc(0.75rem+var(--chat-w,0px))] top-[var(--hdr-b,96px)] z-[520] w-80 max-w-[calc(100vw-24px)] transition-[right] duration-200 lg:top-[var(--hdr-b,96px)]">
       <div className="nice-scroll max-h-[calc(100dvh-150px)] overflow-y-auto rounded-2xl border border-ink-200 bg-white shadow-lg">
         {!dir.open ? (
           /* --- simple place search --- */
@@ -653,6 +694,7 @@ function SearchOverlay({ place, setPlace, dir, setDir, route, routing, dirPick, 
               placeholder={t('map.search.placeholder')}
               onSelect={selectPlace}
               autoClear={false}
+              autoFocus={narrow}
             />
             <button
               onClick={() => setDir((d) => ({ ...d, open: true }))}
@@ -662,6 +704,16 @@ function SearchOverlay({ place, setPlace, dir, setDir, route, routing, dirPick, 
             >
               <Navigation size={15} />
             </button>
+            {narrow && (
+              <button
+                onClick={() => setExpanded(false)}
+                title={t('map.search.close')}
+                aria-label={t('map.search.close')}
+                className="grid size-9 shrink-0 place-items-center rounded-xl text-ink-400 transition hover:bg-ink-100 hover:text-ink-700"
+              >
+                <X size={15} />
+              </button>
+            )}
           </div>
         ) : (
           /* --- directions panel --- */
@@ -799,7 +851,7 @@ function Endpoint({ value, placeholder, picking, onPick, onSelect, onClear }) {
 }
 
 /* Nominatim search box with a results dropdown */
-function PlaceSearch({ placeholder, onSelect, autoClear, small }) {
+function PlaceSearch({ placeholder, onSelect, autoClear, small, autoFocus }) {
   const { t } = useTranslation()
   const [q, setQ] = useState('')
   const [results, setResults] = useState(null)
@@ -835,6 +887,7 @@ function PlaceSearch({ placeholder, onSelect, autoClear, small }) {
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); run() } }}
           placeholder={placeholder}
+          autoFocus={autoFocus}
           className="min-w-0 flex-1 bg-transparent text-xs font-semibold text-ink-800 outline-none placeholder:font-normal placeholder:text-ink-400"
         />
         {busy

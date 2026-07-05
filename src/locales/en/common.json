@@ -393,7 +393,9 @@
       "placeholder": "Search a place on the map…",
       "noResults": "No results — try adding the city or state",
       "networkError": "Network error while searching",
-      "clear": "Clear"
+      "clear": "Clear",
+      "open": "Search the map",
+      "close": "Close search"
     },
     "dir": {
       "directions": "Directions",
