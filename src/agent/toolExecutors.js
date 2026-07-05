@@ -32,7 +32,7 @@ export const WRITE_TOOLS = new Set([
 let notesPending = false
 
 /* callbacks registered by socket.js (avoids a module cycle) */
-export const hooks = { onProgress: null, onStartPlanning: null, onAskUser: null, onNotebook: null, onProposeHotels: null }
+export const hooks = { onProgress: null, onStartPlanning: null, onAskUser: null, onNotebook: null, onProposeHotels: null, onProposeRestaurants: null }
 
 /* i18n keys, resolved with i18n.t at execution time (UI language) */
 const FIELD_LABELS = {
@@ -458,6 +458,15 @@ const EXECUTORS = {
       throw new Error('Servono almeno 2 opzioni (con nome, prezzo/notte e url da search_hotels).')
     }
     return new Promise((resolve) => hooks.onProposeHotels(a, resolve))
+  },
+
+  /* interactive restaurant picker: resolves when the user picks one (or none) */
+  propose_restaurants(a) {
+    if (!hooks.onProposeRestaurants) throw new Error('Interfaccia proposte non disponibile.')
+    if (!Array.isArray(a.options) || a.options.length < 2) {
+      throw new Error('Servono almeno 2 opzioni (con nome, rating e url da search_restaurants).')
+    }
+    return new Promise((resolve) => hooks.onProposeRestaurants(a, resolve))
   },
 
   async estimate_travel(a) {

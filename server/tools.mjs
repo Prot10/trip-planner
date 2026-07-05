@@ -7,6 +7,7 @@
 import { tool, createSdkMcpServer } from '@anthropic-ai/claude-agent-sdk'
 import { z } from 'zod'
 import { searchHotels } from './booking.mjs'
+import { searchRestaurants } from './places.mjs'
 
 const ITEM_TYPES = z.enum(['activity', 'drive', 'food', 'hotel', 'info'])
 const TRANSPORT = z.enum(['car', 'walk', 'bus', 'train', 'plane', 'boat'])
@@ -146,6 +147,33 @@ export const TOOL_DEFS = [
     },
   },
   {
+    name: 'propose_restaurants',
+    description:
+      "Mostra all'utente 2-4 posti dove mangiare come card interattiva in chat e ATTENDI la sua scelta (il tool blocca). USALO ogni volta che l'utente chiede dove mangiare o di cambiare un pasto nei turni di modifica (NON durante la costruzione iniziale, dove scegli tu): dopo search_restaurants seleziona una rosa di alternative valide e DIVERSE tra loro (dati reali: rating, review_count, price_range, lat/lng — le coordinate abilitano il bottone mappa e la distanza dal percorso, passale SEMPRE) con una breve nota sul perché di ciascuna — niente tabelle o elenchi di ristoranti nel testo. PREFERISCI posti con un numero solido di recensioni: un 4,5 con migliaia vale più di un 5,0 con poche decine; opzioni con poche recensioni solo se non ci sono alternative, dicendolo nella nota. Risultato: `choice` = nome del posto scelto (applica SUBITO la modifica: crea/aggiorna l'item food con il link Google Maps nei links), oppure 'none' se non gli piace nessuno (chiedi cosa non va o proponi altri).",
+    schema: {
+      location: z.string().describe('località, es. "Taormina"'),
+      day_number: z.number().int().min(1).optional().describe('giorno del pasto interessato'),
+      meal: z.enum(['breakfast', 'lunch', 'dinner']).optional().describe('pasto interessato'),
+      options: z
+        .array(
+          z.object({
+            name: z.string(),
+            rating: z.number().min(0).max(5).describe('punteggio Google su 5'),
+            review_count: z.number().int().min(0).optional(),
+            price_range: z.string().optional().describe("spesa media a persona, es. '€20–30' (da search_restaurants)"),
+            category: z.string().optional().describe("es. 'Sicilian restaurant'"),
+            lat: z.number().optional().describe('da search_restaurants: abilita mappa e distanza dal percorso'),
+            lng: z.number().optional(),
+            url: z.string().describe('link diretto Google Maps (da search_restaurants)'),
+            note: z.string().optional().describe('perché proporlo, in una riga'),
+            recommended: z.boolean().optional().describe('al massimo uno: il tuo preferito'),
+          }),
+        )
+        .min(2)
+        .max(4),
+    },
+  },
+  {
     name: 'update_notes',
     description:
       "Il tuo BLOCCO NOTE per questo viaggio (memoria persistente, markdown, sostituisce il contenuto precedente). Aggiornalo UNA volta dopo ogni batch di risposte di ask_user (tutte le novità in una sola chiamata; sezioni: Destinazione, Date, Viaggiatori, Mezzo, Stile e interessi, Budget, Alloggi, Vincoli) e dopo ogni decisione importante in pianificazione. Ti viene sempre re-iniettato: è la tua memoria tra i turni.",
@@ -223,6 +251,17 @@ export const TOOL_DEFS = [
       max_results: z.number().int().min(1).max(10).optional().describe('default 6'),
     },
     handler: searchHotels,
+  },
+  {
+    name: 'search_restaurants',
+    description:
+      "Cerca posti REALI dove mangiare su Google Maps per una località: nome, punteggio (su 5), NUMERO di recensioni, fascia di prezzo media a persona dichiarata dagli utenti (es. '€20–30'), categoria, indirizzo, coordinate (lat/lng) e link diretto Google Maps. I risultati sono ordinati per qualità AFFIDABILE (punteggio pesato sulle recensioni): a parità di condizioni preferisci SEMPRE posti con molte recensioni — un 4,5 con migliaia vale più di un 5,0 con poche decine; poche recensioni solo in mancanza di alternative, segnalandolo. Usa `query` per cucine o esigenze specifiche ('pizza', 'vegan', 'seafood'). USALO quando l'utente chiede dove mangiare o quando inserisci un pasto di rilievo: mai inventare ristoranti, punteggi o prezzi. Richiede qualche secondo: una chiamata per località, non per singolo locale.",
+    schema: {
+      location: z.string().describe('località, es. "Taormina" o "Vík, Iceland"'),
+      query: z.string().optional().describe("tipo di cucina o esigenza, es. 'pizza', 'vegan', 'fine dining'"),
+      max_results: z.number().int().min(2).max(6).optional().describe('default 4'),
+    },
+    handler: searchRestaurants,
   },
   {
     name: 'search_places',

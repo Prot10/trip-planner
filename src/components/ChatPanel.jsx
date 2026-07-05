@@ -11,7 +11,7 @@ import { useTrip, useUI, activeTrip } from '../store'
 import { useVisualViewport } from '../lib/useViewport'
 import Markdown from './Markdown'
 import PlanningStepper from './PlanningStepper'
-import QuestionCard, { QARecord, HotelPickRecord } from './QuestionCard'
+import QuestionCard, { QARecord, HotelPickRecord, RestaurantPickRecord } from './QuestionCard'
 import MentionInput from './MentionInput'
 import { TOOL_META, groupMessages, ToolChipGroup, SetupCard, ModelPicker, AgentAvatar } from './chatShared'
 
@@ -413,6 +413,7 @@ function Message({ m }) {
   }
   if (m.role === 'qa') return <QARecord m={m} />
   if (m.role === 'hotelpick') return <HotelPickRecord m={m} />
+  if (m.role === 'restpick') return <RestaurantPickRecord m={m} />
   if (m.role === 'setup') return <SetupCard engine={m.engine} error={m.text} />
   if (m.role === 'toolgroup') return <ToolChipGroup group={m} />
   return (

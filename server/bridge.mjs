@@ -6,7 +6,7 @@ import { WebSocketServer } from 'ws'
 
 const TOOL_TIMEOUT_MS = 20000
 const INTERACTIVE_TIMEOUT_MS = 15 * 60 * 1000 // ask_user / propose_hotels wait for a human
-const INTERACTIVE_TOOLS = new Set(['ask_user', 'propose_hotels'])
+const INTERACTIVE_TOOLS = new Set(['ask_user', 'propose_hotels', 'propose_restaurants'])
 
 export function createBridge(httpServer) {
   const wss = new WebSocketServer({ server: httpServer, path: '/agent' })

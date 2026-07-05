@@ -19,6 +19,7 @@
       "checklist_remove": "Checklist item removed",
       "search_places": "Place search: {{query}}",
       "search_hotels": "Booking hotels: {{location}}",
+      "search_restaurants": "Google Maps restaurants: {{location}}",
       "list_suggestions": "Reading suggested stops",
       "suggestion_removed": "Suggestion removed: {{title}}",
       "suggestion_enabled": "Suggestion enabled: {{title}}",
@@ -39,6 +40,7 @@
       "add_day": "Created {{count}} days",
       "search_places": "{{count}} place searches",
       "search_hotels": "{{count}} Booking hotel searches",
+      "search_restaurants": "{{count}} restaurant searches",
       "get_place_images": "{{count}} photo searches",
       "estimate_travel": "{{count}} travel estimates",
       "web_search": "{{count}} web searches",
@@ -288,6 +290,17 @@
     "none": "None of these — keep looking",
     "openBooking": "Open on Booking.com",
     "recordTitle": "Stay in {{location}} ",
+    "recordNone": "None of the proposals felt right"
+  },
+  "restaurants": {
+    "kicker": "Google Maps picks",
+    "perPerson": "per person",
+    "reviews_one": "{{n}} review",
+    "reviews_other": "{{n}} reviews",
+    "meal": { "breakfast": "breakfast", "lunch": "lunch", "dinner": "dinner" },
+    "none": "None of these — keep looking",
+    "openMaps": "Open on Google Maps",
+    "recordTitle": "Where to eat in {{location}} ",
     "recordNone": "None of the proposals felt right"
   },
   "stepper": {

@@ -198,7 +198,7 @@ export const useAgentChat = create((set, get) => ({
   chooseHotel(name) {
     const q = get().pendingQuestion
     if (!q?.hotels) return
-    useUI.getState().setHotelPreview(null)
+    useUI.getState().setPlacePreview(null)
     set((s) => ({
       pendingQuestion: null,
       messages: [...s.messages, { id: uid(), role: 'hotelpick', hotels: q.hotels, choice: name }],
@@ -207,6 +207,21 @@ export const useAgentChat = create((set, get) => ({
     q.resolve(name
       ? { ok: true, choice: name, note: "Applica SUBITO la scelta: aggiorna l'item hotel con prezzo/notte reale e il link Booking.com nei links." }
       : { ok: true, choice: 'none', note: "Nessuna proposta piace all'utente: chiedi cosa non va (zona, prezzo, stile) o proponi alternative diverse." })
+  },
+
+  /* pick a proposed restaurant (name) or reject them all (null) */
+  chooseRestaurant(name) {
+    const q = get().pendingQuestion
+    if (!q?.restaurants) return
+    useUI.getState().setPlacePreview(null)
+    set((s) => ({
+      pendingQuestion: null,
+      messages: [...s.messages, { id: uid(), role: 'restpick', restaurants: q.restaurants, choice: name }],
+    }))
+    persistChat()
+    q.resolve(name
+      ? { ok: true, choice: name, note: "Applica SUBITO la scelta: crea o aggiorna l'item food con il link Google Maps nei links e la fascia di prezzo nelle note." }
+      : { ok: true, choice: 'none', note: "Nessuna proposta piace all'utente: chiedi cosa non va (zona, prezzo, cucina) o proponi alternative diverse." })
   },
 
   undoOne(editId) {
@@ -288,6 +303,20 @@ hooks.onProposeHotels = (a, resolve) => {
     },
   })
 }
+hooks.onProposeRestaurants = (a, resolve) => {
+  useAgentChat.getState().pendingQuestion?.resolve({ ok: false, error: 'Proposta sostituita da una nuova.' })
+  useAgentChat.setState({
+    pendingQuestion: {
+      restaurants: {
+        location: a.location ?? '',
+        dayNumber: a.day_number ?? null,
+        meal: a.meal ?? null,
+        options: (a.options ?? []).slice(0, 4),
+      },
+      resolve,
+    },
+  })
+}
 
 /* dev-only handle for automated UI tests */
 if (import.meta.env.DEV && typeof window !== 'undefined') {
@@ -337,8 +366,8 @@ function handleEvent(msg) {
       persistChat()
       break
     case 'agent_tool':
-      /* ask_user / propose_hotels render as interactive cards, report_progress as the stepper */
-      if (msg.name !== 'ask_user' && msg.name !== 'propose_hotels' && msg.name !== 'report_progress') {
+      /* ask_user / propose_* render as interactive cards, report_progress as the stepper */
+      if (msg.name !== 'ask_user' && msg.name !== 'propose_hotels' && msg.name !== 'propose_restaurants' && msg.name !== 'report_progress') {
         push({ role: 'tool', name: msg.name, args: msg.args })
       }
       break

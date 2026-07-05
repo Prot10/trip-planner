@@ -9,71 +9,9 @@
    network) the tool degrades to a prefilled search URL instead of erroring:
    the agent can always give the user a working link. */
 
-import { existsSync } from 'node:fs'
-import puppeteer from 'puppeteer-core'
+import { getBrowser, newStealthPage } from './chrome.mjs'
 
-const CHROME_CANDIDATES = {
-  darwin: [
-    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    '/Applications/Chromium.app/Contents/MacOS/Chromium',
-    '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
-    '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser',
-  ],
-  linux: [
-    '/usr/bin/google-chrome',
-    '/usr/bin/google-chrome-stable',
-    '/usr/bin/chromium',
-    '/usr/bin/chromium-browser',
-    '/snap/bin/chromium',
-    '/usr/bin/microsoft-edge',
-    '/usr/bin/brave-browser',
-  ],
-  win32: [
-    `${process.env.PROGRAMFILES ?? 'C:\\Program Files'}\\Google\\Chrome\\Application\\chrome.exe`,
-    `${process.env['PROGRAMFILES(X86)'] ?? 'C:\\Program Files (x86)'}\\Google\\Chrome\\Application\\chrome.exe`,
-    `${process.env.LOCALAPPDATA ?? ''}\\Google\\Chrome\\Application\\chrome.exe`,
-    `${process.env['PROGRAMFILES(X86)'] ?? 'C:\\Program Files (x86)'}\\Microsoft\\Edge\\Application\\msedge.exe`,
-  ],
-}
-
-export function findChrome() {
-  const fromEnv = process.env.ULISSE_CHROME || process.env.CHROME_BIN
-  if (fromEnv && existsSync(fromEnv)) return fromEnv
-  for (const p of CHROME_CANDIDATES[process.platform] ?? []) {
-    if (p && existsSync(p)) return p
-  }
-  return null
-}
-
-/* one shared headless browser, closed after a couple of idle minutes */
-let browserPromise = null
-let idleTimer = null
-const IDLE_MS = 120_000
-
-async function getBrowser() {
-  if (!browserPromise) {
-    const executablePath = findChrome()
-    if (!executablePath) throw new Error('CHROME_NOT_FOUND')
-    browserPromise = puppeteer
-      .launch({
-        executablePath,
-        headless: 'new',
-        args: ['--no-first-run', '--disable-blink-features=AutomationControlled', '--disable-gpu'],
-      })
-      .then((b) => {
-        b.on('disconnected', () => { browserPromise = null })
-        return b
-      })
-      .catch((e) => { browserPromise = null; throw e })
-  }
-  clearTimeout(idleTimer)
-  idleTimer = setTimeout(async () => {
-    const p = browserPromise
-    browserPromise = null
-    try { (await p)?.close() } catch { /* already gone */ }
-  }, IDLE_MS)
-  return browserPromise
-}
+export { findChrome } from './chrome.mjs'
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 const CURRENCY_OF = { '€': 'EUR', '$': 'USD', 'US$': 'USD', '£': 'GBP' }
@@ -146,11 +84,7 @@ export async function searchHotels(args) {
   let page = null
   try {
     const browser = await getBrowser()
-    page = await browser.newPage()
-    /* the default headless UA triggers Booking's degraded bot page */
-    const ua = (await browser.userAgent()).replace('HeadlessChrome', 'Chrome')
-    await page.setUserAgent(ua)
-    await page.setViewport({ width: 1280, height: 1600 })
+    page = await newStealthPage(browser, { width: 1280, height: 1600 })
     await page.setRequestInterception(true)
     page.on('request', (r) => {
       const t = r.resourceType()

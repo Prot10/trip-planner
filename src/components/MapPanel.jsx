@@ -28,7 +28,7 @@ export default function MapPanel() {
   const mapFilter = useUI((s) => s.mapFilter)
   const setMapFilter = useUI((s) => s.setMapFilter)
   const picking = useUI((s) => s.picking)
-  const hotelPreview = useUI((s) => s.hotelPreview)
+  const placePreview = useUI((s) => s.placePreview)
   const markerRefs = useRef(new Map())
   const mapRef = useRef(null)
   const [roads, setRoads] = useState({}) // dayId -> road-following [lat,lng][]
@@ -220,7 +220,7 @@ export default function MapPanel() {
         )}
 
         {/* hotel proposed in chat: preview pin with price + link */}
-        {hotelPreview && <HotelPreviewMarker p={hotelPreview} />}
+        {placePreview && <PlacePreviewMarker p={placePreview} />}
 
         {/* directions route + endpoints */}
         {route && (
@@ -479,30 +479,50 @@ function FitOnChange({ coords, depKey }) {
   return null
 }
 
-/* preview pin for a hotel proposed in chat: fly there and pop up the card */
-function HotelPreviewMarker({ p }) {
-  const { t } = useTranslation()
+/* preview pin for a place proposed in chat (hotel or restaurant): fly there
+   and pop up the card */
+function PlacePreviewMarker({ p }) {
+  const { t, i18n } = useTranslation()
   const map = useMap()
+  const markerRef = useRef(null)
+  const isRestaurant = p.kind === 'restaurant'
   useEffect(() => {
     map.flyTo([p.lat, p.lng], Math.max(map.getZoom(), 13), { duration: 0.9 })
+    /* opening mid-flight can be swallowed by the animation: re-open at landing */
+    const t = setTimeout(() => markerRef.current?.openPopup(), 950)
+    return () => clearTimeout(t)
   }, [p.lat, p.lng, map])
   return (
-    <Marker position={[p.lat, p.lng]} icon={hotelIcon} ref={(m) => m?.openPopup()}>
+    <Marker
+      position={[p.lat, p.lng]}
+      icon={isRestaurant ? restaurantIcon : hotelIcon}
+      ref={(m) => { markerRef.current = m; m?.openPopup() }}
+    >
       <Popup>
         <div className="min-w-44 max-w-60">
           <div className="font-display text-[13.5px] font-bold text-ink-900">{p.name}</div>
           <div className="mt-0.5 text-[11.5px] font-semibold text-ink-500">
-            {p.price_per_night != null && <>{fmtMoney(p.price_per_night, p.currency ?? 'EUR')}{t('hotels.perNight')}</>}
-            {p.review_score != null && <> · {p.review_score.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</>}
+            {isRestaurant ? (
+              <>
+                {p.rating != null && <>{p.rating.toLocaleString(i18n.language, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</>}
+                {p.review_count != null && <> ({p.review_count.toLocaleString(i18n.language)})</>}
+                {p.price_range && <> · {p.price_range}</>}
+              </>
+            ) : (
+              <>
+                {p.price_per_night != null && <>{fmtMoney(p.price_per_night, p.currency ?? 'EUR')}{t('hotels.perNight')}</>}
+                {p.review_score != null && <> · {p.review_score.toLocaleString(i18n.language, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</>}
+              </>
+            )}
           </div>
           {p.url && (
             <a
               href={p.url}
               target="_blank"
               rel="noreferrer"
-              className="mt-2 inline-flex items-center gap-1 rounded-lg bg-violet-600 px-2.5 py-1.5 text-[11px] font-bold !text-white transition hover:bg-violet-700"
+              className={`mt-2 inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-bold !text-white transition ${isRestaurant ? 'bg-rose-600 hover:bg-rose-700' : 'bg-violet-600 hover:bg-violet-700'}`}
             >
-              Booking.com
+              {isRestaurant ? 'Google Maps' : 'Booking.com'}
             </a>
           )}
         </div>
@@ -564,6 +584,13 @@ const BED_SVG =
 const hotelIcon = L.divIcon({
   className: '',
   html: `<div class="map-pin" style="--pin:#7c3aed"><span>${BED_SVG}</span></div>`,
+  iconSize: [28, 28], iconAnchor: [14, 26], popupAnchor: [0, -22],
+})
+const UTENSILS_SVG =
+  '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>'
+const restaurantIcon = L.divIcon({
+  className: '',
+  html: `<div class="map-pin" style="--pin:#e11d48"><span>${UTENSILS_SVG}</span></div>`,
   iconSize: [28, 28], iconAnchor: [14, 26], popupAnchor: [0, -22],
 })
 const dirIcon = (letter, color) =>

@@ -169,6 +169,7 @@
       "checklist_remove": "Voce checklist rimossa",
       "search_places": "Ricerca luogo: {{query}}",
       "search_hotels": "Hotel su Booking: {{location}}",
+      "search_restaurants": "Ristoranti su Google Maps: {{location}}",
       "list_suggestions": "Lettura tappe consigliate",
       "suggestion_removed": "Consiglio rimosso: {{title}}",
       "suggestion_enabled": "Consiglio attivato: {{title}}",
@@ -189,6 +190,7 @@
       "add_day": "Creati {{count}} giorni",
       "search_places": "{{count}} ricerche luogo",
       "search_hotels": "{{count}} ricerche hotel su Booking",
+      "search_restaurants": "{{count}} ricerche ristoranti",
       "get_place_images": "{{count}} ricerche foto",
       "estimate_travel": "{{count}} stime spostamento",
       "web_search": "{{count}} ricerche web",
@@ -452,6 +454,17 @@
     "none": "Nessuna di queste — cerchiamo altro",
     "openBooking": "Apri su Booking.com",
     "recordTitle": "Alloggio per {{location}} ",
+    "recordNone": "Nessuna delle proposte convinceva"
+  },
+  "restaurants": {
+    "kicker": "Proposte da Google Maps",
+    "perPerson": "a persona",
+    "reviews_one": "{{n}} recensione",
+    "reviews_other": "{{n}} recensioni",
+    "meal": { "breakfast": "colazione", "lunch": "pranzo", "dinner": "cena" },
+    "none": "Nessuno di questi — cerchiamo altro",
+    "openMaps": "Apri su Google Maps",
+    "recordTitle": "Dove mangiare a {{location}} ",
     "recordNone": "Nessuna delle proposte convinceva"
   },
   "stepper": {
