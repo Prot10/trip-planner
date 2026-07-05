@@ -139,16 +139,17 @@ export const TOOL_DEFS = [
   { name: 'remove_suggestion', description: 'Elimina un consiglio dal pannello (id da list_suggestions).', schema: { suggestion_id: z.string() } },
   {
     name: 'set_trip_brief',
-    description: "Salva il profilo del viaggio raccolto nell'intervista: chi viaggia, periodo, stile e ritmo, mezzo di trasporto, budget, alloggi, vincoli e interessi. È la memoria delle preferenze: consultalo (via get_trip) prima di ogni scelta di pianificazione.",
+    description: "Aggiorna il profilo del viaggio (già salvato da start_planning): chi viaggia, periodo, stile e ritmo, mezzo, budget, alloggi, vincoli e interessi. È la memoria delle preferenze: consultala (via get_trip) prima di ogni scelta di pianificazione; riscrivila qui quando l'utente cambia idea.",
     schema: { brief: z.string() },
   },
   {
     name: 'start_planning',
-    description: "Chiude l'intervista e apre il planner: imposta i metadati e porta il viaggio in fase attiva (l'interfaccia cambia vista). Chiamalo UNA sola volta, dopo che l'utente ha confermato il riassunto del brief; subito dopo prosegui con la pianificazione completa nello stesso turno.",
+    description: "Chiude l'intervista e apre il planner: salva il brief, imposta i metadati e porta il viaggio in fase attiva (l'interfaccia cambia vista). Appena l'utente conferma il riassunto, questa è la tua PRIMA chiamata — i tool di costruzione (giorni, tappe, checklist, consigli) restano bloccati finché non la fai. Chiamala UNA sola volta, poi prosegui subito con la pianificazione completa nello stesso turno.",
     schema: {
       title: z.string().describe('titolo evocativo del viaggio'),
       subtitle: z.string().optional().describe('sintesi del percorso, es. "Roma → Firenze → Venezia · 5 giorni"'),
       destination: z.string().describe('città o area principale del viaggio, es. "Tokyo, Giappone": centra subito la mappa lì'),
+      brief: z.string().describe('il profilo completo raccolto in intervista: chi viaggia, periodo, stile e ritmo, mezzo, budget, alloggi, vincoli e interessi'),
       transport: z.enum(['car', 'walk', 'transit', 'mixed']),
       start_date: z.string().optional().describe('YYYY-MM-DD'),
       car_l_per_100km: z.number().positive().optional(),

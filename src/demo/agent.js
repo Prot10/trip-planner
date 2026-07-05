@@ -165,15 +165,16 @@ export function createDemoAgent(emit) {
     await h.say(T.ready)
     await h.sleep(500)
 
+    /* the planner opens FIRST, always: build tools are locked until then */
+    await h.tool('start_planning', tripMeta(lang), { chip: false })
+    await h.sleep(700)
+
     /* a previous aborted run may have left days behind: rebuild cleanly */
     const leftovers = activeTrip(useTrip.getState())?.days?.length ?? 0
     if (leftovers > 0) {
       await h.say(T.rebuilding)
       for (let i = leftovers; i > 0; i--) await h.tool('remove_day', { day_number: i })
     }
-
-    await h.tool('start_planning', tripMeta(lang), { chip: false })
-    await h.sleep(700)
 
     const steps = T.progressSteps
     await h.tool('report_progress', { steps }, { chip: false })

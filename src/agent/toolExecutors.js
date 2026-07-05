@@ -400,6 +400,7 @@ const EXECUTORS = {
 
   async start_planning(a) {
     const s = useTrip.getState()
+    if (a.brief) s.setBrief(a.brief)
     if (a.title) s.setTitle(a.title)
     if (a.subtitle) s.setSubtitle(a.subtitle)
     if (a.transport) s.setTransport(a.transport)
@@ -541,6 +542,15 @@ const EXECUTORS = {
 export async function executeTool(name, args) {
   const fn = EXECUTORS[name]
   if (!fn) throw new Error(`Tool sconosciuto: ${name}`)
+  /* the interview must hand off through start_planning before anything gets
+     built: whatever the model decides, every build tool hard-errors until
+     the planner is open (a tool error is impossible to ignore, a prompt
+     hint is not) */
+  if (WRITE_TOOLS.has(name) && activeTrip(useTrip.getState())?.phase === 'interview') {
+    throw new Error(
+      "Il viaggio è ancora in fase intervista: chiama PRIMA start_planning (apre il planner e salva il brief), POI costruisci giorni, tappe, checklist e consigli.",
+    )
+  }
   return await fn(args ?? {})
 }
 

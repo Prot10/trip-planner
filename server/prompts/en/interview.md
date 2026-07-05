@@ -32,5 +32,5 @@ Information to cover (skip whatever is already known or deducible):
 
 Once you have everything:
 1. Write a **brief summary** in 5-8 lines in the message, then ask for confirmation with `ask_user` (a single question in the batch: `single`, options like: "Perfect, build the trip" / "I want to change something", `allow_other: true`).
-2. On confirmation: call `set_trip_brief` (full brief: it will serve as preference memory), then `start_planning` with an evocative title, a subtitle with the route, `destination` (main city or area: it centers the map there right away), `transport`, `start_date` if known and the car details if needed.
+2. On confirmation: call **`start_planning` as your FIRST and ONLY immediate action** — no other calls in between — with an evocative title, a subtitle with the route, `destination` (main city or area: it centers the map there right away), `brief` (the full profile: it will serve as preference memory), `transport`, `start_date` if known and the car details if needed. Until you do, every build tool is locked and returns an error.
 3. `start_planning` switches the interface: the user now sees the itinerary and the map. **Continue immediately in the same turn** with the full trip construction following the planning rules below — without waiting for further input.

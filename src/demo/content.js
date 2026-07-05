@@ -128,6 +128,11 @@ export const tripMeta = (lang) => ({
     'Reykjavík → Golden Circle → Vík → Jökulsárlón → Stokksnes · 5 giorni / 4 notti',
     'Reykjavík → Golden Circle → Vík → Jökulsárlón → Stokksnes · 5 days / 4 nights',
   ),
+  brief: L(
+    lang,
+    'Coppia, costa sud dell’Islanda a inizio agosto, 5 giorni, 4x4 a noleggio. Ritmo: buon mix (un paio di alzatacce solo per i posti top). Priorità: cascate e posti segreti; graditi ghiacciai, spiagge nere e bagni caldi. Budget medio, hotel comodi lungo il percorso.',
+    'Couple, Iceland south coast in early August, 5 days, rental 4x4. Pace: a good mix (a couple of early alarms only for the highlights). Priorities: waterfalls and hidden gems; glaciers, black beaches and hot soaks welcome. Mid-range budget, comfortable hotels along the route.',
+  ),
   transport: 'car',
   start_date: '2026-08-03',
 })
