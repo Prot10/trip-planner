@@ -274,6 +274,19 @@
     "missing_other": "{{count}} answers left",
     "goToQuestion": "Go to question {{n}}"
   },
+  "hotels": {
+    "kicker": "Accommodation picks",
+    "perNight": "/night",
+    "total": "{{price}} total",
+    "reviews_one": "{{n}} review",
+    "reviews_other": "{{n}} reviews",
+    "recommended": "Top pick",
+    "pick": "Pick",
+    "none": "None of these — keep looking",
+    "openBooking": "Open on Booking.com",
+    "recordTitle": "Stay in {{location}} ",
+    "recordNone": "None of the proposals felt right"
+  },
   "stepper": {
     "done": "Planning complete",
     "building": "Building your trip…",

@@ -438,6 +438,19 @@
     "missing_other": "Mancano {{count}} risposte",
     "goToQuestion": "Vai alla domanda {{n}}"
   },
+  "hotels": {
+    "kicker": "Proposte di alloggio",
+    "perNight": "/notte",
+    "total": "{{price}} totali",
+    "reviews_one": "{{n}} recensione",
+    "reviews_other": "{{n}} recensioni",
+    "recommended": "Consigliato",
+    "pick": "Scegli",
+    "none": "Nessuna di queste — cerchiamo altro",
+    "openBooking": "Apri su Booking.com",
+    "recordTitle": "Alloggio per {{location}} ",
+    "recordNone": "Nessuna delle proposte convinceva"
+  },
   "stepper": {
     "done": "Pianificazione completata",
     "building": "Sto costruendo il viaggio…",

@@ -10,7 +10,7 @@ import { demoPrompt } from '../demo/prefill'
 import { DemoBadgeInline } from '../demo/DemoBadge'
 import Markdown from './Markdown'
 import PlanningStepper from './PlanningStepper'
-import QuestionCard, { QARecord } from './QuestionCard'
+import QuestionCard, { QARecord, HotelPickRecord } from './QuestionCard'
 import { groupMessages, ToolChipGroup, SetupCard, ModelPicker, AgentAvatar } from './chatShared'
 import LanguageSwitcher from './LanguageSwitcher'
 
@@ -390,6 +390,7 @@ function Bubble({ m }) {
     )
   }
   if (m.role === 'qa') return <QARecord m={m} />
+  if (m.role === 'hotelpick') return <HotelPickRecord m={m} />
   if (m.role === 'setup') return <SetupCard engine={m.engine} error={m.text} />
   if (m.role === 'toolgroup') return <ToolChipGroup group={m} />
   return (

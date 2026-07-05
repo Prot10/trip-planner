@@ -65,7 +65,7 @@ export const useAgentChat = create((set, get) => ({
   sessionId: null,                // engine session/thread to resume
   edits: [],                      // per-turn write log: { id, name, args, result, undo, detail, reverted }
   progress: [],                   // live planning stepper: { id, step, status, detail }
-  pendingQuestion: null,          // interactive ask_user carousel: { questions: [{ question, kind, options, allowOther }], resolve }
+  pendingQuestion: null,          // interactive ask_user carousel { questions, resolve } — or hotel picker { hotels, resolve }
   undoSnapshot: null,
   undoReady: false,
   showEdits: false,
@@ -194,6 +194,20 @@ export const useAgentChat = create((set, get) => ({
     })
   },
 
+  /* pick a proposed hotel (name) or reject them all (null) */
+  chooseHotel(name) {
+    const q = get().pendingQuestion
+    if (!q?.hotels) return
+    set((s) => ({
+      pendingQuestion: null,
+      messages: [...s.messages, { id: uid(), role: 'hotelpick', hotels: q.hotels, choice: name }],
+    }))
+    persistChat()
+    q.resolve(name
+      ? { ok: true, choice: name, note: "Applica SUBITO la scelta: aggiorna l'item hotel con prezzo/notte reale e il link Booking.com nei links." }
+      : { ok: true, choice: 'none', note: "Nessuna proposta piace all'utente: chiedi cosa non va (zona, prezzo, stile) o proponi alternative diverse." })
+  },
+
   undoOne(editId) {
     const edit = get().edits.find((e) => e.id === editId)
     if (!edit || edit.reverted || !edit.undo) return
@@ -258,6 +272,21 @@ hooks.onAskUser = (a, resolve) => {
   }))
   useAgentChat.setState({ pendingQuestion: { questions, resolve } })
 }
+hooks.onProposeHotels = (a, resolve) => {
+  useAgentChat.getState().pendingQuestion?.resolve({ ok: false, error: 'Proposta sostituita da una nuova.' })
+  useAgentChat.setState({
+    pendingQuestion: {
+      hotels: {
+        location: a.location ?? '',
+        checkin: a.checkin ?? null,
+        checkout: a.checkout ?? null,
+        dayNumber: a.day_number ?? null,
+        options: (a.options ?? []).slice(0, 4),
+      },
+      resolve,
+    },
+  })
+}
 
 /* dev-only handle for automated UI tests */
 if (import.meta.env.DEV && typeof window !== 'undefined') {
@@ -307,8 +336,8 @@ function handleEvent(msg) {
       persistChat()
       break
     case 'agent_tool':
-      /* ask_user renders as the interactive card, report_progress as the stepper */
-      if (msg.name !== 'ask_user' && msg.name !== 'report_progress') {
+      /* ask_user / propose_hotels render as interactive cards, report_progress as the stepper */
+      if (msg.name !== 'ask_user' && msg.name !== 'propose_hotels' && msg.name !== 'report_progress') {
         push({ role: 'tool', name: msg.name, args: msg.args })
       }
       break

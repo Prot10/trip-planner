@@ -117,6 +117,33 @@ export const TOOL_DEFS = [
     },
   },
   {
+    name: 'propose_hotels',
+    description:
+      "Mostra all'utente 2-4 alloggi come card interattiva in chat e ATTENDI la sua scelta (il tool blocca). USALO ogni volta che l'utente chiede di trovare, cambiare o valutare un alloggio nei turni di modifica (NON durante la costruzione iniziale, dove scegli tu): dopo search_hotels seleziona una rosa di alternative valide e DIVERSE tra loro (dati reali: prezzo, punteggio, url) con una breve nota sul perché di ciascuna — niente tabelle o elenchi di hotel nel testo. Risultato: `choice` = nome della struttura scelta (applica SUBITO la modifica all'item hotel: prezzo/notte reale, link Booking.com nei links), oppure 'none' se non gli piace nessuna (chiedi cosa non va o proponi altre).",
+    schema: {
+      location: z.string().describe('località, es. "Giardini Naxos"'),
+      checkin: z.string().optional().describe('YYYY-MM-DD'),
+      checkout: z.string().optional().describe('YYYY-MM-DD'),
+      day_number: z.number().int().min(1).optional().describe('giorno della notte interessata'),
+      options: z
+        .array(
+          z.object({
+            name: z.string(),
+            price_per_night: z.number().min(0),
+            total_price: z.number().min(0).optional(),
+            currency: z.enum(['EUR', 'USD']).optional(),
+            review_score: z.number().min(0).max(10).optional(),
+            review_count: z.number().int().min(0).optional(),
+            url: z.string().describe('link diretto Booking.com con date precompilate (da search_hotels)'),
+            note: z.string().optional().describe('perché proporla, in una riga'),
+            recommended: z.boolean().optional().describe('al massimo una: la tua preferita'),
+          }),
+        )
+        .min(2)
+        .max(4),
+    },
+  },
+  {
     name: 'update_notes',
     description:
       "Il tuo BLOCCO NOTE per questo viaggio (memoria persistente, markdown, sostituisce il contenuto precedente). Aggiornalo UNA volta dopo ogni batch di risposte di ask_user (tutte le novità in una sola chiamata; sezioni: Destinazione, Date, Viaggiatori, Mezzo, Stile e interessi, Budget, Alloggi, Vincoli) e dopo ogni decisione importante in pianificazione. Ti viene sempre re-iniettato: è la tua memoria tra i turni.",
