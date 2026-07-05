@@ -99,18 +99,26 @@ export const TOOL_DEFS = [
   {
     name: 'ask_user',
     description:
-      "Fai UNA domanda all'utente tramite una card interattiva e ATTENDI la sua risposta (il tool blocca finché non risponde). kind: 'single' = sceglie una sola opzione, 'multi' = può sceglierne più di una, 'open' = risposta libera. Per single/multi fornisci 2-5 opzioni concrete (label breve + description opzionale) e metti allow_other=true se ha senso una risposta fuori lista. Fai le domande UNA ALLA VOLTA e usa ogni risposta per rendere più mirata la successiva: mai elenchi di domande nel testo.",
+      "Fai le tue domande all'utente tramite un carosello interattivo e ATTENDI le risposte (il tool blocca finché non ha risposto a TUTTE). Passa in `questions` da 1 a 6 domande: RAGGRUPPA SEMPRE in un'unica chiamata tutte le domande che ti servono in quel momento — mai una chiamata per domanda, mai elenchi di domande nel testo. kind per ogni domanda: 'single' = una sola opzione, 'multi' = più opzioni, 'open' = risposta libera. Per single/multi fornisci 2-5 opzioni concrete (label breve + description opzionale) e metti allow_other=true se ha senso una risposta fuori lista. Il risultato contiene le risposte in ordine.",
     schema: {
-      question: z.string(),
-      kind: z.enum(['single', 'multi', 'open']),
-      options: z.array(z.object({ label: z.string(), description: z.string().optional() })).max(5).optional(),
-      allow_other: z.boolean().optional(),
+      questions: z
+        .array(
+          z.object({
+            question: z.string(),
+            kind: z.enum(['single', 'multi', 'open']),
+            options: z.array(z.object({ label: z.string(), description: z.string().optional() })).max(5).optional(),
+            allow_other: z.boolean().optional(),
+          }),
+        )
+        .min(1)
+        .max(6)
+        .describe('tutte le domande di questo momento, dalla più importante'),
     },
   },
   {
     name: 'update_notes',
     description:
-      "Il tuo BLOCCO NOTE per questo viaggio (memoria persistente, markdown, sostituisce il contenuto precedente). Aggiornalo dopo OGNI risposta dell'utente in intervista (sezioni: Destinazione, Date, Viaggiatori, Mezzo, Stile e interessi, Budget, Alloggi, Vincoli) e dopo ogni decisione importante in pianificazione. Ti viene sempre re-iniettato: è la tua memoria tra i turni.",
+      "Il tuo BLOCCO NOTE per questo viaggio (memoria persistente, markdown, sostituisce il contenuto precedente). Aggiornalo UNA volta dopo ogni batch di risposte di ask_user (tutte le novità in una sola chiamata; sezioni: Destinazione, Date, Viaggiatori, Mezzo, Stile e interessi, Budget, Alloggi, Vincoli) e dopo ogni decisione importante in pianificazione. Ti viene sempre re-iniettato: è la tua memoria tra i turni.",
     schema: { notes: z.string().describe('contenuto completo del blocco note in markdown') },
   },
   {

@@ -262,7 +262,15 @@
     "openPlaceholder": "Write your answer…",
     "otherPlaceholder": "Or write something else…",
     "send": "Send answer",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "groupTitle": "A few quick questions",
+    "counter": "{{i}} of {{n}}",
+    "back": "Back",
+    "next": "Next",
+    "sendAll": "Send answers",
+    "missing_one": "1 answer left",
+    "missing_other": "{{count}} answers left",
+    "goToQuestion": "Go to question {{n}}"
   },
   "stepper": {
     "done": "Planning complete",
@@ -429,7 +437,7 @@
     "footerHint": "The itinerary is created only by chatting with Ulisse",
     "orManually": "or create it manually",
     "notebookTitle": "Ulisse's notebook",
-    "notebookEmpty": "Ulisse's notebook will fill in here, answer after answer",
+    "notebookEmpty": "Ulisse's notebook will fill in here as soon as he has your answers",
     "writing": "writing…",
     "notebookClose": "Close notebook"
   },

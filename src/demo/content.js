@@ -46,11 +46,9 @@ export const questions = (lang) => [
 export const texts = (lang) => ({
   greeting: L(
     lang,
-    "Cascate, ghiacciai, spiagge nere **e** bagni caldi: la costa sud dell'Islanda a inizio agosto è esattamente questo. Ottima scelta anche per la guida — strade asfaltate, zero fretta.\n\nPrima di disegnare l'itinerario ho bisogno di tre risposte veloci; prendo appunti man mano sul mio taccuino, lo vedi accanto alla chat.\n\n*(Questa è una demo interattiva: la conversazione è preregistrata, ma tutto quello che vedi — tappe, mappa, budget — viene costruito dal vivo, esattamente come col vero Ulisse.)*",
-    "Waterfalls, glaciers, black beaches **and** hot soaks: Iceland's south coast in early August is exactly that. Great call on driving too — paved roads, no rush.\n\nBefore I sketch the itinerary I need three quick answers; I take notes as we go in my notebook, right next to the chat.\n\n*(This is an interactive demo: the conversation is pre-recorded, but everything you see — stops, map, budget — is built live, exactly like with the real Ulisse.)*",
+    "Cascate, ghiacciai, spiagge nere **e** bagni caldi: la costa sud dell'Islanda a inizio agosto è esattamente questo. Ottima scelta anche per la guida — strade asfaltate, zero fretta.\n\nPrima di disegnare l'itinerario mi servono tre risposte veloci: le trovi tutte qui sotto, scorrile e rispondi. Appena ho tutto prendo nota sul mio taccuino, lo vedi accanto alla chat.\n\n*(Questa è una demo interattiva: la conversazione è preregistrata, ma tutto quello che vedi — tappe, mappa, budget — viene costruito dal vivo, esattamente come col vero Ulisse.)*",
+    "Waterfalls, glaciers, black beaches **and** hot soaks: Iceland's south coast in early August is exactly that. Great call on driving too — paved roads, no rush.\n\nBefore I sketch the itinerary I need three quick answers — you'll find them all right below, swipe through and answer. Once I have everything I jot it down in my notebook, right next to the chat.\n\n*(This is an interactive demo: the conversation is pre-recorded, but everything you see — stops, map, budget — is built live, exactly like with the real Ulisse.)*",
   ),
-  afterQ1: L(lang, 'Segnato. Seconda domanda:', 'Noted. Second question:'),
-  afterQ2: L(lang, 'Perfetto, ultima domanda e poi si parte:', 'Great — one last question and we are off:'),
   ready: L(
     lang,
     "Ho tutto quello che mi serve. Apro il planner e costruisco l'itinerario tappa per tappa: guarda la mappa riempirsi.",
@@ -113,19 +111,7 @@ Three things to remember: at **Reynisfjara** never turn your back on the ocean; 
     L(lang, 'Checklist e consigli', 'Checklist and suggestions'),
     L(lang, 'Rifiniture e budget', 'Final touches and budget'),
   ],
-  notes1: (a) =>
-    L(
-      lang,
-      `# Islanda — costa sud · inizio agosto\n\n## Richieste\n- In **due**, auto a noleggio, guida ok\n- Cascate, ghiacciai, spiagge nere, bagni caldi\n- **Durata**: ${a}\n- Ritmo: _da chiedere_\n- Interessi prioritari: _da chiedere_`,
-      `# Iceland — south coast · early August\n\n## Requirements\n- **Two** travellers, rental car, happy to drive\n- Waterfalls, glaciers, black beaches, hot soaks\n- **Duration**: ${a}\n- Pace: _to ask_\n- Priority interests: _to ask_`,
-    ),
-  notes2: (a1, a2) =>
-    L(
-      lang,
-      `# Islanda — costa sud · inizio agosto\n\n## Richieste\n- In **due**, auto a noleggio, guida ok\n- Cascate, ghiacciai, spiagge nere, bagni caldi\n- **Durata**: ${a1}\n- **Ritmo**: ${a2}\n- Interessi prioritari: _da chiedere_`,
-      `# Iceland — south coast · early August\n\n## Requirements\n- **Two** travellers, rental car, happy to drive\n- Waterfalls, glaciers, black beaches, hot soaks\n- **Duration**: ${a1}\n- **Pace**: ${a2}\n- Priority interests: _to ask_`,
-    ),
-  notes3: (a1, a2, a3) =>
+  notesAll: (a1, a2, a3) =>
     L(
       lang,
       `# Islanda — costa sud · inizio agosto\n\n## Richieste\n- In **due**, auto a noleggio, guida ok\n- **Durata**: ${a1} · **Ritmo**: ${a2}\n- **Priorità**: ${a3}\n\n## Piano\n- Anello sud: Reykjavík → Golden Circle → cascate → Vík → Jökulsárlón → Stokksnes → ritorno\n- Notti in avanzamento: Selfoss → Vík → Höfn → Hveragerði (mai la stessa strada due volte)\n- Gemme fuori flusso: Brúarfoss, Kvernufoss, Fjallsárlón, Seljavallalaug\n- Prenotare SUBITO: hotel Vík e Höfn, Sky Lagoon\n- Alzataccia unica: alba a Stokksnes (giorno 4)`,

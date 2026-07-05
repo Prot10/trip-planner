@@ -426,7 +426,15 @@
     "openPlaceholder": "Scrivi la tua risposta…",
     "otherPlaceholder": "Oppure scrivi altro…",
     "send": "Invia risposta",
-    "confirm": "Conferma"
+    "confirm": "Conferma",
+    "groupTitle": "Qualche domanda veloce",
+    "counter": "{{i}} di {{n}}",
+    "back": "Indietro",
+    "next": "Avanti",
+    "sendAll": "Invia le risposte",
+    "missing_one": "Manca 1 risposta",
+    "missing_other": "Mancano {{count}} risposte",
+    "goToQuestion": "Vai alla domanda {{n}}"
   },
   "stepper": {
     "done": "Pianificazione completata",
@@ -541,7 +549,7 @@
     "footerHint": "L'itinerario si crea solo conversando con Ulisse",
     "orManually": "oppure crea manualmente",
     "notebookTitle": "Il blocco note di Ulisse",
-    "notebookEmpty": "Il blocco note di Ulisse si compilerà qui, risposta dopo risposta",
+    "notebookEmpty": "Il blocco note di Ulisse si compilerà qui appena avrà le tue risposte",
     "writing": "sta scrivendo…",
     "notebookClose": "Chiudi blocco note"
   },

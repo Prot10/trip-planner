@@ -130,17 +130,19 @@ export function createDemoAgent(emit) {
       })
     }
 
-    const ask = async (q) => {
-      const r = await tool('ask_user', q, { chip: false })
+    /* one ask_user call = the whole question carousel; resolves with the
+       answers in order once the visitor has answered all of them */
+    const askAll = async (qs) => {
+      const r = await tool('ask_user', { questions: qs }, { chip: false })
       guard()
-      if (r?.error || r?.ok === false) throw ABORTED // question dismissed: end the turn quietly
-      return Array.isArray(r.answer) ? r.answer.join(' · ') : String(r.answer ?? '')
+      if (r?.error || r?.ok === false) throw ABORTED // carousel dismissed: end the turn quietly
+      return (r.answers ?? []).map((x) => (Array.isArray(x.answer) ? x.answer.join(' · ') : String(x.answer ?? '')))
     }
 
     const progress = (step, status, detail) =>
       tool('report_progress', { step, status, detail }, { chip: false })
 
-    return { lang, sleep, say, tool, ask, progress, guard }
+    return { lang, sleep, say, tool, askAll, progress, guard }
   }
 
   /* ---------- the interview: from a blank chat to a full trip ---------- */
@@ -148,23 +150,17 @@ export function createDemoAgent(emit) {
   async function interviewFlow(h) {
     const { lang } = h
     const T = texts(lang)
-    const [q1, q2, q3] = questions(lang)
 
     await h.sleep(500)
     await h.say(T.greeting)
     await h.sleep(350)
 
-    const a1 = await h.ask(q1)
-    await h.tool('update_notes', { notes: T.notes1(a1) }, { chip: false })
+    /* all three questions in one carousel; the notebook is written once,
+       with everything, right after the batch */
+    const [a1, a2, a3] = await h.askAll(questions(lang))
     await h.sleep(250)
-    await h.say(T.afterQ1)
-    const a2 = await h.ask(q2)
-    await h.tool('update_notes', { notes: T.notes2(a1, a2) }, { chip: false })
-    await h.sleep(250)
-    await h.say(T.afterQ2)
-    const a3 = await h.ask(q3)
-    await h.tool('update_notes', { notes: T.notes3(a1, a2, a3) }, { chip: false })
-    await h.sleep(300)
+    await h.tool('update_notes', { notes: T.notesAll(a1, a2, a3) }, { chip: false })
+    await h.sleep(400)
 
     await h.say(T.ready)
     await h.sleep(500)

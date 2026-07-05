@@ -26,7 +26,7 @@ export const WRITE_TOOLS = new Set([
   'add_suggestion', 'remove_suggestion',
 ])
 
-/* an answered question the agent hasn't written to the notebook yet:
+/* an answered question batch the agent hasn't written to the notebook yet:
    the next ask_user is refused until update_notes runs (models forget
    soft reminders; a hard tool error is impossible to ignore) */
 let notesPending = false
@@ -427,21 +427,22 @@ const EXECUTORS = {
     return { ok: true }
   },
 
-  /* interactive question card: resolves when the user answers in the UI.
-     The reminder rides on every result: the model updates the notebook far
-     more reliably when nudged in-band than by the system prompt alone. */
+  /* interactive question carousel: resolves when the user has answered ALL
+     the questions in the UI. The reminder rides on every result: the model
+     updates the notebook far more reliably when nudged in-band than by the
+     system prompt alone. */
   ask_user(a) {
     if (!hooks.onAskUser) throw new Error('Interfaccia domande non disponibile.')
     if (notesPending) {
       throw new Error(
-        "Risposta precedente non ancora annotata: chiama PRIMA update_notes col blocco note completo aggiornato, POI rifai questa domanda con ask_user.",
+        "Risposte precedenti non ancora annotate: chiama PRIMA update_notes col blocco note completo aggiornato, POI rifai le domande con ask_user.",
       )
     }
     return new Promise((resolve) =>
       hooks.onAskUser(a, (res) => {
         if (res?.ok) {
           notesPending = true
-          resolve({ ...res, promemoria: 'Aggiorna ORA il blocco note con update_notes includendo questa risposta, prima della prossima domanda.' })
+          resolve({ ...res, promemoria: 'Aggiorna ORA il blocco note con update_notes includendo TUTTE queste risposte in una sola chiamata, prima di qualsiasi altra domanda.' })
         } else {
           resolve(res)
         }

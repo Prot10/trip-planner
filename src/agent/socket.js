@@ -65,7 +65,7 @@ export const useAgentChat = create((set, get) => ({
   sessionId: null,                // engine session/thread to resume
   edits: [],                      // per-turn write log: { id, name, args, result, undo, detail, reverted }
   progress: [],                   // live planning stepper: { id, step, status, detail }
-  pendingQuestion: null,          // interactive ask_user card: { question, kind, options, allowOther, resolve }
+  pendingQuestion: null,          // interactive ask_user carousel: { questions: [{ question, kind, options, allowOther }], resolve }
   undoSnapshot: null,
   undoReady: false,
   showEdits: false,
@@ -178,17 +178,20 @@ export const useAgentChat = create((set, get) => ({
     toast(i18n.t('chat.toasts.turnUndone'))
   },
 
-  /* answer the agent's interactive question; unblocks its tool call */
-  answerQuestion(answer) {
+  /* answer the agent's interactive questions (all at once); unblocks its
+     tool call. items: [{ question, answers: [string] }], one per question */
+  answerQuestions(items) {
     const q = get().pendingQuestion
     if (!q) return
-    const answers = Array.isArray(answer) ? answer : [answer]
     set((s) => ({
       pendingQuestion: null,
-      messages: [...s.messages, { id: uid(), role: 'qa', question: q.question, text: answers.join(' · '), answers }],
+      messages: [...s.messages, { id: uid(), role: 'qa', items }],
     }))
     persistChat()
-    q.resolve({ ok: true, answer })
+    q.resolve({
+      ok: true,
+      answers: items.map((x) => ({ question: x.question, answer: x.answers.length > 1 ? x.answers : x.answers[0] ?? '' })),
+    })
   },
 
   undoOne(editId) {
@@ -242,17 +245,18 @@ hooks.onNotebook = () => {
   useAgentChat.setState({ notebookFlash: Date.now() })
 }
 hooks.onAskUser = (a, resolve) => {
-  /* only one live question at a time: cancel a stale one */
+  /* only one live carousel at a time: cancel a stale one */
   useAgentChat.getState().pendingQuestion?.resolve({ ok: false, error: 'Domanda sostituita da una nuova.' })
-  useAgentChat.setState({
-    pendingQuestion: {
-      question: a.question,
-      kind: a.kind ?? 'open',
-      options: a.options ?? [],
-      allowOther: !!a.allow_other,
-      resolve,
-    },
-  })
+  /* accept both the batched shape ({ questions: [...] }) and the legacy
+     single-question shape, normalized to a list for the carousel */
+  const raw = Array.isArray(a.questions) && a.questions.length ? a.questions : [a]
+  const questions = raw.slice(0, 6).map((q) => ({
+    question: q.question ?? '',
+    kind: q.kind ?? 'open',
+    options: q.options ?? [],
+    allowOther: !!q.allow_other,
+  }))
+  useAgentChat.setState({ pendingQuestion: { questions, resolve } })
 }
 
 /* dev-only handle for automated UI tests */
