@@ -26,8 +26,8 @@ const STR = {
   },
   marquee: {
     items: {
-      it: ['Itinerario in tempo reale', 'Mappa con percorsi veri', 'Budget e carburante', 'Domande una alla volta', 'Ogni modifica annullabile', 'Foto automatiche', 'Checklist di viaggio', 'Export e import', 'Installabile come app', 'Italiano e inglese'],
-      en: ['Itinerary built live', 'Real-route map', 'Budget and fuel', 'One question at a time', 'Every edit undoable', 'Automatic photos', 'Trip checklist', 'Export and import', 'Installable as an app', 'English and Italian'],
+      it: ['Itinerario in tempo reale', 'Mappa con percorsi veri', 'Hotel veri da Booking', 'Ristoranti da Google Maps', 'Budget e carburante', 'Ogni modifica annullabile', 'Foto automatiche', 'Checklist di viaggio', 'Export e import', 'Installabile come app', 'Italiano e inglese'],
+      en: ['Itinerary built live', 'Real-route map', 'Real hotels from Booking', 'Restaurants from Google Maps', 'Budget and fuel', 'Every edit undoable', 'Automatic photos', 'Trip checklist', 'Export and import', 'Installable as an app', 'English and Italian'],
     },
   },
   steps: {
@@ -100,6 +100,40 @@ const STR = {
       ],
     },
     undo: { it: '2 modifiche in questo turno · Annulla', en: '2 edits this turn · Undo' },
+  },
+  picks: {
+    kicker: { it: 'Proposte vive', en: 'Live picks' },
+    title: { it: 'Hotel e ristoranti veri, scelti con un tap.', en: 'Real hotels and restaurants, picked with one tap.' },
+    sub: {
+      it: 'Niente nomi inventati: Ulisse cerca dal vivo su Booking.com e Google Maps e ti propone una rosa di alternative in chat — con recensioni pesate sul loro numero, prezzi reali, distanza dal percorso e anteprima sulla mappa. Tu scegli, l’itinerario si aggiorna.',
+      en: 'No made-up names: Ulisse searches Booking.com and Google Maps live and proposes a shortlist in the chat — reviews weighted by how many there are, real prices, distance from your route and a map preview. You pick, the itinerary updates.',
+    },
+    cards: {
+      it: [
+        {
+          t: 'Alloggi da Booking.com',
+          d: 'Prezzi totali reali per le tue date, punteggi affidabili (un 8,7 con 3.000 recensioni batte un 10 con 2), disponibilità e link diretti già compilati. Il bottone «Mappa» pianta un pin e mostra quanti km aggiunge ogni opzione al percorso.',
+          chips: ['prezzi per le tue date', 'recensioni pesate', 'km dal percorso', 'pin sulla mappa'],
+        },
+        {
+          t: 'Ristoranti da Google Maps',
+          d: 'Stelle, numero di recensioni e la spesa media a persona — il «€20–30» che vedi su Maps — con categoria e posizione. Ordinati perché un 4,5 con migliaia di recensioni valga più di un 5,0 con poche decine. «Nessuno di questi» e si continua a cercare.',
+          chips: ['stelle e recensioni', 'prezzo a persona', 'sul percorso', 'link Google Maps'],
+        },
+      ],
+      en: [
+        {
+          t: 'Stays from Booking.com',
+          d: 'Real total prices for your dates, trustworthy scores (an 8.7 with 3,000 reviews beats a 10 with 2), availability and prefilled deep links. The “Map” button drops a pin and shows how many km each option adds to your route.',
+          chips: ['prices for your dates', 'weighted reviews', 'km off route', 'map pin'],
+        },
+        {
+          t: 'Restaurants from Google Maps',
+          d: 'Stars, review counts and the average per-person price — the “€20–30” you see on Maps — with category and location. Ranked so a 4.5 with thousands of reviews beats a 5.0 with a few dozen. “None of these” keeps the search going.',
+          chips: ['stars and reviews', 'price per person', 'on your route', 'Google Maps link'],
+        },
+      ],
+    },
   },
   features: {
     kicker: { it: 'Tutto il resto', en: 'Everything else' },

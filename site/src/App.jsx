@@ -7,6 +7,7 @@ import Marquee from './sections/Marquee.jsx'
 import Steps from './sections/Steps.jsx'
 import Demo from './sections/Demo.jsx'
 import Ulisse from './sections/Ulisse.jsx'
+import Picks from './sections/Picks.jsx'
 import Features from './sections/Features.jsx'
 import Install from './sections/Install.jsx'
 
@@ -21,6 +22,7 @@ export default function App() {
         <Steps />
         <Demo />
         <Ulisse />
+        <Picks />
         <Features />
         <Install />
       </main>

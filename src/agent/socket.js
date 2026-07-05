@@ -320,7 +320,7 @@ hooks.onProposeRestaurants = (a, resolve) => {
 
 /* dev-only handle for automated UI tests */
 if (import.meta.env.DEV && typeof window !== 'undefined') {
-  window.__stores = { useAgentChat, useTrip }
+  window.__stores = { useAgentChat, useTrip, useUI }
 }
 
 let ws = null
