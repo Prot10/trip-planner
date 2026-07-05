@@ -8,6 +8,7 @@ import {
 import { Trans, useTranslation } from 'react-i18next'
 import { useAgentChat, useChats } from '../agent/socket'
 import { useTrip, useUI, activeTrip } from '../store'
+import { useVisualViewport } from '../lib/useViewport'
 import Markdown from './Markdown'
 import PlanningStepper from './PlanningStepper'
 import QuestionCard, { QARecord } from './QuestionCard'
@@ -31,10 +32,11 @@ export default function ChatPanel({ onClose }) {
   const [showHistory, setShowHistory] = useState(false)
   const inputRef = useRef(null)
   const scrollRef = useRef(null)
+  const { keyboardInset } = useVisualViewport()
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
-  }, [messages, thinking, streamText, showEdits, pendingQuestion])
+  }, [messages, thinking, streamText, showEdits, pendingQuestion, keyboardInset])
 
   const submit = () => inputRef.current?.send()
 
@@ -155,7 +157,7 @@ export default function ChatPanel({ onClose }) {
       )}
 
       {/* composer */}
-      <div className="border-t border-ink-200 p-3">
+      <div className="border-t border-ink-200 p-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] lg:pb-3">
         {!connected && (
           <p className="mb-2 rounded-lg bg-rose-50 px-3 py-2 text-[11.5px] font-semibold leading-snug text-rose-700">
             <Trans i18nKey="chat.panel.serverDown">
@@ -265,7 +267,7 @@ function EditRow({ edit }) {
   const { t } = useTranslation()
   const meta = TOOL_META[edit.name] ?? { Icon: Wrench, label: () => edit.name }
   const setFocusItem = useUI((s) => s.setFocusItem)
-  const setTab = useUI((s) => s.setTab)
+  const revealList = useUI((s) => s.revealList)
   const undoOne = useAgentChat((s) => s.undoOne)
   const [open, setOpen] = useState(false)
 
@@ -287,7 +289,9 @@ function EditRow({ edit }) {
         {itemId && !edit.reverted && (
           <button
             onClick={() => {
-              if (window.innerWidth < 1024) setTab('itinerary')
+              /* the mobile chat is a fullscreen overlay: close it to reveal the list */
+              if (window.innerWidth < 1024) useAgentChat.getState().setOpen(false)
+              revealList('itinerary')
               setFocusItem(itemId, '#f59e0b')
             }}
             title={t('chat.panel.showInItinerary')}

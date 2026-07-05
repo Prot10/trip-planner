@@ -36,7 +36,7 @@ export function PoiMarkers() {
   const trip = useTrip((s) => activeTrip(s))
   const insertItemAt = useTrip((s) => s.insertItemAt)
   const setFocusItem = useUI((s) => s.setFocusItem)
-  const setTab = useUI((s) => s.setTab)
+  const revealList = useUI((s) => s.revealList)
 
   const markers = useMemo(() => {
     if (!enabled) return []
@@ -87,7 +87,7 @@ export function PoiMarkers() {
           </div>
           {p.inTrip ? (
             <button
-              onClick={() => { setFocusItem(p.itemId, p.color); if (window.innerWidth < 1024) setTab('itinerary') }}
+              onClick={() => { setFocusItem(p.itemId, p.color); revealList('itinerary') }}
               className="mt-2 rounded-lg bg-ink-900 px-2.5 py-1.5 text-[11px] font-bold text-white transition hover:bg-ink-700"
             >
               {t('common.seeInItinerary')}

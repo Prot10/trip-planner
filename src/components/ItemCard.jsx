@@ -18,7 +18,7 @@ export default function ItemCard({ item, day, isLast, stopNumber }) {
   const openEditor = useUI((s) => s.openEditor)
   const openDetail = useUI((s) => s.openDetail)
   const setFlyTo = useUI((s) => s.setFlyTo)
-  const setTab = useUI((s) => s.setTab)
+  const revealMap = useUI((s) => s.revealMap)
   const ask = useUI((s) => s.ask)
   const focusItemId = useUI((s) => s.focusItemId)
   const setFocusItem = useUI((s) => s.setFocusItem)
@@ -41,7 +41,7 @@ export default function ItemCard({ item, day, isLast, stopNumber }) {
 
   const showOnMap = () => {
     setFlyTo({ lat: item.lat, lng: item.lng, itemId: item.id })
-    if (window.innerWidth < 1024) setTab('map')
+    revealMap()
   }
 
   return (
@@ -95,7 +95,7 @@ export default function ItemCard({ item, day, isLast, stopNumber }) {
             onClick={(e) => e.stopPropagation()}
             title={t('item.dragReorder')}
             aria-label={t('item.dragReorder')}
-            className="-ml-1 mt-0.5 shrink-0 cursor-grab touch-none rounded p-0.5 text-ink-300 transition hover:bg-ink-100 hover:text-ink-500 active:cursor-grabbing"
+            className="-ml-1 mt-0.5 shrink-0 cursor-grab touch-none rounded p-0.5 text-ink-300 transition hover:bg-ink-100 hover:text-ink-500 active:cursor-grabbing max-lg:-my-1 max-lg:grid max-lg:min-h-11 max-lg:min-w-9 max-lg:place-items-center"
           >
             <GripVertical size={15} />
           </button>
@@ -108,7 +108,7 @@ export default function ItemCard({ item, day, isLast, stopNumber }) {
                   <Clock size={11} /> {item.time}
                 </Chip>
               )}
-              <Chip className={meta.chip}>
+              <Chip className={`max-lg:hidden ${meta.chip}`}>
                 <meta.Icon size={11} /> {t(meta.labelKey)}
               </Chip>
               {item.dur > 0 && (
@@ -132,11 +132,11 @@ export default function ItemCard({ item, day, isLast, stopNumber }) {
               {item.title}
             </h4>
             {item.notes && (
-              <p className="mt-0.5 whitespace-pre-line text-xs leading-relaxed text-ink-500">{item.notes}</p>
+              <p className="mt-0.5 whitespace-pre-line text-xs leading-relaxed text-ink-500 max-lg:line-clamp-1 max-lg:whitespace-normal">{item.notes}</p>
             )}
 
             {(item.lat != null || item.links.length > 0) && (
-              <div className="mt-2 flex flex-wrap items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+              <div className="mt-2 flex flex-wrap items-center gap-1.5 max-lg:hidden" onClick={(e) => e.stopPropagation()}>
                 {item.lat != null && (
                   <>
                     <button
@@ -175,7 +175,7 @@ export default function ItemCard({ item, day, isLast, stopNumber }) {
           {/* hover actions */}
           <div
             onClick={(e) => e.stopPropagation()}
-            className="flex shrink-0 flex-col gap-0.5 opacity-100 transition lg:opacity-0 lg:group-hover/item:opacity-100"
+            className="flex shrink-0 flex-col gap-0.5 opacity-100 transition max-lg:hidden lg:opacity-0 lg:group-hover/item:opacity-100"
           >
             <button
               title={t('common.edit')}

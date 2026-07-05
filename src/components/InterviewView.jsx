@@ -7,6 +7,7 @@ import {
 import { useAgentChat } from '../agent/socket'
 import { useTrip, activeTrip } from '../store'
 import { demoPrompt } from '../demo/prefill'
+import { DemoBadgeInline } from '../demo/DemoBadge'
 import Markdown from './Markdown'
 import PlanningStepper from './PlanningStepper'
 import QuestionCard, { QARecord } from './QuestionCard'
@@ -73,6 +74,7 @@ export default function InterviewView() {
         >
           <ChevronLeft size={16} /> {t('dashboard.title')}
         </button>
+        <DemoBadgeInline />
         <div className="ml-auto flex items-center gap-2">
           {notes && (
             <button
@@ -92,7 +94,7 @@ export default function InterviewView() {
             {/* hero, fades away after the first message */}
             <div
               className={`text-center transition-all duration-700 ${
-                empty ? 'mt-[6vh] opacity-100' : 'mt-0 max-h-0 scale-95 overflow-hidden opacity-0'
+                empty ? 'mt-[6svh] opacity-100' : 'mt-0 max-h-0 scale-95 overflow-hidden opacity-0'
               }`}
             >
               <div className="mx-auto w-fit"><AgentAvatar className="size-16" iconSize={30} /></div>
@@ -143,7 +145,7 @@ export default function InterviewView() {
 
             {/* composer: in the flow on the empty hero (it can never cover
                 anything), docked to the bottom while chatting */}
-            <div className={`z-10 pt-3 ${empty ? '' : 'sticky bottom-0'}`}>
+            <div className={`z-10 pb-[env(safe-area-inset-bottom)] pt-3 ${empty ? '' : 'sticky bottom-0'}`}>
               <Composer
                 text={text} setText={setText} submit={submit} stop={stop}
                 connected={connected} thinking={thinking} pendingQuestion={pendingQuestion}
@@ -240,16 +242,25 @@ function Composer({
   needCurrency, currency, setCurrency, currencyNudge, demoLocked,
 }) {
   const { t } = useTranslation()
+  const taRef = useRef(null)
+  /* true autogrow: height follows the rendered content at any width */
+  useEffect(() => {
+    const el = taRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${Math.min(el.scrollHeight, 128)}px`
+  }, [text])
   return (
     <div className="rounded-2xl border border-ink-200 bg-white p-2 shadow-lg">
       <div className="flex items-end gap-2">
         <textarea
+          ref={taRef}
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit() }
           }}
-          rows={Math.min(4, Math.max(text.split('\n').length, Math.ceil(text.length / 70), 1))}
+          rows={1}
           placeholder={pendingQuestion ? t('interview.placeholderAnswer') : !connected ? t('interview.placeholderOffline') : needCurrency ? t('interview.placeholderCurrency') : t('interview.placeholder')}
           disabled={!connected || !!pendingQuestion}
           readOnly={demoLocked}
@@ -302,7 +313,7 @@ function Composer({
             ))}
           </div>
         )}
-        <div className="min-w-0">
+        <div className="flex min-w-0 flex-1 justify-center">
           <ModelPicker up />
         </div>
         <div className="shrink-0">

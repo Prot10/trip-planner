@@ -73,11 +73,21 @@ export function groupMessages(messages) {
   return out
 }
 
-/* one chip per tool run — or a grouped chip with a hover menu listing all */
+/* one chip per tool run — or a grouped chip with a hover menu listing all
+   (tap-toggled too: hover does not exist on touch) */
 export function ToolChipGroup({ group }) {
   useTranslation() // re-render on language change: labels below resolve via i18n.t
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
   const meta = TOOL_META[group.name] ?? { Icon: Wrench, label: () => group.name }
   const n = group.items.length
+
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('pointerdown', onDown)
+    return () => document.removeEventListener('pointerdown', onDown)
+  }, [open])
 
   if (n === 1) {
     const m = group.items[0]
@@ -92,13 +102,17 @@ export function ToolChipGroup({ group }) {
 
   const label = (GROUP_LABELS[group.name] ?? ((x) => `${meta.label({}, null)} ×${x}`))(n)
   return (
-    <div className="group/tg relative mb-2 flex">
-      <span className="inline-flex cursor-default items-center gap-1.5 rounded-lg bg-ink-100 px-2.5 py-1 text-[11px] font-semibold text-ink-600 ring-1 ring-ink-500/10 transition group-hover/tg:ring-brand-300">
+    <div ref={ref} className="group/tg relative mb-2 flex">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="inline-flex items-center gap-1.5 rounded-lg bg-ink-100 px-2.5 py-1 text-[11px] font-semibold text-ink-600 ring-1 ring-ink-500/10 transition group-hover/tg:ring-brand-300"
+      >
         <meta.Icon size={11} className="text-brand-500" /> {label}
-        <ChevronDown size={10} className="text-ink-400" />
-      </span>
-      {/* hover breakdown, like the budget badge */}
-      <div className="invisible absolute bottom-[calc(100%+6px)] left-0 z-30 w-72 rounded-xl border border-ink-200 bg-white p-2 opacity-0 shadow-xl transition-all duration-150 group-hover/tg:visible group-hover/tg:opacity-100">
+        <ChevronDown size={10} className={`text-ink-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {/* breakdown: hover on desktop, tap everywhere */}
+      <div className={`absolute bottom-[calc(100%+6px)] left-0 z-30 w-72 rounded-xl border border-ink-200 bg-white p-2 shadow-xl transition-all duration-150 group-hover/tg:visible group-hover/tg:opacity-100 ${open ? 'visible opacity-100' : 'invisible opacity-0'}`}>
         <div className="nice-scroll max-h-56 overflow-y-auto">
           {group.items.map((m) => (
             <div key={m.id} className="flex items-start gap-2 rounded-md px-1.5 py-1 text-[11px] text-ink-600 hover:bg-ink-50">

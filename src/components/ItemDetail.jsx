@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   X, ChevronLeft, ChevronRight, Clock, Timer, Star, Pencil, Navigation, MapPinned,
-  ExternalLink, ImageOff, BedDouble,
+  ExternalLink, ImageOff, BedDouble, Trash2,
 } from 'lucide-react'
-import { useTrip, useUI, activeTrip } from '../store'
+import { useTrip, useUI, toast, activeTrip } from '../store'
 import { fmtDur, fmtMoney, gmapsUrl } from '../lib/utils'
 import { TYPE_META, itemMeta } from './typeMeta'
 import { useItemImages } from './ItemImage'
@@ -18,7 +18,9 @@ export default function ItemDetail() {
   const closeDetail = useUI((s) => s.closeDetail)
   const openEditor = useUI((s) => s.openEditor)
   const setFlyTo = useUI((s) => s.setFlyTo)
-  const setTab = useUI((s) => s.setTab)
+  const revealMap = useUI((s) => s.revealMap)
+  const ask = useUI((s) => s.ask)
+  const removeItem = useTrip((s) => s.removeItem)
   const trip = useTrip((s) => activeTrip(s))
 
   const day = trip?.days.find((d) => d.id === detail.dayId)
@@ -34,7 +36,7 @@ export default function ItemDetail() {
   const showOnMap = () => {
     closeDetail()
     setFlyTo({ lat: item.lat, lng: item.lng, itemId: item.id })
-    if (window.innerWidth < 1024) setTab('map')
+    revealMap()
   }
 
   return (
@@ -142,7 +144,20 @@ export default function ItemDetail() {
         )}
       </div>
 
-      <div className="flex justify-end gap-2.5 border-t border-ink-100 px-5 py-4 sm:px-6">
+      <div className="flex items-center gap-2.5 border-t border-ink-100 px-5 py-4 pb-[max(env(safe-area-inset-bottom),1rem)] sm:px-6">
+        <button
+          onClick={() =>
+            ask(t('item.confirmDelete', { title: item.title }), () => {
+              closeDetail()
+              removeItem(day.id, item.id)
+              toast(t('item.deleted'))
+            })
+          }
+          className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
+        >
+          <Trash2 size={14} /> {t('common.delete')}
+        </button>
+        <span className="flex-1" />
         <button
           onClick={closeDetail}
           className="rounded-xl border border-ink-200 px-4 py-2 text-sm font-semibold text-ink-600 transition hover:bg-ink-50"

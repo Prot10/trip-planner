@@ -280,7 +280,7 @@ export default function MapPanel() {
       />
 
       {/* legend / day filter */}
-      <div className="nice-scroll absolute left-3 right-3 top-[60px] z-[500] -m-1.5 flex gap-1.5 overflow-x-auto p-1.5 transition-[right,left] duration-200 lg:left-[calc(0.75rem+var(--left-w,0px))] lg:right-[calc(21.5rem+var(--chat-w,0px))] lg:top-[var(--hdr-b,96px)] lg:flex-wrap">
+      <div className="no-scrollbar absolute left-3 right-3 top-[calc(var(--hdr-b,96px)+48px)] z-[500] -m-1.5 flex gap-1.5 overflow-x-auto p-1.5 transition-[right,left] duration-200 max-lg:[mask-image:linear-gradient(to_right,transparent,black_10px,black_calc(100%-10px),transparent)] lg:nice-scroll lg:left-[calc(0.75rem+var(--left-w,0px))] lg:right-[calc(21.5rem+var(--chat-w,0px))] lg:top-[var(--hdr-b,96px)] lg:flex-wrap">
         <LegChip active={!mapFilter} color="#334155" onClick={() => setMapFilter(null)}>
           {t('map.legend.all')}
         </LegChip>
@@ -298,7 +298,7 @@ export default function MapPanel() {
       </div>
 
       {/* fit-all + POI discovery */}
-      <div className="absolute bottom-6 left-3 z-[500] flex items-center gap-2 lg:bottom-3 lg:left-[calc(0.75rem+var(--left-w,0px))]">
+      <div className="absolute bottom-[calc(var(--sheet-peek,0px)+12px)] left-3 z-[500] flex items-center gap-2 lg:bottom-3 lg:left-[calc(0.75rem+var(--left-w,0px))]">
         <button
           onClick={() => { setMapFilter(null); setFitNonce((n) => n + 1) }}
           title={t('map.legend.fitAll')}
@@ -318,7 +318,7 @@ function LegPopup({ leg, road, color }) {
   const { t } = useTranslation()
   const meta = MODE_META[leg.mode] ?? MODE_META.car
   const setFocusItem = useUI((s) => s.setFocusItem)
-  const setTab = useUI((s) => s.setTab)
+  const revealList = useUI((s) => s.revealList)
   const km = road?.km ?? haversineKm(leg.from, leg.to)
   return (
     <div className="min-w-44 max-w-60">
@@ -343,7 +343,7 @@ function LegPopup({ leg, road, color }) {
       <button
         onClick={() => {
           setFocusItem(leg.driveId ?? leg.toId, color)
-          if (window.innerWidth < 1024) setTab('itinerary')
+          revealList('itinerary')
         }}
         className="mt-2 rounded-lg bg-ink-900 px-2.5 py-1.5 text-[11px] font-bold text-white transition hover:bg-ink-700"
       >
@@ -358,7 +358,7 @@ function LegPopup({ leg, road, color }) {
 function PinMarker({ item, n, day, dayIndex, markerRefs, onDirTo }) {
   const { t } = useTranslation()
   const setFocusItem = useUI((s) => s.setFocusItem)
-  const setTab = useUI((s) => s.setTab)
+  const revealList = useUI((s) => s.revealList)
 
   /* inline lucide "bed-double" path — hotel pins get an icon, stops get their number */
   const BED_SVG =
@@ -397,7 +397,7 @@ function PinMarker({ item, n, day, dayIndex, markerRefs, onDirTo }) {
           </div>
           <div className="mt-2 flex flex-wrap gap-1.5">
             <button
-              onClick={() => { setFocusItem(item.id, day.color); if (window.innerWidth < 1024) setTab('itinerary') }}
+              onClick={() => { setFocusItem(item.id, day.color); revealList('itinerary') }}
               className="rounded-lg bg-ink-900 px-2.5 py-1.5 text-[11px] font-bold text-white transition hover:bg-ink-700"
             >
               {t('common.seeInItinerary')}
@@ -499,7 +499,7 @@ function PickConsumer() {
   useMapEvents({
     click(e) {
       if (!picking) return
-      const { editor, openEditor, setPicking, setTab } = useUI.getState()
+      const { editor, openEditor, setPicking } = useUI.getState()
       if (!editor) { setPicking(false); return }
       const draft = editor.draft ?? {}
       openEditor(editor.dayId, editor.itemId, {
@@ -507,8 +507,7 @@ function PickConsumer() {
         lat: +e.latlng.lat.toFixed(5),
         lng: +e.latlng.lng.toFixed(5),
       })
-      setPicking(false)
-      if (window.innerWidth < 1024) setTab('itinerary')
+      setPicking(false) /* restores the sheet snap it parked */
       toast(t('map.toasts.positionSet'))
     },
   })
@@ -575,7 +574,7 @@ function SearchOverlay({ place, setPlace, dir, setDir, route, routing, dirPick, 
   }
 
   return (
-    <div className="absolute right-[calc(0.75rem+var(--chat-w,0px))] top-3 z-[520] w-80 max-w-[calc(100vw-24px)] transition-[right] duration-200 lg:top-[var(--hdr-b,96px)]">
+    <div className="absolute right-[calc(0.75rem+var(--chat-w,0px))] top-[var(--hdr-b,96px)] z-[520] w-80 max-w-[calc(100vw-24px)] transition-[right] duration-200 lg:top-[var(--hdr-b,96px)]">
       <div className="nice-scroll max-h-[calc(100dvh-150px)] overflow-y-auto rounded-2xl border border-ink-200 bg-white shadow-lg">
         {!dir.open ? (
           /* --- simple place search --- */

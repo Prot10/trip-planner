@@ -13,7 +13,7 @@ export default function Suggestions() {
   const insertItemAt = useTrip((s) => s.insertItemAt)
   const removeSuggestionItem = useTrip((s) => s.removeSuggestionItem)
   const setFocusItem = useUI((s) => s.setFocusItem)
-  const setTab = useUI((s) => s.setTab)
+  const revealList = useUI((s) => s.revealList)
 
   /* sugId -> { dayIndex } for the ones already in the trip */
   const active = new Map()
@@ -50,7 +50,7 @@ export default function Suggestions() {
   const goToItem = (sugId) => {
     const info = active.get(sugId)
     if (!info) return
-    setTab('itinerary')
+    revealList('itinerary')
     setFocusItem(info.itemId, info.color)
   }
 

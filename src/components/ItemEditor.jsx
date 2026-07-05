@@ -27,7 +27,6 @@ export default function ItemEditor() {
   const closeEditor = useUI((s) => s.closeEditor)
   const openEditor = useUI((s) => s.openEditor)
   const setPicking = useUI((s) => s.setPicking)
-  const setTab = useUI((s) => s.setTab)
   const ask = useUI((s) => s.ask)
   const addItem = useTrip((s) => s.addItem)
   const updateItem = useTrip((s) => s.updateItem)
@@ -71,8 +70,7 @@ export default function ItemEditor() {
   const pickOnMap = () => {
     /* stash the draft so it survives while the editor hides for picking */
     openEditor(dayId, itemId, draft)
-    setPicking(true)
-    if (window.innerWidth < 1024) setTab('map')
+    setPicking(true) /* parks the mobile sheet at peek by itself */
   }
 
   const onSave = () => {

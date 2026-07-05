@@ -31,6 +31,17 @@ body {
   overscroll-behavior-y: none;
 }
 
+/* mobile planner: static offset that clears the bottom sheet's peek state.
+   Set on <html> by the planner shell (App.jsx), 0 everywhere else. */
+:root { --sheet-peek: 0px; }
+@media (max-width: 63.98rem) {
+  .leaflet-bottom { margin-bottom: var(--sheet-peek, 0px); }
+}
+
+/* hide scrollbars on mobile chip strips (fade masks signal the overflow) */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
 /* ---------- custom scrollbar (subtle, light) ---------- */
 .nice-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
 .nice-scroll::-webkit-scrollbar-track { background: transparent; }

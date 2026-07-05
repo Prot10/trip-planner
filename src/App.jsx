@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Map as MapIcon, ListChecks, CalendarRange, Sparkles, Bot } from 'lucide-react'
+import { ListChecks, CalendarRange, Sparkles, Bot } from 'lucide-react'
 import { useUI, useTrip, useRoutes, activeTrip } from './store'
 import { connectAgent, useAgentChat } from './agent/socket'
 import { startStorageSync } from './lib/storageSync'
+import { useIsDesktop, useVisualViewport } from './lib/useViewport'
+import BottomSheet from './components/mobile/BottomSheet'
+import SheetHeader from './components/mobile/SheetHeader'
 import ChatPanel from './components/ChatPanel'
 import InterviewView from './components/InterviewView'
 import Header from './components/Header'
@@ -17,6 +20,8 @@ import DayEditor from './components/DayEditor'
 import Dashboard from './components/Dashboard'
 import ConfirmDialog from './components/ConfirmDialog'
 import Toast from './components/Toast'
+
+const isMobileNow = () => window.innerWidth < 1024
 
 export default function App() {
   const { t } = useTranslation()
@@ -34,15 +39,36 @@ export default function App() {
   /* leaving/switching trip: reset per-trip UI + published road distances */
   useEffect(() => {
     useRoutes.setState({ byDay: {} })
-    useUI.setState({ tab: 'itinerary', mapFilter: null, detail: null, editor: null, dayEditor: null, picking: false })
+    useUI.setState({ tab: 'itinerary', mapFilter: null, detail: null, editor: null, dayEditor: null, picking: false, sheet: 'half', sheetBeforePick: null })
     useAgentChat.getState().newChat()
   }, [activeId])
 
   /* agent bridge: keep the WebSocket to the local agent server alive */
   const chatOpen = useAgentChat((s) => s.open)
   const setChatOpen = useAgentChat((s) => s.setOpen)
+  const thinking = useAgentChat((s) => s.thinking)
+  const pendingQuestion = useAgentChat((s) => s.pendingQuestion)
   /* demo builds have no local server: no storage sync, scripted agent */
   useEffect(() => { connectAgent(); if (import.meta.env.VITE_DEMO !== '1') startStorageSync() }, [])
+
+  /* mobile shell: bottom sheet over an always-visible map */
+  const isDesktop = useIsDesktop()
+  const vv = useVisualViewport()
+  const sheet = useUI((s) => s.sheet)
+  const setSheet = useUI((s) => s.setSheet)
+  const phase = useTrip((s) => activeTrip(s)?.phase)
+  const plannerShown = !!activeId && phase !== 'interview'
+  /* static offset every floating element uses to clear the sheet's peek */
+  useEffect(() => {
+    const root = document.documentElement
+    root.style.setProperty('--sheet-peek', plannerShown && !isDesktop ? 'calc(130px + env(safe-area-inset-bottom))' : '0px')
+    return () => root.style.setProperty('--sheet-peek', '0px')
+  }, [plannerShown, isDesktop])
+  /* the chat defaults open for the desktop side panel; on a phone it is a
+     fullscreen overlay and must never open by itself */
+  useEffect(() => {
+    if (plannerShown && !isDesktop) setChatOpen(false)
+  }, [plannerShown, isDesktop, setChatOpen])
 
   /* the floating header's real bottom edge drives map-overlay offsets */
   const hdrRef = useRef(null)
@@ -61,26 +87,28 @@ export default function App() {
   const [leftW, startLeftDrag] = useDragWidth('ui.leftW', 600, 440, 820, false)
   const [chatW, startChatDrag] = useDragWidth('ui.chatW', 420, 340, 640, true)
   useEffect(() => {
-    useAgentChat.setState({ panelW: chatOpen ? chatW : 0 })
-  }, [chatOpen, chatW])
+    /* the mobile chat is a fullscreen overlay: it must not shift map overlays */
+    useAgentChat.setState({ panelW: isDesktop && chatOpen ? chatW : 0 })
+  }, [chatOpen, chatW, isDesktop])
 
-  /* global Escape: cancel picking, then close modals */
+  /* global Escape: picking, then mobile chat, then modals, then the sheet */
   useEffect(() => {
     const onKey = (e) => {
       if (e.key !== 'Escape') return
-      if (useUI.getState().picking) setPicking(false)
-      else {
+      const ui = useUI.getState()
+      if (ui.picking) setPicking(false)
+      else if (isMobileNow() && useAgentChat.getState().open) setChatOpen(false)
+      else if (ui.editor || ui.dayEditor || ui.detail) {
         closeEditor()
         closeDayEditor()
-        useUI.getState().closeDetail()
-      }
+        ui.closeDetail()
+      } else if (isMobileNow() && ui.sheet === 'full') ui.setSheet('half')
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [setPicking, closeEditor, closeDayEditor])
+  }, [setPicking, closeEditor, closeDayEditor, setChatOpen])
 
   const leftTab = ['checklist', 'suggestions'].includes(tab) ? tab : 'itinerary'
-  const phase = useTrip((s) => activeTrip(s)?.phase)
 
   if (!activeId) return <Dashboard />
 
@@ -92,47 +120,70 @@ export default function App() {
       <div ref={hdrRef}><Header /></div>
 
       <main className="relative z-10 flex min-h-0 flex-1 lg:pointer-events-none" style={{ '--left-w': `${leftW + 12}px` }}>
-        {/* map — full-viewport background on desktop (under the floating header), its own tab on mobile */}
-        <section className={`relative min-w-0 flex-1 ${tab === 'map' ? 'block' : 'hidden'} lg:pointer-events-auto lg:fixed lg:inset-0 lg:z-0 lg:block lg:flex-none`}>
+        {/* map — always mounted, full-viewport background on every size */}
+        <section className="pointer-events-auto fixed inset-0 z-0">
           <MapPanel />
         </section>
 
-        {/* left panel — floating card on desktop (resizable), in-flow on mobile */}
-        <section
-          className={`relative z-[540] min-w-0 flex-1 lg:pointer-events-auto lg:absolute lg:bottom-3 lg:left-3 lg:top-3 lg:w-[calc(var(--left-w)-12px)] lg:flex-none lg:overflow-hidden lg:rounded-3xl lg:border lg:border-ink-200 lg:shadow-2xl ${
-            tab === 'map' || tab === 'chat' ? 'hidden lg:flex' : 'flex'
-          } flex-col bg-ink-50`}
-        >
-          {/* desktop tabs */}
-          <nav className="hidden items-center gap-1 border-b border-ink-200 bg-white px-4 pt-2 lg:flex">
-            <TabBtn active={leftTab === 'itinerary'} onClick={() => setTab('itinerary')} Icon={CalendarRange} label={t('app.tabItinerary')} />
-            <TabBtn active={leftTab === 'suggestions'} onClick={() => setTab('suggestions')} Icon={Sparkles} label={t('app.tabSuggestions')} />
-            <TabBtn active={leftTab === 'checklist'} onClick={() => setTab('checklist')} Icon={ListChecks} label={t('app.tabChecklist')} />
-          </nav>
+        {/* left panel — floating resizable card (desktop only) */}
+        {isDesktop && (
+          <section className="relative z-[540] hidden min-w-0 flex-1 lg:pointer-events-auto lg:absolute lg:bottom-3 lg:left-3 lg:top-3 lg:flex lg:w-[calc(var(--left-w)-12px)] lg:flex-none lg:overflow-hidden lg:rounded-3xl lg:border lg:border-ink-200 lg:shadow-2xl flex-col bg-ink-50">
+            {/* desktop tabs */}
+            <nav className="hidden items-center gap-1 border-b border-ink-200 bg-white px-4 pt-2 lg:flex">
+              <TabBtn active={leftTab === 'itinerary'} onClick={() => setTab('itinerary')} Icon={CalendarRange} label={t('app.tabItinerary')} />
+              <TabBtn active={leftTab === 'suggestions'} onClick={() => setTab('suggestions')} Icon={Sparkles} label={t('app.tabSuggestions')} />
+              <TabBtn active={leftTab === 'checklist'} onClick={() => setTab('checklist')} Icon={ListChecks} label={t('app.tabChecklist')} />
+            </nav>
 
-          <div className="nice-scroll min-h-0 flex-1 overflow-y-auto px-3 pb-24 pt-4 sm:px-4 lg:pb-8">
+            <div className="nice-scroll min-h-0 flex-1 overflow-y-auto px-3 pb-8 pt-4 sm:px-4">
+              {leftTab === 'itinerary' && <ItineraryPanel />}
+              {leftTab === 'suggestions' && <Suggestions />}
+              {leftTab === 'checklist' && <Checklist />}
+            </div>
+
+            {/* drag handle to resize the itinerary column */}
+            <div
+              onMouseDown={startLeftDrag}
+              title={t('app.dragResize')}
+              className="absolute right-0 top-0 z-10 hidden h-full w-1.5 cursor-col-resize transition-colors hover:bg-brand-400/60 active:bg-brand-500 lg:block"
+            />
+          </section>
+        )}
+
+        {/* mobile: the same panes live in a draggable bottom sheet; the
+            Ulisse button rides its top edge */}
+        {!isDesktop && (
+          <BottomSheet
+            snap={sheet}
+            onSnapChange={setSheet}
+            header={<SheetHeader />}
+            accessory={
+              !chatOpen && (
+                <button
+                  onClick={() => setChatOpen(true)}
+                  aria-label={t('header.aiAssistant')}
+                  className={`grid size-14 place-items-center rounded-full bg-violet-600 text-white shadow-xl shadow-violet-600/40 transition-all duration-300 active:scale-95 ${
+                    sheet === 'full' ? 'pointer-events-none scale-50 opacity-0' : ''
+                  }`}
+                >
+                  <Bot size={24} />
+                  {(thinking || pendingQuestion) && (
+                    <span className="absolute right-1 top-1 flex size-3.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                      <span className="relative inline-flex size-3.5 rounded-full border-2 border-white bg-amber-400" />
+                    </span>
+                  )}
+                </button>
+              )
+            }
+          >
             {leftTab === 'itinerary' && <ItineraryPanel />}
             {leftTab === 'suggestions' && <Suggestions />}
             {leftTab === 'checklist' && <Checklist />}
-          </div>
-
-          {/* drag handle to resize the itinerary column */}
-          <div
-            onMouseDown={startLeftDrag}
-            title={t('app.dragResize')}
-            className="absolute right-0 top-0 z-10 hidden h-full w-1.5 cursor-col-resize transition-colors hover:bg-brand-400/60 active:bg-brand-500 lg:block"
-          />
-        </section>
-
-        {/* AI chat — mobile full tab */}
-        <section className={`min-w-0 lg:hidden ${tab === 'chat' ? 'flex flex-1' : 'hidden'}`}>
-          <div className="h-full min-h-0 w-full pb-14">
-            <ChatPanel />
-          </div>
-        </section>
-
+          </BottomSheet>
+        )}
         {/* AI chat — desktop floating panel over the map (resizable) */}
-        {chatOpen && (
+        {isDesktop && chatOpen && (
           <div
             style={{ width: chatW }}
             className="anim-fade-up absolute bottom-3 right-3 top-3 z-[560] hidden lg:pointer-events-auto lg:block"
@@ -149,21 +200,18 @@ export default function App() {
         )}
       </main>
 
-      {/* mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-[700] flex border-t border-ink-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
-        <MobileTab active={tab === 'itinerary'} onClick={() => setTab('itinerary')} Icon={CalendarRange} label={t('app.tabItinerary')} />
-        <MobileTab active={tab === 'map'} onClick={() => setTab('map')} Icon={MapIcon} label={t('app.tabMap')} />
-        <MobileTab active={tab === 'chat'} onClick={() => setTab('chat')} Icon={Bot} label={t('app.tabAI')} />
-        <MobileTab active={tab === 'suggestions'} onClick={() => setTab('suggestions')} Icon={Sparkles} label={t('app.tabSuggestions')} />
-        <MobileTab active={tab === 'checklist'} onClick={() => setTab('checklist')} Icon={ListChecks} label={t('app.tabChecklist')} />
-      </nav>
-
       {/* overlays */}
+      {/* mobile chat: fullscreen, above the header (outside main's stacking context) */}
+      {!isDesktop && chatOpen && (
+        <div className="anim-fade-up fixed inset-x-0 top-0 z-[850] bg-white" style={{ height: vv.height }}>
+          <ChatPanel onClose={() => setChatOpen(false)} />
+        </div>
+      )}
       {detail && <ItemDetail key={`${detail.dayId}:${detail.itemId}`} />}
       {editor && !picking && <ItemEditor key={`${editor.dayId}:${editor.itemId ?? 'new'}`} />}
       {dayEditor && <DayEditor key={dayEditor.dayId ?? 'new'} />}
       {picking && (
-        <div className="pointer-events-none fixed inset-x-0 top-20 z-[800] flex justify-center px-4">
+        <div className="pointer-events-none fixed inset-x-0 top-[calc(var(--hdr-b,96px)+8px)] z-[800] flex justify-center px-4">
           <div className="anim-fade-up pointer-events-auto flex items-center gap-3 rounded-2xl bg-ink-900 px-5 py-3 text-sm font-semibold text-white shadow-xl">
             {t('app.pickOnMap')}
             <button
@@ -225,16 +273,3 @@ function TabBtn({ active, onClick, Icon, label }) {
   )
 }
 
-function MobileTab({ active, onClick, Icon, label }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold transition-colors ${
-        active ? 'text-brand-600' : 'text-ink-400'
-      }`}
-    >
-      <Icon size={21} strokeWidth={active ? 2.5 : 2} />
-      {label}
-    </button>
-  )
-}

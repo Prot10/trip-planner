@@ -266,9 +266,24 @@ export const useTrip = create(
 export const useRoutes = create(() => ({ byDay: {} }))
 
 /* ---------- ephemeral UI state (not persisted) ---------- */
+const isMobile = () => window.innerWidth < 1024
+
 export const useUI = create((set) => ({
-  tab: 'itinerary',            // itinerary | map | suggestions | checklist  (mobile tabs)
+  tab: 'itinerary',            // itinerary | suggestions | checklist (sheet segments / desktop tabs)
   setTab: (tab) => set({ tab }),
+
+  /* mobile bottom sheet snap; the planner map lives behind it */
+  sheet: 'half',               // peek | half | full
+  setSheet: (sheet) => set({ sheet }),
+  sheetBeforePick: null,       // snap to restore after a map-pick / show-on-map
+
+  /* "the user wants to look at the map": collapse the sheet, remember where it was */
+  revealMap: () => {
+    if (isMobile()) set((s) => ({ sheetBeforePick: s.sheet, sheet: 'peek' }))
+  },
+  /* "the user wants a list item": raise the sheet enough to read it */
+  revealList: (tab = 'itinerary') =>
+    set((s) => ({ tab, sheet: isMobile() && s.sheet === 'peek' ? 'half' : s.sheet })),
 
   mapFilter: null,
   setMapFilter: (mapFilter) => set({ mapFilter }),
@@ -293,7 +308,13 @@ export const useUI = create((set) => ({
   closeDayEditor: () => set({ dayEditor: null }),
 
   picking: false,
-  setPicking: (picking) => set({ picking }),
+  /* picking needs the map: park the sheet at peek, restore it afterwards */
+  setPicking: (picking) =>
+    set((s) =>
+      picking
+        ? { picking, sheetBeforePick: s.sheet, sheet: isMobile() ? 'peek' : s.sheet }
+        : { picking, sheet: s.sheetBeforePick ?? s.sheet, sheetBeforePick: null },
+    ),
 
   confirm: null,
   ask: (message, onYes) => set({ confirm: { message, onYes } }),

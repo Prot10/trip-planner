@@ -12,8 +12,10 @@ import { refreshFx } from '../lib/fx'
 import { getTitleImage } from './ItemImage'
 import { chainedDayCoords, estimateDayKm } from '../lib/geo'
 import { exportTripImages, internTripImages } from '../lib/imgdb'
-import DatePicker from './DatePicker'
+import DatePicker, { CalendarPanel } from './DatePicker'
 import LanguageSwitcher from './LanguageSwitcher'
+import Modal from './Modal'
+import { DemoBadgeInline } from '../demo/DemoBadge'
 
 export default function Header() {
   const { t } = useTranslation()
@@ -24,6 +26,9 @@ export default function Header() {
   const openDayEditor = useUI((s) => s.openDayEditor)
   const roadKmByDay = useRoutes((s) => s.byDay)
   const fileRef = useRef(null)
+
+  /* mobile: which full-screen sheet is open (dates / budget / car) */
+  const [mobilePanel, setMobilePanel] = useState(null)
 
   /* €/L prices convert through a live rate: re-render once it's fetched */
   const [, setFxReady] = useState(false)
@@ -122,14 +127,14 @@ export default function Header() {
         <div className="hidden shrink-0 items-center gap-1.5 @[78rem]:flex">
           {statRows.map((r) => <Stat key={r.label} {...r} />)}
         </div>
-        <StatsChip rows={statRows} className="hidden @[24rem]:block @[78rem]:hidden" />
+        <StatsChip rows={statRows} className="hidden lg:@[24rem]:block @[78rem]:hidden" />
 
         {/* actions */}
         <div className="flex shrink-0 items-center gap-1.5 @[40rem]:gap-2">
-          <BudgetBadge costs={costs} fuelUsd={fuelUsd} totalUsd={totalUsd} currency={currency} />
+          <div className="max-lg:hidden"><BudgetBadge costs={costs} fuelUsd={fuelUsd} totalUsd={totalUsd} currency={currency} /></div>
           <ChatToggle />
-          {usesCar && <CarSettings />}
-          <DatePicker />
+          {usesCar && <div className="max-lg:hidden"><CarSettings /></div>}
+          <div className="max-lg:hidden"><DatePicker /></div>
           <button
             onClick={() => openDayEditor(null)}
             className="flex items-center gap-1.5 rounded-xl bg-brand-500 px-3 py-2 text-sm font-semibold text-white shadow-md shadow-brand-500/30 transition hover:bg-brand-600 active:scale-[.97]"
@@ -137,14 +142,67 @@ export default function Header() {
             <Plus size={16} strokeWidth={2.6} />
             <span className="hidden @[54rem]:inline">{t('common.day')}</span>
           </button>
-          <IconBtn className="hidden @[48rem]:grid" title={t('header.exportTooltip')} onClick={onExport}><Download size={17} /></IconBtn>
-          <IconBtn className="hidden @[48rem]:grid" title={t('header.importTooltip')} onClick={() => fileRef.current?.click()}><Upload size={17} /></IconBtn>
-          <div className="hidden @[34rem]:block"><LanguageSwitcher compact /></div>
-          <MoreMenu onExport={onExport} onImport={() => fileRef.current?.click()} />
+          <IconBtn className="hidden lg:@[48rem]:grid" title={t('header.exportTooltip')} onClick={onExport}><Download size={17} /></IconBtn>
+          <IconBtn className="hidden lg:@[48rem]:grid" title={t('header.importTooltip')} onClick={() => fileRef.current?.click()}><Upload size={17} /></IconBtn>
+          <div className="hidden lg:@[34rem]:block"><LanguageSwitcher compact /></div>
+          <MoreMenu onExport={onExport} onImport={() => fileRef.current?.click()} onCar={usesCar ? () => setMobilePanel('car') : null} />
           <input ref={fileRef} type="file" accept=".json,application/json" hidden onChange={onImportFile} />
         </div>
       </div>
 
+      {/* mobile: the stats live in an always-visible scrollable strip */}
+      <div className="no-scrollbar flex items-center gap-1.5 overflow-x-auto px-3 pb-2.5 [mask-image:linear-gradient(to_right,transparent,black_12px,black_calc(100%-12px),transparent)] lg:hidden">
+        <DemoBadgeInline />
+        {statRows.filter((r) => r.Icon !== PlaneTakeoff).map((r) => (
+          <span key={r.label} title={r.label} className="flex shrink-0 items-center gap-1.5 rounded-xl border border-ink-200 bg-ink-50 px-2.5 py-1.5">
+            <r.Icon size={13} className="text-brand-500" />
+            <span className="whitespace-nowrap text-[12px] font-bold text-ink-800">{r.value}</span>
+          </span>
+        ))}
+        <button
+          onClick={() => setMobilePanel('dates')}
+          className="flex shrink-0 items-center gap-1.5 rounded-xl border border-ink-200 bg-ink-50 px-2.5 py-1.5 active:bg-ink-100"
+        >
+          <PlaneTakeoff size={13} className="text-brand-500" />
+          <span className={`whitespace-nowrap text-[12px] font-bold ${d0 ? 'text-ink-800' : 'text-ink-400'}`}>
+            {d0 && dN
+              ? `${fmtDate(d0, { day: 'numeric', month: 'short' })} – ${fmtDate(dN, { day: 'numeric', month: 'short' })}`
+              : t('datePicker.startDate')}
+          </span>
+        </button>
+        {totalUsd > 0 && (
+          <button
+            onClick={() => setMobilePanel('budget')}
+            className="flex shrink-0 items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 active:bg-emerald-100"
+          >
+            <Wallet size={13} className="text-emerald-600" />
+            <span className="whitespace-nowrap text-[12px] font-bold text-emerald-800">{fmtMoney(totalUsd, currency)}</span>
+          </button>
+        )}
+      </div>
+
+      {/* mobile bottom sheets behind the strip chips */}
+      {mobilePanel === 'dates' && (
+        <Modal onClose={() => setMobilePanel(null)}>
+          <div className="p-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
+            <CalendarPanel onPicked={() => setMobilePanel(null)} />
+          </div>
+        </Modal>
+      )}
+      {mobilePanel === 'budget' && (
+        <Modal onClose={() => setMobilePanel(null)}>
+          <div className="p-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
+            <BudgetBreakdown costs={costs} fuelUsd={fuelUsd} totalUsd={totalUsd} currency={currency} />
+          </div>
+        </Modal>
+      )}
+      {mobilePanel === 'car' && (
+        <Modal onClose={() => setMobilePanel(null)}>
+          <div className="p-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
+            <CarForm />
+          </div>
+        </Modal>
+      )}
     </header>
   )
 }
@@ -193,7 +251,7 @@ function StatsChip({ rows, className }) {
 }
 
 /* overflow menu: hosts export/import (and the language picker on phones) */
-function MoreMenu({ onExport, onImport }) {
+function MoreMenu({ onExport, onImport, onCar }) {
   const { t, i18n } = useTranslation()
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -207,17 +265,17 @@ function MoreMenu({ onExport, onImport }) {
     return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey) }
   }, [open])
 
-  const Row = ({ Icon, label, onClick }) => (
+  const Row = ({ Icon, label, onClick, className = '' }) => (
     <button
       onClick={() => { setOpen(false); onClick() }}
-      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-semibold text-ink-600 transition hover:bg-ink-50"
+      className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-semibold text-ink-600 transition hover:bg-ink-50 ${className}`}
     >
       <Icon size={15} className="text-ink-400" /> {label}
     </button>
   )
 
   return (
-    <div ref={ref} className="relative @[48rem]:hidden">
+    <div ref={ref} className="relative lg:@[48rem]:hidden">
       <button
         onClick={() => setOpen((o) => !o)}
         title={t('header.moreMenu')}
@@ -233,8 +291,9 @@ function MoreMenu({ onExport, onImport }) {
         <div className="anim-fade-up absolute right-0 top-[calc(100%+8px)] z-[950] w-52 rounded-2xl border border-ink-200 bg-white p-1.5 shadow-xl">
           <Row Icon={Download} label={t('header.exportTooltip')} onClick={onExport} />
           <Row Icon={Upload} label={t('header.importTooltip')} onClick={onImport} />
+          {onCar && <Row Icon={CarFront} label={t('header.car.title')} onClick={onCar} className="lg:hidden" />}
           {/* language switch lives here only while the inline picker is hidden */}
-          <div className="mt-1 border-t border-ink-100 pt-1 @[34rem]:hidden">
+          <div className="mt-1 border-t border-ink-100 pt-1 lg:@[34rem]:hidden">
             {LANGS.map((l) => (
               <button
                 key={l.code}
@@ -271,14 +330,6 @@ function BudgetBadge({ costs, fuelUsd, totalUsd, currency }) {
     return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey) }
   }, [pinned])
 
-  const rows = [
-    { Icon: BedDouble, label: t('header.budget.hotel'), v: costs.hotel, chip: 'bg-violet-100 text-violet-600', bar: 'bg-violet-400' },
-    { Icon: UtensilsCrossed, label: t('header.budget.food'), v: costs.food, chip: 'bg-rose-100 text-rose-600', bar: 'bg-rose-400' },
-    { Icon: Ticket, label: t('header.budget.activity'), v: costs.activity, chip: 'bg-amber-100 text-amber-600', bar: 'bg-amber-400' },
-    { Icon: Receipt, label: t('header.budget.extra'), v: costs.extra, chip: 'bg-teal-100 text-teal-600', bar: 'bg-teal-400' },
-    { Icon: Fuel, label: t('header.budget.fuel'), v: fuelUsd, chip: 'bg-sky-100 text-sky-600', bar: 'bg-sky-400' },
-  ].filter((r) => r.v > 0)
-
   return (
     <div
       ref={ref}
@@ -302,36 +353,54 @@ function BudgetBadge({ costs, fuelUsd, totalUsd, currency }) {
 
       {open && (
         <div className="anim-fade-up absolute right-0 top-[calc(100%+8px)] z-[950] w-72 rounded-2xl border border-ink-200 bg-white p-4 shadow-xl">
-          <h4 className="mb-3 font-display text-[13px] font-bold text-ink-900">{t('header.budget.title')}</h4>
-          <div className="flex flex-col gap-2.5">
-            {rows.map((r) => (
-              <div key={r.label}>
-                <div className="flex items-center gap-2.5">
-                  <span className={`grid size-7 shrink-0 place-items-center rounded-lg ${r.chip}`}>
-                    <r.Icon size={14} />
-                  </span>
-                  <span className="flex-1 text-xs font-semibold text-ink-600">{r.label}</span>
-                  <span className="text-[13px] font-bold tabular-nums text-ink-900">{fmtMoney(r.v, currency)}</span>
-                </div>
-                <div className="ml-9.5 mt-1 h-1 overflow-hidden rounded-full bg-ink-100">
-                  <div className={`h-full rounded-full ${r.bar}`} style={{ width: `${(r.v / totalUsd) * 100}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 flex items-center gap-2.5 border-t border-ink-100 pt-3">
-            <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-emerald-600 text-white">
-              <Wallet size={14} />
-            </span>
-            <span className="flex-1 text-xs font-bold uppercase tracking-wide text-ink-700">{t('header.budget.totalLabel')}</span>
-            <span className="font-display text-[15px] font-extrabold tabular-nums text-emerald-700">{fmtMoney(totalUsd, currency)}</span>
-          </div>
-          <p className="mt-2 text-[10.5px] leading-snug text-ink-400">
-            {t('header.budget.fuelNote')}
-          </p>
+          <BudgetBreakdown costs={costs} fuelUsd={fuelUsd} totalUsd={totalUsd} currency={currency} />
         </div>
       )}
     </div>
+  )
+}
+
+/* the category breakdown itself: desktop popover and mobile sheet share it */
+function BudgetBreakdown({ costs, fuelUsd, totalUsd, currency }) {
+  const { t } = useTranslation()
+  const rows = [
+    { Icon: BedDouble, label: t('header.budget.hotel'), v: costs.hotel, chip: 'bg-violet-100 text-violet-600', bar: 'bg-violet-400' },
+    { Icon: UtensilsCrossed, label: t('header.budget.food'), v: costs.food, chip: 'bg-rose-100 text-rose-600', bar: 'bg-rose-400' },
+    { Icon: Ticket, label: t('header.budget.activity'), v: costs.activity, chip: 'bg-amber-100 text-amber-600', bar: 'bg-amber-400' },
+    { Icon: Receipt, label: t('header.budget.extra'), v: costs.extra, chip: 'bg-teal-100 text-teal-600', bar: 'bg-teal-400' },
+    { Icon: Fuel, label: t('header.budget.fuel'), v: fuelUsd, chip: 'bg-sky-100 text-sky-600', bar: 'bg-sky-400' },
+  ].filter((r) => r.v > 0)
+
+  return (
+    <>
+      <h4 className="mb-3 font-display text-[13px] font-bold text-ink-900">{t('header.budget.title')}</h4>
+      <div className="flex flex-col gap-2.5">
+        {rows.map((r) => (
+          <div key={r.label}>
+            <div className="flex items-center gap-2.5">
+              <span className={`grid size-7 shrink-0 place-items-center rounded-lg ${r.chip}`}>
+                <r.Icon size={14} />
+              </span>
+              <span className="flex-1 text-xs font-semibold text-ink-600">{r.label}</span>
+              <span className="text-[13px] font-bold tabular-nums text-ink-900">{fmtMoney(r.v, currency)}</span>
+            </div>
+            <div className="ml-9.5 mt-1 h-1 overflow-hidden rounded-full bg-ink-100">
+              <div className={`h-full rounded-full ${r.bar}`} style={{ width: `${(r.v / totalUsd) * 100}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 flex items-center gap-2.5 border-t border-ink-100 pt-3">
+        <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-emerald-600 text-white">
+          <Wallet size={14} />
+        </span>
+        <span className="flex-1 text-xs font-bold uppercase tracking-wide text-ink-700">{t('header.budget.totalLabel')}</span>
+        <span className="font-display text-[15px] font-extrabold tabular-nums text-emerald-700">{fmtMoney(totalUsd, currency)}</span>
+      </div>
+      <p className="mt-2 text-[10.5px] leading-snug text-ink-400">
+        {t('header.budget.fuelNote')}
+      </p>
+    </>
   )
 }
 
@@ -362,10 +431,7 @@ function ChatToggle() {
    local unit) driving the fuel estimate */
 function CarSettings() {
   const { t } = useTranslation()
-  const car = useTrip((s) => activeTrip(s).car)
-  const setCar = useTrip((s) => s.setCar)
   const [open, setOpen] = useState(false)
-  const [photo, setPhoto] = useState(null)
   const ref = useRef(null)
 
   useEffect(() => {
@@ -376,27 +442,6 @@ function CarSettings() {
     document.addEventListener('keydown', onKey)
     return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey) }
   }, [open])
-
-  /* live EUR→USD rate for €/L prices, refreshed once per day */
-  useEffect(() => { if (open) refreshFx() }, [open])
-
-  /* photo of the user's car model, debounced while typing */
-  const model = car.model?.trim() ?? ''
-  useEffect(() => {
-    if (!open || model.length < 4) { setPhoto(null); return }
-    let dead = false
-    const t = setTimeout(() => {
-      getTitleImage(model).then((img) => { if (!dead) setPhoto(img) })
-    }, 600)
-    return () => { dead = true; clearTimeout(t) }
-  }, [model, open])
-
-  const askAgent = () => {
-    setOpen(false)
-    const chat = useAgentChat.getState()
-    chat.setOpen(true)
-    chat.send(t('header.car.askAgentPrompt'))
-  }
 
   return (
     <div ref={ref} className="relative">
@@ -412,6 +457,43 @@ function CarSettings() {
       </button>
       {open && (
         <div className="anim-fade-up absolute right-0 top-[calc(100%+8px)] z-[950] w-80 rounded-2xl border border-ink-200 bg-white p-4 shadow-xl">
+          <CarForm onDone={() => setOpen(false)} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* the car form itself: desktop popover and mobile sheet share it */
+function CarForm({ onDone }) {
+  const { t } = useTranslation()
+  const car = useTrip((s) => activeTrip(s).car)
+  const setCar = useTrip((s) => s.setCar)
+  const [photo, setPhoto] = useState(null)
+
+  /* live EUR→USD rate for €/L prices, refreshed once per day */
+  useEffect(() => { refreshFx() }, [])
+
+  /* photo of the user's car model, debounced while typing */
+  const model = car.model?.trim() ?? ''
+  useEffect(() => {
+    if (model.length < 4) { setPhoto(null); return }
+    let dead = false
+    const t = setTimeout(() => {
+      getTitleImage(model).then((img) => { if (!dead) setPhoto(img) })
+    }, 600)
+    return () => { dead = true; clearTimeout(t) }
+  }, [model])
+
+  const askAgent = () => {
+    onDone?.()
+    const chat = useAgentChat.getState()
+    chat.setOpen(true)
+    chat.send(t('header.car.askAgentPrompt'))
+  }
+
+  return (
+    <>
           <div className="mb-3 flex items-center gap-2">
             <CarFront size={16} className="text-brand-500" />
             <h4 className="font-display text-sm font-bold text-ink-900">{t('header.car.title')}</h4>
@@ -479,9 +561,7 @@ function CarSettings() {
               <Bot size={13} /> {t('header.car.askAgentButton')}
             </button>
           </div>
-        </div>
-      )}
-    </div>
+    </>
   )
 }
 

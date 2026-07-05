@@ -17,7 +17,7 @@ export default function DayCard({ day, index, total }) {
   const openEditor = useUI((s) => s.openEditor)
   const openDayEditor = useUI((s) => s.openDayEditor)
   const setMapFilter = useUI((s) => s.setMapFilter)
-  const setTab = useUI((s) => s.setTab)
+  const revealMap = useUI((s) => s.revealMap)
   const ask = useUI((s) => s.ask)
   const [open, setOpen] = useState(true)
 
@@ -29,7 +29,7 @@ export default function DayCard({ day, index, total }) {
 
   const showOnMap = () => {
     setMapFilter(day.id)
-    setTab('map')
+    revealMap()
   }
 
   return (
@@ -161,7 +161,7 @@ function Tool({ title, onClick, disabled, danger, children }) {
       aria-label={title}
       disabled={disabled}
       onClick={onClick}
-      className={`grid size-7 place-items-center rounded-lg transition disabled:opacity-25 ${
+      className={`grid size-7 place-items-center rounded-lg transition disabled:opacity-25 max-lg:size-9 ${
         danger ? 'text-ink-400 hover:bg-rose-50 hover:text-rose-600' : 'text-ink-400 hover:bg-ink-100 hover:text-ink-700'
       }`}
     >
