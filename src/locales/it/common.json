@@ -236,13 +236,47 @@
       "resolvedNote": "{{note}} · ora: {{model}}",
       "pickAria": "Scegli motore e modello"
     },
+    "starters": {
+      "kicker": "Prova a chiedere",
+      "food": {
+        "t": "Dove mangiare a {{place}}?",
+        "d": "Posti veri da Google Maps, con recensioni e prezzi",
+        "p": "Dove possiamo mangiare bene a {{place}}? Proponimi un paio di alternative valide."
+      },
+      "foodGeneric": {
+        "t": "Consigliami dove mangiare",
+        "d": "Posti veri da Google Maps, con recensioni e prezzi",
+        "p": "Consigliami un posto dove mangiare bene lungo il viaggio: proponimi un paio di alternative valide."
+      },
+      "hotel": {
+        "t": "Alternative per la notte a {{place}}",
+        "d": "Ricerca su Booking con prezzi e recensioni reali",
+        "p": "Cerca alternative per l'alloggio di {{place}} (giorno {{n}}) e proponimele con prezzi reali."
+      },
+      "balance": {
+        "t": "Il giorno {{n}} è troppo pieno?",
+        "d": "{{title}} · {{count}} tappe: controlla il ritmo",
+        "p": "Guarda il giorno {{n}} ({{title}}): il ritmo è sostenibile? Se è troppo pieno suggerisci cosa tagliare o spostare."
+      },
+      "budget": {
+        "t": "Dove posso risparmiare?",
+        "d": "Analisi di hotel, attività e carburante",
+        "p": "Quanto sto spendendo in totale? Analizza il budget e dimmi dove posso risparmiare senza rovinare il viaggio."
+      },
+      "gem": {
+        "t": "Una gemma nascosta sul percorso",
+        "d": "Posti poco conosciuti vicino all'itinerario",
+        "p": "Trova un posto poco conosciuto ma che vale davvero la pena vicino al percorso e proponimelo."
+      },
+      "packing": {
+        "t": "Cosa metto in valigia?",
+        "d": "Meteo e tappe alla mano, aggiorna la checklist",
+        "p": "In base al periodo e alle tappe del viaggio, cosa devo assolutamente mettere in valigia? Aggiungi l'essenziale alla checklist."
+      }
+    },
     "panel": {
       "connected": "Connesso",
       "notConnected": "Server non raggiungibile",
-      "example1": "Aggiungi una cena romantica a Monterey la sera del giorno 2",
-      "example2": "Il giorno 4 è troppo pieno? Suggerisci cosa tagliare",
-      "example3": "Trova una spiaggia poco affollata vicino al percorso del giorno 3",
-      "example4": "Quanto sto spendendo di hotel? Dove posso risparmiare?",
       "savedChats": "Conversazioni salvate",
       "newChat": "Nuova conversazione",
       "closeChat": "Chiudi chat",

@@ -86,13 +86,47 @@
       "resolvedNote": "{{note}} · now: {{model}}",
       "pickAria": "Choose engine and model"
     },
+    "starters": {
+      "kicker": "Try asking",
+      "food": {
+        "t": "Where to eat in {{place}}?",
+        "d": "Real spots from Google Maps, with reviews and prices",
+        "p": "Where can we eat well in {{place}}? Propose a couple of solid alternatives."
+      },
+      "foodGeneric": {
+        "t": "Recommend places to eat",
+        "d": "Real spots from Google Maps, with reviews and prices",
+        "p": "Recommend somewhere to eat well along the trip: propose a couple of solid alternatives."
+      },
+      "hotel": {
+        "t": "Alternatives for the night in {{place}}",
+        "d": "Booking search with real prices and reviews",
+        "p": "Search for alternatives to the stay in {{place}} (day {{n}}) and propose them with real prices."
+      },
+      "balance": {
+        "t": "Is day {{n}} too packed?",
+        "d": "{{title}} · {{count}} stops: check the pace",
+        "p": "Look at day {{n}} ({{title}}): is the pace sustainable? If it's too packed suggest what to cut or move."
+      },
+      "budget": {
+        "t": "Where can I save?",
+        "d": "Hotels, activities and fuel, analyzed",
+        "p": "How much am I spending overall? Analyze the budget and tell me where I can save without ruining the trip."
+      },
+      "gem": {
+        "t": "A hidden gem on the route",
+        "d": "Lesser-known places near the itinerary",
+        "p": "Find a lesser-known place that's truly worth it near the route and propose it."
+      },
+      "packing": {
+        "t": "What should I pack?",
+        "d": "Weather and stops in hand, update the checklist",
+        "p": "Given the trip's period and stops, what must I absolutely pack? Add the essentials to the checklist."
+      }
+    },
     "panel": {
       "connected": "Connected",
       "notConnected": "Server unreachable",
-      "example1": "Add a romantic dinner in Monterey on the evening of day 2",
-      "example2": "Is day 4 too packed? Suggest what to cut",
-      "example3": "Find an uncrowded beach near the day 3 route",
-      "example4": "How much am I spending on hotels? Where can I save?",
       "savedChats": "Saved conversations",
       "newChat": "New conversation",
       "closeChat": "Close chat",

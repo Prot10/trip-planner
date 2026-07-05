@@ -3,7 +3,8 @@ import { MapContainer, TileLayer, Polyline, CircleMarker } from 'react-leaflet'
 import {
   Bot, X, Send, Square, RotateCcw, Wrench, TriangleAlert, Undo2, MapPin, Trash2,
   Pencil, CalendarPlus, Search, Sparkles, ListChecks, Route, Settings2, Camera,
-  ChevronDown, Eye, EyeOff, Crosshair, History, Globe, Plus, Check,
+  ChevronDown, Eye, EyeOff, Crosshair, History, Globe, Plus, Check, ChevronRight,
+  UtensilsCrossed, BedDouble, CalendarClock, Wallet, Gem, Luggage,
 } from 'lucide-react'
 import { Trans, useTranslation } from 'react-i18next'
 import { useAgentChat, useChats } from '../agent/socket'
@@ -15,12 +16,78 @@ import QuestionCard, { QARecord, HotelPickRecord, RestaurantPickRecord } from '.
 import MentionInput from './MentionInput'
 import { TOOL_META, groupMessages, ToolChipGroup, SetupCard, ModelPicker, AgentAvatar } from './chatShared'
 
-const EXAMPLES = [
-  'chat.panel.example1',
-  'chat.panel.example2',
-  'chat.panel.example3',
-  'chat.panel.example4',
-]
+/* conversation starters for the empty chat: built from the ACTUAL trip
+   (real night localities, the fullest day) plus evergreen ones — never a
+   hardcoded example that talks about some other trip. Each entry points to
+   a chat.starters.<key> locale group { t: title, d: description, p: prompt }
+   sharing the same interpolation vars. */
+const STARTER_VISUALS = {
+  food: { Icon: UtensilsCrossed, tint: 'from-rose-400 to-pink-500' },
+  hotel: { Icon: BedDouble, tint: 'from-violet-400 to-fuchsia-500' },
+  balance: { Icon: CalendarClock, tint: 'from-amber-400 to-orange-500' },
+  budget: { Icon: Wallet, tint: 'from-emerald-400 to-teal-500' },
+  gem: { Icon: Gem, tint: 'from-sky-400 to-cyan-500' },
+  packing: { Icon: Luggage, tint: 'from-indigo-400 to-blue-500' },
+}
+
+function starterIdeas(trip) {
+  const days = trip?.days ?? []
+  const nights = days
+    .map((d, i) => ({ n: i + 1, place: (d.night ?? '').trim() }))
+    .filter((x) => x.place)
+  /* dinner where you actually sleep: a middle night reads most natural */
+  const foodNight = nights[Math.floor((nights.length - 1) / 2)]
+  /* hotel card on a different night when there is one, for variety */
+  const hotelNight = nights.find((x) => x.n !== foodNight?.n) ?? foodNight
+  let fullest = null
+  days.forEach((d, i) => {
+    if (!fullest || d.items.length > fullest.count) fullest = { n: i + 1, title: d.title, count: d.items.length }
+  })
+
+  const ideas = []
+  ideas.push(foodNight ? { key: 'food', vars: { place: foodNight.place } } : { key: 'foodGeneric', visual: 'food' })
+  if (hotelNight) ideas.push({ key: 'hotel', vars: { place: hotelNight.place, n: hotelNight.n } })
+  if (fullest && fullest.count >= 3) ideas.push({ key: 'balance', vars: { n: fullest.n, title: fullest.title, count: fullest.count } })
+  ideas.push({ key: 'budget' })
+  ideas.push({ key: 'gem' })
+  ideas.push({ key: 'packing' })
+  return ideas.slice(0, 4)
+}
+
+function StarterIdeas({ onPick, disabled }) {
+  const { t } = useTranslation()
+  const trip = useTrip((s) => activeTrip(s))
+  const ideas = starterIdeas(trip)
+  return (
+    <div className="mt-4">
+      <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-ink-400">
+        {t('chat.starters.kicker')}
+      </p>
+      <div className="mt-2 flex flex-col gap-2">
+        {ideas.map((idea) => {
+          const { Icon, tint } = STARTER_VISUALS[idea.visual ?? idea.key]
+          return (
+            <button
+              key={idea.key}
+              onClick={() => onPick(t(`chat.starters.${idea.key}.p`, idea.vars))}
+              disabled={disabled}
+              className="group flex items-center gap-3 rounded-2xl border border-ink-200 bg-white p-2.5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-md disabled:opacity-40"
+            >
+              <span className={`grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br ${tint} text-white shadow-sm transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110`}>
+                <Icon size={16} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[12.5px] font-bold text-ink-900">{t(`chat.starters.${idea.key}.t`, idea.vars)}</span>
+                <span className="block truncate text-[11px] text-ink-500">{t(`chat.starters.${idea.key}.d`, idea.vars)}</span>
+              </span>
+              <ChevronRight size={14} className="shrink-0 text-ink-300 transition group-hover:translate-x-0.5 group-hover:text-violet-500" />
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 export default function ChatPanel({ onClose }) {
   const { t } = useTranslation()
@@ -92,18 +159,7 @@ export default function ChatPanel({ onClose }) {
                 Chiedimi qualsiasi cosa sul viaggio: posso <b>aggiungere, spostare e modificare tappe</b>, cercare luoghi, foto e informazioni aggiornate sul web, e ottimizzare il percorso. Ogni modifica appare subito nell'itinerario e puoi rivederla o annullarla, anche singolarmente.
               </Trans>
             </p>
-            <div className="mt-4 flex flex-col gap-2">
-              {EXAMPLES.map((ex) => (
-                <button
-                  key={ex}
-                  onClick={() => send(t(ex))}
-                  disabled={!connected}
-                  className="rounded-xl border border-ink-200 bg-ink-50 px-3 py-2 text-left text-xs font-medium text-ink-600 transition hover:border-brand-300 hover:bg-brand-50/50 disabled:opacity-40"
-                >
-                  {t(ex)}
-                </button>
-              ))}
-            </div>
+            <StarterIdeas onPick={send} disabled={!connected} />
           </div>
         )}
 
