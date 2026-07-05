@@ -4,7 +4,7 @@
 
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { useTrip, activeTrip, toast } from '../store'
+import { useTrip, useUI, activeTrip, toast } from '../store'
 import { uid } from '../lib/utils'
 import { executeTool, applyUndoOp, WRITE_TOOLS, hooks } from './toolExecutors'
 import i18n from '../i18n'
@@ -198,6 +198,7 @@ export const useAgentChat = create((set, get) => ({
   chooseHotel(name) {
     const q = get().pendingQuestion
     if (!q?.hotels) return
+    useUI.getState().setHotelPreview(null)
     set((s) => ({
       pendingQuestion: null,
       messages: [...s.messages, { id: uid(), role: 'hotelpick', hotels: q.hotels, choice: name }],

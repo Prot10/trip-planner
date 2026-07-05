@@ -119,7 +119,7 @@ export const TOOL_DEFS = [
   {
     name: 'propose_hotels',
     description:
-      "Mostra all'utente 2-4 alloggi come card interattiva in chat e ATTENDI la sua scelta (il tool blocca). USALO ogni volta che l'utente chiede di trovare, cambiare o valutare un alloggio nei turni di modifica (NON durante la costruzione iniziale, dove scegli tu): dopo search_hotels seleziona una rosa di alternative valide e DIVERSE tra loro (dati reali: prezzo, punteggio, url) con una breve nota sul perché di ciascuna — niente tabelle o elenchi di hotel nel testo. Risultato: `choice` = nome della struttura scelta (applica SUBITO la modifica all'item hotel: prezzo/notte reale, link Booking.com nei links), oppure 'none' se non gli piace nessuna (chiedi cosa non va o proponi altre).",
+      "Mostra all'utente 2-4 alloggi come card interattiva in chat e ATTENDI la sua scelta (il tool blocca). USALO ogni volta che l'utente chiede di trovare, cambiare o valutare un alloggio nei turni di modifica (NON durante la costruzione iniziale, dove scegli tu): dopo search_hotels seleziona una rosa di alternative valide e DIVERSE tra loro (dati reali: prezzo, punteggio, url, lat/lng — le coordinate abilitano il bottone mappa e la distanza dal percorso, passale SEMPRE) con una breve nota sul perché di ciascuna — niente tabelle o elenchi di hotel nel testo. PREFERISCI strutture con un numero solido di recensioni (decine o più): un 8,7 con 3.000 recensioni vale più di un 10 con 2; proponi opzioni con poche recensioni solo se non ci sono alternative, dicendolo nella nota. Risultato: `choice` = nome della struttura scelta (applica SUBITO la modifica all'item hotel: prezzo/notte reale, link Booking.com nei links), oppure 'none' se non gli piace nessuna (chiedi cosa non va o proponi altre).",
     schema: {
       location: z.string().describe('località, es. "Giardini Naxos"'),
       checkin: z.string().optional().describe('YYYY-MM-DD'),
@@ -134,6 +134,8 @@ export const TOOL_DEFS = [
             currency: z.enum(['EUR', 'USD']).optional(),
             review_score: z.number().min(0).max(10).optional(),
             review_count: z.number().int().min(0).optional(),
+            lat: z.number().optional().describe('da search_hotels: abilita mappa e distanza dal percorso'),
+            lng: z.number().optional(),
             url: z.string().describe('link diretto Booking.com con date precompilate (da search_hotels)'),
             note: z.string().optional().describe('perché proporla, in una riga'),
             recommended: z.boolean().optional().describe('al massimo una: la tua preferita'),
@@ -210,7 +212,7 @@ export const TOOL_DEFS = [
   {
     name: 'search_hotels',
     description:
-      "Cerca alloggi REALI su Booking.com per una località e date precise: nome, prezzo TOTALE reale del soggiorno, punteggio recensioni, disponibilità per quelle date (available=false = al completo) e link diretto con date e ospiti precompilati. USALO per ogni notte prima di creare l'item hotel: prezzo/notte = total_price/nights, link 'Booking.com' tra i links dell'item. Se properties è vuoto, usa search_url come link e stima il prezzo dal budget dichiarandolo stima. Richiede qualche secondo: chiamalo una volta per località-notte, non per singolo hotel.",
+      "Cerca alloggi REALI su Booking.com per una località e date precise: nome, prezzo TOTALE reale del soggiorno, punteggio e numero recensioni, coordinate (lat/lng), disponibilità per quelle date (available=false = al completo) e link diretto con date e ospiti precompilati. Le properties sono ordinate per qualità AFFIDABILE (punteggio pesato sulle recensioni): a parità di condizioni preferisci SEMPRE strutture con molte recensioni — poche recensioni solo in mancanza di alternative, segnalandolo. USALO per ogni notte prima di creare l'item hotel: prezzo/notte = total_price/nights, link 'Booking.com' tra i links dell'item. Se properties è vuoto, usa search_url come link e stima il prezzo dal budget dichiarandolo stima. Richiede qualche secondo: chiamalo una volta per località-notte, non per singolo hotel.",
     schema: {
       location: z.string().describe('località della notte, es. "Vík í Mýrdal, Iceland"'),
       checkin: z.string().describe('YYYY-MM-DD'),

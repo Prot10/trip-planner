@@ -193,6 +193,17 @@ export async function searchHotels(args) {
       })
     }, maxResults)
 
+    /* the page's embedded state carries each property's coordinates keyed by
+       its URL slug: "…,"longitude":15.25},"pageName":"the-barn"" */
+    const coordsBySlug = await page.evaluate(() => {
+      const out = {}
+      const html = document.documentElement.outerHTML
+      for (const m of html.matchAll(/"latitude":(-?[\d.]+),"longitude":(-?[\d.]+)\},"pageName":"([^"]+)"/g)) {
+        out[m[3]] = { lat: Number(m[1]), lng: Number(m[2]) }
+      }
+      return out
+    })
+
     const properties = raw
       .filter((p) => p.name)
       .map((p) => {
@@ -205,6 +216,8 @@ export async function searchHotels(args) {
         const link = p.href
           ? p.href.split('?')[0] + '?' + new URLSearchParams({ checkin, checkout, group_adults: String(adults), no_rooms: String(rooms), selected_currency: currency })
           : url
+        const slug = p.href?.match(/\/hotel\/[a-z]{2}\/([^./]+)\./)?.[1]
+        const coords = slug ? coordsBySlug[slug] : null
         return {
           name: p.name,
           available,
@@ -213,15 +226,27 @@ export async function searchHotels(args) {
           currency: CURRENCY_OF[symbol] ?? currency,
           review_score: Number.isFinite(score) ? score : null,
           review_count: reviews ? Number(reviews) : null,
+          lat: coords?.lat,
+          lng: coords?.lng,
           url: link,
         }
       })
+
+    /* rank by TRUSTWORTHY quality: a 8.7 backed by thousands of reviews must
+       outrank a 10 with one review (bayesian average, prior 8.0 over 30
+       reviews); sold-out properties sink to the end */
+    const bayes = (p) => {
+      const n = p.review_count ?? 0
+      const s = p.review_score ?? 0
+      return (n / (n + 30)) * s + (30 / (n + 30)) * 8.0
+    }
+    properties.sort((a, b) => (b.available - a.available) || (bayes(b) - bayes(a)))
 
     return {
       ...base,
       results_found: resultsFound,
       properties,
-      note: `Prezzi TOTALI reali per ${nights} notti, ${adults} adulti (Booking.com). available=false = al completo per queste date; results_found basso = zona quasi al completo, consiglia di prenotare subito. Usa gli url come link diretti.`,
+      note: `Prezzi TOTALI reali per ${nights} notti, ${adults} adulti (Booking.com), ordinate per qualità AFFIDABILE (punteggio pesato sul numero di recensioni: preferisci strutture con decine/centinaia di recensioni, poche recensioni solo se non ci sono alternative). available=false = al completo per queste date; results_found basso = zona quasi al completo, consiglia di prenotare subito. Usa gli url come link diretti e riporta lat/lng quando proponi le opzioni.`,
     }
   } catch (e) {
     const reason = e?.message === 'CHROME_NOT_FOUND'

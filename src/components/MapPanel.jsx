@@ -7,7 +7,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useTrip, useUI, useRoutes, toast, activeTrip } from '../store'
 import { useAgentChat } from '../agent/socket'
-import { fmtDur, fmtKm, gmapsUrl } from '../lib/utils'
+import { fmtDur, fmtKm, fmtMoney, gmapsUrl } from '../lib/utils'
 import { fetchRoadRoute, searchPlaces, fetchDirections, bestInsertion, haversineKm } from '../lib/geo'
 import { MODE_META } from './typeMeta'
 import { PoiMarkers, PoiControl } from './PoiLayer'
@@ -28,6 +28,7 @@ export default function MapPanel() {
   const mapFilter = useUI((s) => s.mapFilter)
   const setMapFilter = useUI((s) => s.setMapFilter)
   const picking = useUI((s) => s.picking)
+  const hotelPreview = useUI((s) => s.hotelPreview)
   const markerRefs = useRef(new Map())
   const mapRef = useRef(null)
   const [roads, setRoads] = useState({}) // dayId -> road-following [lat,lng][]
@@ -217,6 +218,9 @@ export default function MapPanel() {
             </Popup>
           </Marker>
         )}
+
+        {/* hotel proposed in chat: preview pin with price + link */}
+        {hotelPreview && <HotelPreviewMarker p={hotelPreview} />}
 
         {/* directions route + endpoints */}
         {route && (
@@ -475,6 +479,38 @@ function FitOnChange({ coords, depKey }) {
   return null
 }
 
+/* preview pin for a hotel proposed in chat: fly there and pop up the card */
+function HotelPreviewMarker({ p }) {
+  const { t } = useTranslation()
+  const map = useMap()
+  useEffect(() => {
+    map.flyTo([p.lat, p.lng], Math.max(map.getZoom(), 13), { duration: 0.9 })
+  }, [p.lat, p.lng, map])
+  return (
+    <Marker position={[p.lat, p.lng]} icon={hotelIcon} ref={(m) => m?.openPopup()}>
+      <Popup>
+        <div className="min-w-44 max-w-60">
+          <div className="font-display text-[13.5px] font-bold text-ink-900">{p.name}</div>
+          <div className="mt-0.5 text-[11.5px] font-semibold text-ink-500">
+            {p.price_per_night != null && <>{fmtMoney(p.price_per_night, p.currency ?? 'EUR')}{t('hotels.perNight')}</>}
+            {p.review_score != null && <> · {p.review_score.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</>}
+          </div>
+          {p.url && (
+            <a
+              href={p.url}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 inline-flex items-center gap-1 rounded-lg bg-violet-600 px-2.5 py-1.5 text-[11px] font-bold !text-white transition hover:bg-violet-700"
+            >
+              Booking.com
+            </a>
+          )}
+        </div>
+      </Popup>
+    </Marker>
+  )
+}
+
 /* consume flyTo requests from item cards */
 function FlyToConsumer({ markerRefs }) {
   const map = useMap()
@@ -521,6 +557,13 @@ const SEARCH_SVG =
 const searchIcon = L.divIcon({
   className: '',
   html: `<div class="map-pin" style="--pin:#2563eb"><span>${SEARCH_SVG}</span></div>`,
+  iconSize: [28, 28], iconAnchor: [14, 26], popupAnchor: [0, -22],
+})
+const BED_SVG =
+  '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20v-8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8"/><path d="M4 10V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4"/><path d="M2 17h20"/></svg>'
+const hotelIcon = L.divIcon({
+  className: '',
+  html: `<div class="map-pin" style="--pin:#7c3aed"><span>${BED_SVG}</span></div>`,
   iconSize: [28, 28], iconAnchor: [14, 26], popupAnchor: [0, -22],
 })
 const dirIcon = (letter, color) =>

@@ -291,6 +291,10 @@ export const useUI = create((set) => ({
   flyTo: null,
   setFlyTo: (flyTo) => set({ flyTo }),
 
+  /* proposed-hotel preview pin: { lat, lng, name, price_per_night, currency, review_score, url } */
+  hotelPreview: null,
+  setHotelPreview: (hotelPreview) => set({ hotelPreview }),
+
   focusItemId: null,
   focusColor: null,
   setFocusItem: (focusItemId, focusColor) => set({ focusItemId, focusColor }),
