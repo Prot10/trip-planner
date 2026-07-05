@@ -6,6 +6,7 @@
 
 import { tool, createSdkMcpServer } from '@anthropic-ai/claude-agent-sdk'
 import { z } from 'zod'
+import { searchHotels } from './booking.mjs'
 
 const ITEM_TYPES = z.enum(['activity', 'drive', 'food', 'hotel', 'info'])
 const TRANSPORT = z.enum(['car', 'walk', 'bus', 'train', 'plane', 'boat'])
@@ -180,6 +181,21 @@ export const TOOL_DEFS = [
   { name: 'checklist_toggle', description: 'Spunta/de-spunta una voce della checklist (id da get_trip).', schema: { check_id: z.string() } },
   { name: 'checklist_remove', description: 'Elimina una voce della checklist.', schema: { check_id: z.string() } },
   {
+    name: 'search_hotels',
+    description:
+      "Cerca alloggi REALI su Booking.com per una località e date precise: nome, prezzo TOTALE reale del soggiorno, punteggio recensioni, disponibilità per quelle date (available=false = al completo) e link diretto con date e ospiti precompilati. USALO per ogni notte prima di creare l'item hotel: prezzo/notte = total_price/nights, link 'Booking.com' tra i links dell'item. Se properties è vuoto, usa search_url come link e stima il prezzo dal budget dichiarandolo stima. Richiede qualche secondo: chiamalo una volta per località-notte, non per singolo hotel.",
+    schema: {
+      location: z.string().describe('località della notte, es. "Vík í Mýrdal, Iceland"'),
+      checkin: z.string().describe('YYYY-MM-DD'),
+      checkout: z.string().describe('YYYY-MM-DD'),
+      adults: z.number().int().min(1).max(10).optional().describe('default 2'),
+      rooms: z.number().int().min(1).max(5).optional().describe('default 1'),
+      currency: z.enum(['EUR', 'USD']).optional().describe('valuta del viaggio'),
+      max_results: z.number().int().min(1).max(10).optional().describe('default 6'),
+    },
+    handler: searchHotels,
+  },
+  {
     name: 'search_places',
     description: 'Cerca un luogo per nome (geocoding gratuito Nominatim) e restituisce nome completo e coordinate. Usalo SEMPRE per ottenere lat/lng reali: non inventare mai coordinate.',
     schema: { query: z.string().describe('es. "Bixby Bridge, California"') },
@@ -198,6 +214,19 @@ export const TOOL_DEFS = [
 const INTERNAL_FIELDS = ['undo', 'detail']
 
 export function makeToolHandler(bridge, name) {
+  const def = TOOL_DEFS.find((d) => d.name === name)
+  /* tools with a `handler` run HERE on the server (network, headless
+     Chrome…): the browser tab never sees them */
+  if (def?.handler) {
+    return async (args) => {
+      try {
+        const payload = await def.handler(args ?? {})
+        return { content: [{ type: 'text', text: JSON.stringify(payload) }], isError: false }
+      } catch (e) {
+        return { content: [{ type: 'text', text: `ERRORE: ${String(e?.message ?? e)}` }], isError: true }
+      }
+    }
+  }
   return async (args) => {
     const r = await bridge.callBrowser(name, args)
     let payload = r.result ?? { ok: true }

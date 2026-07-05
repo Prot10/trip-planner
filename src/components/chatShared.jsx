@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import {
   Wrench, MapPin, Trash2, Pencil, CalendarPlus, Search, Sparkles, ListChecks, Route,
   Settings2, Camera, Globe, ChevronDown, TerminalSquare, Copy, Check, NotebookPen, Bot, Loader2, LogIn,
+  BedDouble,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAgentChat } from '../agent/socket'
@@ -26,6 +27,7 @@ export const TOOL_META = {
   checklist_toggle: { Icon: ListChecks, label: () => i18n.t('chat.tools.checklist_toggle') },
   checklist_remove: { Icon: ListChecks, label: () => i18n.t('chat.tools.checklist_remove') },
   search_places: { Icon: Search, label: (a) => i18n.t('chat.tools.search_places', { query: a.query ?? '' }) },
+  search_hotels: { Icon: BedDouble, label: (a) => i18n.t('chat.tools.search_hotels', { location: a.location ?? '' }) },
   list_suggestions: { Icon: Sparkles, label: () => i18n.t('chat.tools.list_suggestions') },
   toggle_suggestion: { Icon: Sparkles, label: (a, r) => r?.action === 'removed' ? i18n.t('chat.tools.suggestion_removed', { title: r.title }) : i18n.t('chat.tools.suggestion_enabled', { title: r?.title ?? '' }) },
   add_suggestion: { Icon: Sparkles, label: (a) => i18n.t('chat.tools.add_suggestion', { title: a.title ?? '' }) },
@@ -47,6 +49,7 @@ const GROUP_LABELS = {
   move_activity: (n) => i18n.t('chat.groups.move_activity', { count: n }),
   add_day: (n) => i18n.t('chat.groups.add_day', { count: n }),
   search_places: (n) => i18n.t('chat.groups.search_places', { count: n }),
+  search_hotels: (n) => i18n.t('chat.groups.search_hotels', { count: n }),
   get_place_images: (n) => i18n.t('chat.groups.get_place_images', { count: n }),
   estimate_travel: (n) => i18n.t('chat.groups.estimate_travel', { count: n }),
   WebSearch: (n) => i18n.t('chat.groups.web_search', { count: n }),

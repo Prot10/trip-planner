@@ -31,7 +31,8 @@
     "react-leaflet": "^5.0.0",
     "ws": "^8.21.0",
     "zod": "^4.4.3",
-    "zustand": "^5.0.14"
+    "zustand": "^5.0.14",
+    "puppeteer-core": "^25.3.0"
   },
   "devDependencies": {
     "@anthropic-ai/claude-code": "^2.1.199",
@@ -39,7 +40,6 @@
     "@tailwindcss/vite": "^4.3.2",
     "@vitejs/plugin-react": "^6.0.3",
     "concurrently": "^10.0.3",
-    "puppeteer-core": "^25.3.0",
     "tailwindcss": "^4.3.2",
     "vite": "^8.1.3"
   }
