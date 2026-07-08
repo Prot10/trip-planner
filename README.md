@@ -8,6 +8,7 @@
 
 <a href="https://prot10.github.io/MyTripPlanner/"><img src="https://img.shields.io/badge/Website-visit-ff7a59?style=for-the-badge" alt="Website" /></a>&nbsp;
 <a href="https://prot10.github.io/MyTripPlanner/demo/"><img src="https://img.shields.io/badge/Live_demo-try_it_now-7c3aed?style=for-the-badge" alt="Live demo" /></a>&nbsp;
+<a href="https://github.com/Prot10/MyTripPlanner"><img src="https://img.shields.io/badge/GitHub-Prot10%2FMyTripPlanner-181717?style=for-the-badge&logo=github" alt="GitHub repository" /></a>&nbsp;
 <a href="#getting-started"><img src="https://img.shields.io/badge/Install-2_minutes-16a34a?style=for-the-badge" alt="Install" /></a>
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
@@ -17,6 +18,8 @@
 [![Free APIs only](https://img.shields.io/badge/APIs-100%25_free-22c55e)](#tech-stack)
 
 *Self-hosted · no API keys · no accounts · your data stays in your Documents folder*
+
+**[Website](https://prot10.github.io/MyTripPlanner/)** · **[Live demo](https://prot10.github.io/MyTripPlanner/demo/)** · **[Repository](https://github.com/Prot10/MyTripPlanner)**
 
 <img src="docs/planner.png" alt="MyTripPlanner — the Iceland Ring Road built live by Ulisse" />
 

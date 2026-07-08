@@ -2,6 +2,15 @@
   "name": "mytripplanner",
   "private": true,
   "version": "1.0.0",
+  "description": "Self-hosted road-trip planner — Ulisse, your AI travel agent, builds the itinerary with you",
+  "homepage": "https://prot10.github.io/MyTripPlanner/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prot10/MyTripPlanner.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Prot10/MyTripPlanner/issues"
+  },
   "type": "module",
   "scripts": {
     "dev": "concurrently -k -n web,agent -c cyan,magenta \"vite\" \"node server/index.mjs\"",
