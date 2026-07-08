@@ -1,7 +1,7 @@
 @echo off
-rem Trip Planner - double-click launcher (Windows)
+rem MyTripPlanner - double-click launcher (Windows)
 rem installs dependencies on first run, builds, starts the local server, opens the browser
-title Trip Planner
+title MyTripPlanner
 cd /d "%~dp0"
 
 where node >nul 2>nul
@@ -15,7 +15,7 @@ if not exist node_modules call npm install
 call npm run build
 
 netstat -ano | findstr ":5200" | findstr "LISTENING" >nul
-if errorlevel 1 start "Trip Planner server" /min cmd /c "node server\index.mjs"
+if errorlevel 1 start "MyTripPlanner server" /min cmd /c "node server\index.mjs"
 
 timeout /t 2 /nobreak >nul
 start "" http://localhost:5200

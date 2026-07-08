@@ -17,8 +17,8 @@ const STR = {
     titleA: { it: 'Il tuo prossimo viaggio,', en: 'Your next road trip,' },
     titleB: { it: 'pianificato conversando.', en: 'planned by talking.' },
     sub: {
-      it: 'Trip Planner è un pianificatore di viaggi on the road con Ulisse, un agente AI che ti intervista e costruisce l’itinerario davanti ai tuoi occhi: tappe, mappa, tempi e budget. Gira sul tuo computer, coi tuoi abbonamenti Claude o ChatGPT — niente API key, niente cloud.',
-      en: 'Trip Planner is a road-trip planner with Ulisse, an AI agent that interviews you and builds the itinerary in front of your eyes: stops, map, timings and budget. It runs on your computer, on your Claude or ChatGPT subscription — no API keys, no cloud.',
+      it: 'MyTripPlanner è un pianificatore di viaggi on the road. Ulisse, l’agente AI integrato, ti intervista e costruisce l’itinerario davanti ai tuoi occhi: tappe, mappa, tempi e budget. Gira sul tuo computer, coi tuoi abbonamenti Claude o ChatGPT — niente API key, niente cloud.',
+      en: 'MyTripPlanner is a road-trip planner. Ulisse, the built-in AI travel agent, interviews you and builds the itinerary in front of your eyes: stops, map, timings and budget. It runs on your computer, on your Claude or ChatGPT subscription — no API keys, no cloud.',
     },
     ctaDemo: { it: 'Prova la demo live', en: 'Try the live demo' },
     ctaGit: { it: 'Scarica da GitHub', en: 'Get it on GitHub' },
@@ -184,8 +184,8 @@ const STR = {
     docker: { it: 'oppure con Docker', en: 'or with Docker' },
     copied: { it: 'Copiato', en: 'Copied' },
     launchers: {
-      it: [['macOS', 'Start Trip Planner.command'], ['Windows', 'Start Trip Planner.bat'], ['Linux', 'start-trip-planner.sh']],
-      en: [['macOS', 'Start Trip Planner.command'], ['Windows', 'Start Trip Planner.bat'], ['Linux', 'start-trip-planner.sh']],
+      it: [['macOS', 'Start MyTripPlanner.command'], ['Windows', 'Start MyTripPlanner.bat'], ['Linux', 'start-mytripplanner.sh']],
+      en: [['macOS', 'Start MyTripPlanner.command'], ['Windows', 'Start MyTripPlanner.bat'], ['Linux', 'start-mytripplanner.sh']],
     },
   },
   footer: {

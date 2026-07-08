@@ -127,6 +127,7 @@
     "panel": {
       "connected": "Connected",
       "notConnected": "Server unreachable",
+      "agentRole": "AI travel agent",
       "savedChats": "Saved conversations",
       "newChat": "New conversation",
       "closeChat": "Close chat",
@@ -139,7 +140,7 @@
       "undoAll": "Undo all",
       "serverDown": "Agent server unreachable: start the app with <1>npm run dev</1>.",
       "answerAbove": "Answer the question above",
-      "placeholder": "Write to the assistant… (@ to tag an activity)",
+      "placeholder": "Write to Ulisse… (@ to tag an activity)",
       "stop": "Stop",
       "send": "Send",
       "justNow": "just now",
@@ -228,7 +229,7 @@
     "allTrips": "All trips",
     "backToTrips": "Back to my trips",
     "tripName": "Trip name",
-    "aiAssistant": "AI assistant",
+    "aiAssistant": "Ulisse",
     "exportTooltip": "Export itinerary (JSON)",
     "importTooltip": "Import itinerary",
     "stats": {
@@ -260,7 +261,7 @@
       "consumption": "Consumption (L/100 km)",
       "fuelPrice": "Fuel price",
       "fuelPriceUnit": "Fuel price unit",
-      "priceHint": "The right price depends on where you're traveling and changes over time: ask the assistant to look up the current average at your destination.",
+      "priceHint": "The right price depends on where you're traveling and changes over time: ask Ulisse to look up the current average at your destination.",
       "askAgentButton": "Find the current price",
       "askAgentPrompt": "Search the web for the current average fuel price in the area of this trip and update the car settings with set_trip_meta (use the local unit). If you know my car's typical fuel consumption, update that too."
     },
@@ -277,7 +278,7 @@
     "tabSuggestions": "Suggestions",
     "tabChecklist": "Checklist",
     "tabMap": "Map",
-    "tabAI": "AI",
+    "tabAI": "Ulisse",
     "dragResize": "Drag to resize",
     "pickOnMap": "Click on the map to choose the location"
   },
@@ -386,7 +387,7 @@
     "taggedNote": "[Activities tagged by the user: {{refs}}]",
     "dayShort": "D{{n}}",
     "hint": "↑↓ to choose · Enter to confirm",
-    "ariaLabel": "Write to the assistant"
+    "ariaLabel": "Write to Ulisse"
   },
   "map": {
     "search": {
@@ -461,7 +462,7 @@
     "days_other": "{{count}} days",
     "stops_one": "{{count}} stop",
     "stops_other": "{{count}} stops",
-    "agentHint": "the assistant builds it with you",
+    "agentHint": "Ulisse builds it with you",
     "fromScratch": "Prefer to start from scratch?",
     "createManually": "create a trip manually"
   },
@@ -494,7 +495,7 @@
     "heroIntro": "I'm <b>Ulisse</b>, your travel agent. Tell me what you have in mind: I'll ask you one question at a time while taking notes, then <b>I'll build the full itinerary for you</b> — you'll watch it come to life in real time.",
     "thinking": "thinking…",
     "placeholderAnswer": "Answer the question above",
-    "placeholderOffline": "Assistant not connected",
+    "placeholderOffline": "Ulisse not connected",
     "placeholderCurrency": "Pick a currency below, then describe the trip of your dreams…",
     "placeholder": "Describe the trip of your dreams…",
     "stop": "Stop",
@@ -602,7 +603,7 @@
   },
   "suggestions": {
     "emptyTitle": "No suggestions for this trip, yet",
-    "emptyBody": "Ask the assistant for extra ideas along the route: it will save them here as suggestions you can activate with one click.",
+    "emptyBody": "Ask Ulisse for extra ideas along the route: it will save them here as suggestions you can activate with one click.",
     "introBefore": "Extra stops picked along your route. Activate one and it is inserted",
     "introBold": "automatically into the day and the point of the route that adds the least distance",
     "introAfter": "; deactivate it and the route goes back to how it was. The mileage shown is the estimated detour.",

@@ -116,6 +116,7 @@ export default function ChatPanel({ onClose }) {
         <AgentAvatar connected={connected} />
         <div className="min-w-0 flex-1">
           <h3 className="font-display text-[14px] font-bold text-ink-900">Ulisse</h3>
+          <p className="text-[11px] font-medium text-ink-400">{t('chat.panel.agentRole')}</p>
           <div className="-ml-2 flex items-center">
             <ModelPicker />
           </div>

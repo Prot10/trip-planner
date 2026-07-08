@@ -1,7 +1,7 @@
 # Builds the promo site (site/) and the interactive demo (the app with
 # VITE_DEMO=1, scripted agent, no server) and publishes both to GitHub Pages:
-#   https://prot10.github.io/trip-planner/        ← site
-#   https://prot10.github.io/trip-planner/demo/   ← live demo
+#   https://prot10.github.io/MyTripPlanner/        ← site
+#   https://prot10.github.io/MyTripPlanner/demo/   ← live demo
 name: Deploy site and demo to Pages
 
 on:
@@ -29,9 +29,9 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Build site
-        run: SITE_BASE=/trip-planner/ npm run site:build
+        run: SITE_BASE=/MyTripPlanner/ npm run site:build
       - name: Build demo app
-        run: VITE_DEMO=1 npx vite build --base=/trip-planner/demo/ --outDir dist-site/demo --emptyOutDir
+        run: VITE_DEMO=1 npx vite build --base=/MyTripPlanner/demo/ --outDir dist-site/demo --emptyOutDir
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist-site

@@ -2,7 +2,7 @@
 
 import { useMagnet } from './fx'
 
-export const REPO = 'https://github.com/Prot10/trip-planner'
+export const REPO = 'https://github.com/Prot10/MyTripPlanner'
 export const demoUrl = (lang, extra = '') =>
   `${import.meta.env.BASE_URL}demo/?lang=${lang}${extra}`
 export const shot = (name) => `${import.meta.env.BASE_URL}shots/${name}`

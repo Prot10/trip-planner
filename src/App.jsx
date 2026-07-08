@@ -23,9 +23,12 @@ import Toast from './components/Toast'
 
 const isMobileNow = () => window.innerWidth < 1024
 
+const APP_NAME = 'MyTripPlanner'
+
 export default function App() {
   const { t } = useTranslation()
   const activeId = useTrip((s) => s.activeId)
+  const tripTitle = useTrip((s) => activeTrip(s)?.title)
   const tab = useUI((s) => s.tab)
   const setTab = useUI((s) => s.setTab)
   const editor = useUI((s) => s.editor)
@@ -50,6 +53,10 @@ export default function App() {
   const pendingQuestion = useAgentChat((s) => s.pendingQuestion)
   /* demo builds have no local server: no storage sync, scripted agent */
   useEffect(() => { connectAgent(); if (import.meta.env.VITE_DEMO !== '1') startStorageSync() }, [])
+
+  useEffect(() => {
+    document.title = activeId && tripTitle ? `${tripTitle} — ${APP_NAME}` : APP_NAME
+  }, [activeId, tripTitle])
 
   /* mobile shell: bottom sheet over an always-visible map */
   const isDesktop = useIsDesktop()

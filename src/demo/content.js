@@ -102,8 +102,8 @@ Three things to remember: at **Reynisfjara** never turn your back on the ocean; 
   ),
   plannerEnd: L(
     lang,
-    "E qui finisce il repertorio della demo! Per provare Ulisse davvero — con Claude o Codex, usando i tuoi abbonamenti, senza API key — installa Trip Planner dal [repository GitHub](https://github.com/Prot10/trip-planner): basta un doppio click.",
-    "And that's the end of the demo's repertoire! To try the real Ulisse — powered by Claude or Codex through your subscriptions, no API keys — install Trip Planner from the [GitHub repository](https://github.com/Prot10/trip-planner): one double click is all it takes.",
+    "E qui finisce il repertorio della demo! Per provare Ulisse davvero — con Claude o Codex, usando i tuoi abbonamenti, senza API key — installa MyTripPlanner dal [repository GitHub](https://github.com/Prot10/MyTripPlanner): basta un doppio click.",
+    "And that's the end of the demo's repertoire! To try the real Ulisse — powered by Claude or Codex through your subscriptions, no API keys — install MyTripPlanner from the [GitHub repository](https://github.com/Prot10/MyTripPlanner): one double click is all it takes.",
   ),
   progressSteps: [
     L(lang, 'Struttura del viaggio', 'Trip structure'),

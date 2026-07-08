@@ -1,7 +1,7 @@
 {
-  "name": "Trip Planner",
-  "short_name": "Trip Planner",
-  "description": "Self-hosted road-trip planner with Ulisse, your AI travel agent",
+  "name": "MyTripPlanner",
+  "short_name": "MyTripPlanner",
+  "description": "Self-hosted road-trip planner — Ulisse, your AI travel agent, builds the itinerary with you",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

@@ -51,14 +51,14 @@ export default function Install() {
       </div>
 
       <div className="rv mx-auto mt-10 grid max-w-3xl gap-3 sm:grid-cols-2" style={{ '--rv-d': '200ms' }}>
-        <CodeCard label={t('install.or')} lines={['git clone https://github.com/Prot10/trip-planner.git', 'cd trip-planner && npm start']} />
+        <CodeCard label={t('install.or')} lines={['git clone https://github.com/Prot10/MyTripPlanner.git', 'cd MyTripPlanner && npm start']} />
         <CodeCard label={t('install.docker')} lines={['docker compose up -d', '# → http://localhost:5200']} />
       </div>
 
       <div className="rv mt-12 flex justify-center" style={{ '--rv-d': '250ms' }}>
         <MagnetLink href={REPO}>
           <GitHubIcon size={16} />
-          Prot10/trip-planner
+          Prot10/MyTripPlanner
         </MagnetLink>
       </div>
     </section>

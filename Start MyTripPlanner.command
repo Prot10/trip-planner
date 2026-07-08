@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Trip Planner — double-click launcher (macOS)
+# MyTripPlanner — double-click launcher (macOS)
 # installs dependencies on first run, builds, starts the local server, opens the browser
 cd "$(dirname "$0")"
 export PATH="$PATH:/usr/local/bin:/opt/homebrew/bin"

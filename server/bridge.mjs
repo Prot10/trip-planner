@@ -68,7 +68,7 @@ export function createBridge(httpServer) {
     return new Promise((resolve) => {
       const tab = [...tabs].at(-1) // most recent tab wins
       if (!tab || tab.readyState !== 1) {
-        resolve({ ok: false, error: "Nessuna scheda dell'app aperta nel browser: apri il Trip Planner e riprova." })
+        resolve({ ok: false, error: "Nessuna scheda dell'app aperta nel browser: apri MyTripPlanner e riprova." })
         return
       }
       const id = nextId++

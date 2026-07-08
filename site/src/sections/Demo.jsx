@@ -36,7 +36,7 @@ export default function Demo() {
         </div>
 
         <div className="rv-scale mt-12" style={{ '--rv-d': '200ms' }}>
-          <BrowserFrame url={`trip-planner — ${lang === 'it' ? 'demo interattiva' : 'interactive demo'}`} className="mx-auto max-w-5xl">
+          <BrowserFrame url={`mytripplanner — ${lang === 'it' ? 'demo interattiva' : 'interactive demo'}`} className="mx-auto max-w-5xl">
             <div className="relative aspect-[4/5] bg-ink-100 sm:aspect-[16/10]">
               {run === 0 ? (
                 <button
@@ -59,7 +59,7 @@ export default function Demo() {
                 <iframe
                   key={run}
                   src={demoUrl(lang, '&reset=1')}
-                  title="Trip Planner demo"
+                  title="MyTripPlanner demo"
                   className="absolute inset-0 h-full w-full border-0"
                   allow="clipboard-write"
                 />

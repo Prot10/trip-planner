@@ -1,13 +1,13 @@
 <div align="center">
 
-<img src="public/icon.svg" width="88" alt="Trip Planner logo" />
+<img src="public/icon.svg" width="88" alt="MyTripPlanner logo" />
 
-# Trip Planner
+# MyTripPlanner
 
 **Plan road trips by talking.** Ulisse — an AI agent running on your own Claude or ChatGPT subscription — interviews you, then builds the whole itinerary live: stops, real roads on the map, timings, budget, **real hotels from Booking.com and real restaurants from Google Maps**.
 
-<a href="https://prot10.github.io/trip-planner/"><img src="https://img.shields.io/badge/Website-visit-ff7a59?style=for-the-badge" alt="Website" /></a>&nbsp;
-<a href="https://prot10.github.io/trip-planner/demo/"><img src="https://img.shields.io/badge/Live_demo-try_it_now-7c3aed?style=for-the-badge" alt="Live demo" /></a>&nbsp;
+<a href="https://prot10.github.io/MyTripPlanner/"><img src="https://img.shields.io/badge/Website-visit-ff7a59?style=for-the-badge" alt="Website" /></a>&nbsp;
+<a href="https://prot10.github.io/MyTripPlanner/demo/"><img src="https://img.shields.io/badge/Live_demo-try_it_now-7c3aed?style=for-the-badge" alt="Live demo" /></a>&nbsp;
 <a href="#getting-started"><img src="https://img.shields.io/badge/Install-2_minutes-16a34a?style=for-the-badge" alt="Install" /></a>
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
@@ -18,11 +18,11 @@
 
 *Self-hosted · no API keys · no accounts · your data stays in your Documents folder*
 
-<img src="docs/planner.png" alt="Trip Planner — the Iceland Ring Road built live by Ulisse" />
+<img src="docs/planner.png" alt="MyTripPlanner — the Iceland Ring Road built live by Ulisse" />
 
 </div>
 
-The **[live demo](https://prot10.github.io/trip-planner/demo/)** is the real app in your browser, with a scripted Ulisse that interviews you and builds the full Iceland Ring Road in front of your eyes — nothing to install. The app also ships pre-loaded with a real 7-day California loop (Pasadena → Big Sur → San Francisco → Yosemite → Sequoia), complete with timings, drive legs, nightly hotels, entry fees and booking links.
+The **[live demo](https://prot10.github.io/MyTripPlanner/demo/)** is the real app in your browser, with a scripted Ulisse that interviews you and builds the full Iceland Ring Road in front of your eyes — nothing to install. The app also ships pre-loaded with a real 7-day California loop (Pasadena → Big Sur → San Francisco → Yosemite → Sequoia), complete with timings, drive legs, nightly hotels, entry fees and booking links.
 
 ## Features
 
@@ -102,8 +102,8 @@ The **[live demo](https://prot10.github.io/trip-planner/demo/)** is the real app
 The only prerequisite is **Node.js ≥ 20.19** (an `.nvmrc` is included). Every CLI the AI agent needs (Claude Code, Codex) is pinned by npm — nothing else to install.
 
 ```sh
-git clone https://github.com/Prot10/trip-planner.git
-cd trip-planner
+git clone https://github.com/Prot10/MyTripPlanner.git
+cd MyTripPlanner
 npm install
 npm start        # builds the app and serves everything at http://localhost:5200
 ```
@@ -122,15 +122,15 @@ Prefer not to touch a terminal? The repo ships a launcher per platform — doubl
 
 | Platform | File |
 |---|---|
-| macOS | `Start Trip Planner.command` |
-| Windows | `Start Trip Planner.bat` |
-| Linux | `start-trip-planner.sh` |
+| macOS | `Start MyTripPlanner.command` |
+| Windows | `Start MyTripPlanner.bat` |
+| Linux | `start-mytripplanner.sh` |
 
 The only prerequisite is still Node.js — if it's missing, the launcher tells you instead of failing silently. Launching twice is safe: an already-running server is reused.
 
 ### Install it as a desktop app
 
-Trip Planner is an installable web app (PWA). With the server running, open it in Chrome or Edge and click the **Install** icon in the address bar (or *menu → Install Trip Planner*): you get a standalone window with its own dock/taskbar icon, like a native app. From then on: double-click the launcher (starts the server), then open the installed app.
+MyTripPlanner is an installable web app (PWA). With the server running, open it in Chrome or Edge and click the **Install** icon in the address bar (or *menu → Install MyTripPlanner*): you get a standalone window with its own dock/taskbar icon, like a native app. From then on: double-click the launcher (starts the server), then open the installed app.
 
 ### Docker
 

@@ -45,7 +45,7 @@ export function createMcpHandler(bridge) {
         return {
           protocolVersion: msg.params?.protocolVersion ?? PROTOCOL_VERSION,
           capabilities: { tools: {} },
-          serverInfo: { name: 'trip-planner', version: '1.0.0' },
+          serverInfo: { name: 'MyTripPlanner', version: '1.0.0' },
         }
       case 'ping':
         return {}

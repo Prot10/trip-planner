@@ -1,4 +1,4 @@
-/* Trip Planner agent server: WebSocket bridge to the browser + Claude Agent
+/* MyTripPlanner agent server: WebSocket bridge to the browser + Claude Agent
    SDK chat sessions. Run alongside Vite with `npm run dev`, or standalone
    with `npm start`: when a production build exists in dist/, this server
    also serves the app itself, so one port runs everything. */

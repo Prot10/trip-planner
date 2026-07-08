@@ -1,5 +1,5 @@
 #!/bin/sh
-# Trip Planner — launcher (Linux)
+# MyTripPlanner — launcher (Linux)
 # installs dependencies on first run, builds, starts the local server, opens the browser
 cd "$(dirname "$0")" || exit 1
 

@@ -279,6 +279,7 @@
     "panel": {
       "connected": "Connesso",
       "notConnected": "Server non raggiungibile",
+      "agentRole": "Agente di viaggio",
       "savedChats": "Conversazioni salvate",
       "newChat": "Nuova conversazione",
       "closeChat": "Chiudi chat",
@@ -291,7 +292,7 @@
       "undoAll": "Annulla tutto",
       "serverDown": "Server agente non raggiungibile: avvia l'app con <1>npm run dev</1>.",
       "answerAbove": "Rispondi alla domanda qui sopra",
-      "placeholder": "Scrivi all'assistente… (@ per taggare un'attività)",
+      "placeholder": "Scrivi a Ulisse… (@ per taggare un'attività)",
       "stop": "Interrompi",
       "send": "Invia",
       "justNow": "adesso",
@@ -309,7 +310,7 @@
   },
   "suggestions": {
     "emptyTitle": "Nessun consiglio per questo viaggio, per ora",
-    "emptyBody": "Chiedi all'assistente idee extra lungo il percorso: le salverà qui come consigli attivabili con un click.",
+    "emptyBody": "Chiedi a Ulisse idee extra lungo il percorso: le salverà qui come consigli attivabili con un click.",
     "introBefore": "Tappe extra selezionate lungo il vostro percorso. Attivane una e viene inserita",
     "introBold": "automaticamente nel giorno e nel punto del percorso che aggiunge meno strada",
     "introAfter": "; disattivala e il percorso torna com'era. Il chilometraggio indicato è la deviazione stimata.",
@@ -394,7 +395,7 @@
     "allTrips": "Tutti i viaggi",
     "backToTrips": "Torna ai miei viaggi",
     "tripName": "Nome del viaggio",
-    "aiAssistant": "Assistente AI",
+    "aiAssistant": "Ulisse",
     "exportTooltip": "Esporta itinerario (JSON)",
     "importTooltip": "Importa itinerario",
     "stats": {
@@ -426,7 +427,7 @@
       "consumption": "Consumo (L/100 km)",
       "fuelPrice": "Prezzo carburante",
       "fuelPriceUnit": "Unità del prezzo carburante",
-      "priceHint": "Il prezzo giusto dipende da dove viaggi e cambia nel tempo: chiedi all'assistente di cercare la media aggiornata a destinazione.",
+      "priceHint": "Il prezzo giusto dipende da dove viaggi e cambia nel tempo: chiedi a Ulisse di cercare la media aggiornata a destinazione.",
       "askAgentButton": "Cerca il prezzo aggiornato",
       "askAgentPrompt": "Cerca sul web il prezzo medio attuale del carburante nella zona di questo viaggio e aggiorna le impostazioni auto con set_trip_meta (usa l’unità locale). Se conosci il consumo tipico della mia auto, aggiorna anche quello."
     },
@@ -443,7 +444,7 @@
     "tabSuggestions": "Consigli",
     "tabChecklist": "Checklist",
     "tabMap": "Mappa",
-    "tabAI": "AI",
+    "tabAI": "Ulisse",
     "dragResize": "Trascina per ridimensionare",
     "pickOnMap": "Clicca sulla mappa per scegliere la posizione"
   },
@@ -552,7 +553,7 @@
     "taggedNote": "[Attività taggate dall'utente: {{refs}}]",
     "dayShort": "G{{n}}",
     "hint": "↑↓ scegli · Invio conferma",
-    "ariaLabel": "Scrivi all'assistente"
+    "ariaLabel": "Scrivi a Ulisse"
   },
   "dashboard": {
     "title": "I miei viaggi",
@@ -573,7 +574,7 @@
     "days_other": "{{count}} giorni",
     "stops_one": "{{count}} tappa",
     "stops_other": "{{count}} tappe",
-    "agentHint": "l'assistente lo costruisce con te",
+    "agentHint": "Ulisse lo costruisce con te",
     "fromScratch": "Preferisci partire da zero?",
     "createManually": "crea un viaggio manualmente"
   },
@@ -606,7 +607,7 @@
     "heroIntro": "Sono <b>Ulisse</b>, il tuo agente di viaggio. Raccontami cosa hai in mente: ti farò una domanda alla volta prendendo appunti, poi <b>costruirò l'itinerario completo per te</b> — lo vedrai nascere in tempo reale.",
     "thinking": "sto pensando…",
     "placeholderAnswer": "Rispondi alla domanda qui sopra",
-    "placeholderOffline": "Assistente non connesso",
+    "placeholderOffline": "Ulisse non connesso",
     "placeholderCurrency": "Scegli la valuta qui sotto, poi descrivi il viaggio che sogni…",
     "placeholder": "Descrivi il viaggio che sogni…",
     "stop": "Interrompi",

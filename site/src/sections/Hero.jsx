@@ -53,7 +53,7 @@ export default function Hero() {
               </span>
               {t('hero.ctaDemo')}
             </MagnetLink>
-            <MagnetLink href="https://github.com/Prot10/trip-planner" variant="ghost">
+            <MagnetLink href="https://github.com/Prot10/MyTripPlanner" variant="ghost">
               <GitHubIcon size={16} />
               {t('hero.ctaGit')}
             </MagnetLink>
@@ -65,7 +65,7 @@ export default function Hero() {
         <div className="relative mx-auto mt-14 max-w-5xl sm:mt-20">
           <RouteDoodle />
           <div ref={tilt} className="tilt tilt-glare relative rounded-2xl">
-            <BrowserFrame url="localhost:5200 — Trip Planner">
+            <BrowserFrame url="localhost:5200 — MyTripPlanner">
               <img
                 src={shot('hero.png')}
                 width="2200"

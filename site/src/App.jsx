@@ -56,7 +56,7 @@ function Nav() {
       <nav className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3 sm:px-6">
         <a href="#top" className="flex items-center gap-2.5 font-display text-[15px] font-extrabold text-ink-900">
           <Logo size={30} />
-          Trip Planner
+          MyTripPlanner
         </a>
         <div className="mx-auto hidden items-center gap-1 md:flex">
           {links.map(([href, label]) => (
@@ -100,7 +100,7 @@ function Footer() {
         <div>
           <a href="#top" className="flex items-center gap-2.5 font-display text-[15px] font-extrabold text-ink-900">
             <Logo size={28} />
-            Trip Planner
+            MyTripPlanner
           </a>
           <p className="mt-2 max-w-xs text-[13px] leading-relaxed text-ink-500">{t('footer.tag')}</p>
           <p className="mt-3 text-[11.5px] font-semibold text-ink-400">{t('footer.license')}</p>
