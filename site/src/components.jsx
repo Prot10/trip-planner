@@ -8,10 +8,6 @@ export const COFFEE = 'https://buymeacoffee.com/prot10'
 export const demoUrl = (lang, extra = '') =>
   `${import.meta.env.BASE_URL}demo/?lang=${lang}${extra}`
 export const shot = (name) => `${import.meta.env.BASE_URL}shots/${name}`
-/* Italian is the default screenshot (no suffix); English variants are named
-   "<base>-en.png". Use for shots whose UI copy would otherwise stay stuck
-   in one language regardless of the site's selected language. */
-export const localizedShot = (base, lang) => shot(lang === 'en' ? `${base}-en.png` : `${base}.png`)
 
 export function Kicker({ children }) {
   return (

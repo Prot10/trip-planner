@@ -1,20 +1,20 @@
 import { useEffect, useState } from 'react'
 import { BedDouble, UtensilsCrossed } from 'lucide-react'
 import { useLang } from '../i18n.jsx'
-import { Kicker, SectionTitle, ShotFrame, localizedShot } from '../components.jsx'
+import { Kicker, SectionTitle, ShotFrame } from '../components.jsx'
 import { useTilt } from '../fx'
+import PickScene from '../mock/PickScenes.jsx'
 
-/* cropped to just the Ulisse panel and its picks card — map and itinerary
-   list are cut entirely so the panel can be shown large and legible. */
-const BASES = ['picks-hotels-panel', 'picks-restaurants-panel']
-const SHOT_ASPECT = '864/1400'
+/* each tab replays a real proposal turn as a live UI mock: the Booking /
+   Google Maps shortlist appears, the top pick gets chosen, the transcript
+   collapses into the pick record. Autoplay leaves room for the whole loop. */
+const KINDS = ['hotel', 'restaurant']
 const ICONS = [BedDouble, UtensilsCrossed]
-const AUTOPLAY_MS = 3500
+const AUTOPLAY_MS = 15500
 
 /* the interactive proposal widgets: real hotels (Booking) and real
-   restaurants (Google Maps). A 2-tab autoplaying showcase: the text tabs
-   drive one big shared image. Desktop keeps the image beside the tabs;
-   mobile puts the image first and the tabs as a compact row underneath. */
+   restaurants (Google Maps). Desktop keeps the scene beside the tabs;
+   mobile puts the scene first and the tabs as a compact row underneath. */
 export default function Picks() {
   const { lang, t } = useLang()
   const cards = t('picks.cards')
@@ -64,12 +64,12 @@ export default function Picks() {
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
-        {/* image, shared by both layouts: an aspect-locked stack that crossfades */}
-        <Shot cards={cards} lang={lang} active={active} tiltRef={tiltMobile} className="lg:hidden" />
+        {/* the scene stack, shared by both layouts */}
+        <Shot lang={lang} active={active} tiltRef={tiltMobile} className="lg:hidden" />
 
         <div className="lg:grid lg:grid-cols-12 lg:items-center lg:gap-10">
           <div className="hidden lg:col-span-5 lg:block">
-            <Shot cards={cards} lang={lang} active={active} tiltRef={tiltDesktop} />
+            <Shot lang={lang} active={active} tiltRef={tiltDesktop} />
           </div>
 
           <div className="mt-6 lg:col-span-7 lg:order-first lg:mt-0">
@@ -139,20 +139,21 @@ export default function Picks() {
   )
 }
 
-/* the aspect-locked, cross-fading screenshot stack shared by both layouts */
-function Shot({ cards, lang, active, tiltRef, className = '' }) {
+/* the cross-fading scene stack shared by both layouts: both scenes stay
+   mounted in the same grid cell, the active one is visible */
+function Shot({ lang, active, tiltRef, className = '' }) {
   return (
     <div ref={tiltRef} className={`tilt tilt-glare relative rounded-2xl ${className}`}>
       <ShotFrame>
-        <div className="relative bg-ink-100" style={{ aspectRatio: SHOT_ASPECT }}>
-          {BASES.map((base, i) => (
-            <img
-              key={base}
-              src={localizedShot(base, lang)}
-              alt={cards[i]?.t}
-              loading={i === 0 ? 'eager' : 'lazy'}
-              className={`absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-500 ${i === active ? 'opacity-100' : 'opacity-0'}`}
-            />
+        <div className="grid bg-ink-100">
+          {KINDS.map((kind, i) => (
+            <div
+              key={kind}
+              aria-hidden={i !== active}
+              className={`col-start-1 row-start-1 transition-opacity duration-500 ${i === active ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+            >
+              <PickScene kind={kind} lang={lang} active={i === active} />
+            </div>
           ))}
         </div>
       </ShotFrame>

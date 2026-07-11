@@ -1,7 +1,8 @@
-import { CalendarDays, MapPin, Route, Wallet, NotebookPen } from 'lucide-react'
+import { CalendarDays, Route, Wallet, NotebookPen } from 'lucide-react'
 import { useLang } from '../i18n.jsx'
 import { useTilt } from '../fx'
-import { MagnetLink, ShotFrame, GitHubIcon, localizedShot } from '../components.jsx'
+import { MagnetLink, ShotFrame, GitHubIcon } from '../components.jsx'
+import HeroApp from '../mock/HeroApp.jsx'
 
 export default function Hero() {
   const { lang, t } = useLang()
@@ -66,13 +67,7 @@ export default function Hero() {
           <RouteDoodle />
           <div ref={tilt} className="tilt tilt-glare relative rounded-2xl">
             <ShotFrame>
-              <img
-                src={localizedShot('hero', lang)}
-                width="2200"
-                height="1330"
-                alt={lang === 'it' ? 'Il planner: itinerario, mappa e chat con Ulisse' : 'The planner: itinerary, map and the Ulisse chat'}
-                className="block w-full"
-              />
+              <HeroApp lang={lang} />
             </ShotFrame>
           </div>
 
