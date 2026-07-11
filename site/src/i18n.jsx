@@ -11,6 +11,7 @@ const STR = {
     features: { it: 'Funzioni', en: 'Features' },
     install: { it: 'Installa', en: 'Install' },
     github: { it: 'GitHub', en: 'GitHub' },
+    support: { it: 'Sostienimi', en: 'Support' },
   },
   hero: {
     eyebrow: { it: 'Open source · Self-hosted · I dati restano tuoi', en: 'Open source · Self-hosted · Your data stays yours' },
@@ -194,6 +195,10 @@ const STR = {
     repo: { it: 'Repository', en: 'Repository' },
     issues: { it: 'Segnala un problema', en: 'Report an issue' },
     demoLink: { it: 'Demo a schermo intero', en: 'Full-screen demo' },
+    supportKicker: { it: 'Sostieni il progetto', en: 'Support the project' },
+    star: { it: 'Metti una stella su GitHub', en: 'Star on GitHub' },
+    coffee: { it: 'Offrimi un caffè', en: 'Buy me a coffee' },
+    paypal: { it: 'PayPal', en: 'PayPal' },
   },
 }
 

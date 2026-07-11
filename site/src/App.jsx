@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLang } from './i18n.jsx'
 import { useReveal, useScrollProgress } from './fx'
-import { Logo, GitHubIcon, REPO, demoUrl } from './components.jsx'
+import { Logo, GitHubIcon, HeartIcon, CoffeeIcon, PayPalIcon, REPO, PAYPAL, COFFEE, demoUrl } from './components.jsx'
 import Hero from './sections/Hero.jsx'
 import Marquee from './sections/Marquee.jsx'
 import Steps from './sections/Steps.jsx'
@@ -77,6 +77,23 @@ function Nav() {
               </button>
             ))}
           </div>
+          <div className="group relative">
+            <button
+              type="button"
+              className="flex items-center gap-1.5 rounded-xl border border-ink-200 bg-white px-3 py-1.5 text-[13px] font-bold text-ink-600 shadow-sm transition hover:border-rose-300 hover:text-rose-600"
+            >
+              <span className="text-rose-500"><HeartIcon size={14} /></span>
+              <span className="hidden sm:inline">{t('nav.support')}</span>
+            </button>
+            <div className="invisible absolute right-0 top-full z-20 mt-2 w-44 rounded-xl border border-ink-200 bg-white p-1.5 opacity-0 shadow-lg shadow-ink-900/10 transition-all duration-150 group-hover:visible group-hover:opacity-100">
+              <a href={COFFEE} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[12.5px] font-semibold text-ink-600 transition hover:bg-ink-50 hover:text-ink-900">
+                <CoffeeIcon size={14} /> {t('footer.coffee')}
+              </a>
+              <a href={PAYPAL} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[12.5px] font-semibold text-ink-600 transition hover:bg-ink-50 hover:text-ink-900">
+                <PayPalIcon size={14} /> {t('footer.paypal')}
+              </a>
+            </div>
+          </div>
           <a
             href={REPO}
             target="_blank"
@@ -114,6 +131,18 @@ function Footer() {
           </a>
           <a href={demoUrl(lang)} target="_blank" rel="noreferrer" className="transition hover:text-ink-900">
             {t('footer.demoLink')}
+          </a>
+        </div>
+        <div className="flex flex-col items-center gap-2 text-[13px] font-semibold text-ink-500 sm:items-end">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-ink-400">{t('footer.supportKicker')}</p>
+          <a href={REPO} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 transition hover:text-ink-900">
+            <GitHubIcon size={14} /> {t('footer.star')}
+          </a>
+          <a href={COFFEE} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 transition hover:text-ink-900">
+            <CoffeeIcon size={14} /> {t('footer.coffee')}
+          </a>
+          <a href={PAYPAL} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 transition hover:text-ink-900">
+            <PayPalIcon size={14} /> {t('footer.paypal')}
           </a>
         </div>
       </div>

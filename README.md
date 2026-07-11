@@ -16,6 +16,8 @@
 [![Vite](https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=white)](https://vite.dev)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38bdf8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![Free APIs only](https://img.shields.io/badge/APIs-100%25_free-22c55e)](#tech-stack)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?style=flat&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/prot10)
+[![PayPal](https://img.shields.io/badge/PayPal-0070BA?style=flat&logo=paypal&logoColor=white)](https://paypal.me/andreaprotani99)
 
 *Self-hosted · no API keys · no accounts · your data stays in your Documents folder*
 
@@ -233,8 +235,12 @@ server/
 
 If this project is useful to you, consider supporting its development:
 
-- ☕ [Buy Me a Coffee](https://buymeacoffee.com/prot10)
-- 💛 [PayPal](https://paypal.me/andreaprotani99)
+[![PayPal](https://img.shields.io/badge/PayPal-0070BA?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/andreaprotani99)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/prot10)
+
+- [Open an Issue](https://github.com/Prot10/MyTripPlanner/issues)
+- [Discussions](https://github.com/Prot10/MyTripPlanner/discussions)
+- [Star on GitHub](https://github.com/Prot10/MyTripPlanner) — it helps a lot!
 
 ## License
 
