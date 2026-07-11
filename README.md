@@ -226,6 +226,22 @@ server/
   codex-workspace/<lang>/  AGENTS.md generated at boot from the prompts
 ```
 
+### Promo site
+
+The marketing site (`site/`, deployed to [GitHub Pages](https://prot10.github.io/MyTripPlanner/)) and the embedded live demo (`VITE_DEMO=1` builds of the real app) are two separate Vite projects that only come together at deploy time: the demo gets built into `demo/` *inside* the site's own output folder, so the site's "Start the demo" iframe can find it at `/demo/`.
+
+```sh
+npm run site:dev      # promo site alone, hot reload (http://localhost:5197)
+```
+
+`site:dev` is great for iterating on copy and layout, but the "Start the demo" button won't work in it: there's no `/demo/` route to serve, so the iframe just loads the site's own page again. To test the two together like production, build both into the same output folder and preview it as static files:
+
+```sh
+npm run site:preview  # builds site + demo into dist-site/, serves it at http://localhost:5300
+```
+
+`site:build` and `demo:build` (used by `site:preview` and by CI) can also be run individually if you only need one of the two outputs.
+
 ## Notes
 
 - The itinerary and all edits live in your own data folder (see *Your data*), with the browser as a fast cache. Use **Export** to share a trip; the recipient imports the file and sees exactly your plan, photos included.

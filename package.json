@@ -21,7 +21,8 @@
     "start": "npm run build && node server/index.mjs",
     "site:dev": "cd site && vite",
     "site:build": "cd site && vite build",
-    "demo:build": "VITE_DEMO=1 vite build --base=/demo/ --outDir dist-site/demo --emptyOutDir"
+    "demo:build": "VITE_DEMO=1 vite build --base=/demo/ --outDir dist-site/demo --emptyOutDir",
+    "site:preview": "npm run site:build && npm run demo:build && vite preview --outDir dist-site --port 5300"
   },
   "engines": {
     "node": ">=20.19"
