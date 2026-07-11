@@ -1,12 +1,55 @@
+import { useEffect, useState } from 'react'
+import { BedDouble, UtensilsCrossed } from 'lucide-react'
 import { useLang } from '../i18n.jsx'
-import { Kicker, SectionTitle, BrowserFrame, shot } from '../components.jsx'
+import { Kicker, SectionTitle, ShotFrame, localizedShot } from '../components.jsx'
 import { useTilt } from '../fx'
 
+/* cropped to just the Ulisse panel and its picks card — map and itinerary
+   list are cut entirely so the panel can be shown large and legible. */
+const BASES = ['picks-hotels-panel', 'picks-restaurants-panel']
+const SHOT_ASPECT = '864/1400'
+const ICONS = [BedDouble, UtensilsCrossed]
+const AUTOPLAY_MS = 3500
+
 /* the interactive proposal widgets: real hotels (Booking) and real
-   restaurants (Google Maps), picked with one tap in the chat */
+   restaurants (Google Maps). A 2-tab autoplaying showcase: the text tabs
+   drive one big shared image. Desktop keeps the image beside the tabs;
+   mobile puts the image first and the tabs as a compact row underneath. */
 export default function Picks() {
-  const { t } = useLang()
+  const { lang, t } = useLang()
   const cards = t('picks.cards')
+  const [active, setActive] = useState(0)
+  const [tick, setTick] = useState(0)
+  const [paused, setPaused] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const tiltMobile = useTilt(4)
+  const tiltDesktop = useTilt(4)
+
+  const pick = (i) => {
+    setActive(i)
+    setTick((n) => n + 1)
+  }
+
+  /* progress is plain React state (not an imperative ref mutation) so that
+     switching tabs reliably resets the OLD tab's bar back to 0 — a ref-based
+     mutation left the previous tab's bar stuck at whatever width it last
+     had, since React never saw its "0%" style prop actually change. */
+  useEffect(() => {
+    setProgress(0)
+    if (paused) return
+    let raf
+    const start = performance.now()
+    const step = (now) => {
+      const p = Math.min(1, (now - start) / AUTOPLAY_MS)
+      setProgress(p)
+      if (p >= 1) { setActive((a) => (a + 1) % cards.length); return }
+      raf = requestAnimationFrame(step)
+    }
+    raf = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(raf)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, tick, paused, cards.length])
+
   return (
     <section id="picks" className="relative mx-auto max-w-6xl scroll-mt-24 px-4 py-24 sm:px-6 sm:py-32">
       <div className="max-w-2xl">
@@ -15,35 +58,104 @@ export default function Picks() {
         <p className="rv mt-3 text-[15px] text-ink-500" style={{ '--rv-d': '120ms' }}>{t('picks.sub')}</p>
       </div>
 
-      <div className="mt-12 grid gap-10 lg:grid-cols-2 lg:gap-8">
-        {cards.map((c, i) => (
-          <Card key={c.t} c={c} img={i === 0 ? 'picks-hotels.png' : 'picks-restaurants.png'} />
-        ))}
+      <div
+        className="rv-scale mt-12"
+        style={{ '--rv-d': '120ms' }}
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+      >
+        {/* image, shared by both layouts: an aspect-locked stack that crossfades */}
+        <Shot cards={cards} lang={lang} active={active} tiltRef={tiltMobile} className="lg:hidden" />
+
+        <div className="lg:grid lg:grid-cols-12 lg:items-center lg:gap-10">
+          <div className="hidden lg:col-span-5 lg:block">
+            <Shot cards={cards} lang={lang} active={active} tiltRef={tiltDesktop} />
+          </div>
+
+          <div className="mt-6 lg:col-span-7 lg:order-first lg:mt-0">
+            <div className="flex gap-2 lg:flex-col lg:gap-3">
+              {cards.map((c, i) => {
+                const Icon = ICONS[i]
+                const isActive = i === active
+                return (
+                  <button
+                    key={c.t}
+                    onClick={() => pick(i)}
+                    aria-pressed={isActive}
+                    className={`group flex-1 rounded-2xl border p-4 text-left transition lg:flex-none lg:p-5 ${
+                      isActive ? 'border-brand-300 bg-brand-50/50 shadow-sm' : 'border-ink-200 bg-white hover:border-ink-300'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <span className={`grid size-8 shrink-0 place-items-center rounded-xl transition ${isActive ? 'bg-brand-500 text-white' : 'bg-ink-100 text-ink-500'}`}>
+                        <Icon size={16} />
+                      </span>
+                      <span className={`font-display text-[14.5px] font-extrabold sm:text-[15px] ${isActive ? 'text-ink-900' : 'text-ink-600'}`}>
+                        {c.t}
+                      </span>
+                    </span>
+
+                    {/* progress bar: only the active tab counts down */}
+                    <span className="mt-3 block h-[3px] w-full overflow-hidden rounded-full bg-ink-100">
+                      <span
+                        className="block h-full rounded-full bg-brand-500"
+                        style={{ width: `${(isActive ? progress : 0) * 100}%` }}
+                      />
+                    </span>
+
+                    {/* expanded content: desktop only (mobile shows the
+                        active tab's description below the pill row instead),
+                        and only for the active tab */}
+                    <span className={`mt-3 hidden ${isActive ? 'lg:block' : 'lg:hidden'}`}>
+                      <span className="block text-[13.5px] leading-relaxed text-ink-500">{c.d}</span>
+                      <span className="mt-3 flex flex-wrap gap-1.5">
+                        {c.chips.map((chip) => (
+                          <span key={chip} className="rounded-lg bg-ink-100 px-2.5 py-1 text-[11px] font-bold text-ink-600">
+                            {chip}
+                          </span>
+                        ))}
+                      </span>
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* mobile: the active tab's description lives here, under the pill row */}
+            <div className="mt-4 lg:hidden">
+              <p className="text-[13.5px] leading-relaxed text-ink-500">{cards[active].d}</p>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {cards[active].chips.map((chip) => (
+                  <span key={chip} className="rounded-lg bg-ink-100 px-2.5 py-1 text-[11px] font-bold text-ink-600">
+                    {chip}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   )
 }
 
-function Card({ c, img }) {
-  const tilt = useTilt(4)
+/* the aspect-locked, cross-fading screenshot stack shared by both layouts */
+function Shot({ cards, lang, active, tiltRef, className = '' }) {
   return (
-    <div className="rv-scale flex flex-col gap-5" style={{ '--rv-d': '120ms' }}>
-      <div ref={tilt} className="tilt tilt-glare relative rounded-2xl">
-        <BrowserFrame url="localhost:5200">
-          <img src={shot(img)} alt={c.t} loading="lazy" width="2200" height="1375" className="block w-full" />
-        </BrowserFrame>
-      </div>
-      <div>
-        <h3 className="font-display text-xl font-extrabold text-ink-900">{c.t}</h3>
-        <p className="mt-2 max-w-lg text-[14px] leading-relaxed text-ink-500">{c.d}</p>
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {c.chips.map((chip) => (
-            <span key={chip} className="rounded-lg bg-ink-100 px-2.5 py-1 text-[11.5px] font-bold text-ink-600">
-              {chip}
-            </span>
+    <div ref={tiltRef} className={`tilt tilt-glare relative rounded-2xl ${className}`}>
+      <ShotFrame>
+        <div className="relative bg-ink-100" style={{ aspectRatio: SHOT_ASPECT }}>
+          {BASES.map((base, i) => (
+            <img
+              key={base}
+              src={localizedShot(base, lang)}
+              alt={cards[i]?.t}
+              loading={i === 0 ? 'eager' : 'lazy'}
+              className={`absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-500 ${i === active ? 'opacity-100' : 'opacity-0'}`}
+            />
           ))}
         </div>
-      </div>
+      </ShotFrame>
     </div>
   )
 }

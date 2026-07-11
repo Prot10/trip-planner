@@ -1,7 +1,7 @@
 import { CalendarDays, MapPin, Route, Wallet, NotebookPen } from 'lucide-react'
 import { useLang } from '../i18n.jsx'
 import { useTilt } from '../fx'
-import { MagnetLink, BrowserFrame, GitHubIcon, shot } from '../components.jsx'
+import { MagnetLink, ShotFrame, GitHubIcon, localizedShot } from '../components.jsx'
 
 export default function Hero() {
   const { lang, t } = useLang()
@@ -62,18 +62,18 @@ export default function Hero() {
         </div>
 
         {/* the product, held up by floating live chips */}
-        <div className="relative mx-auto mt-14 max-w-5xl sm:mt-20">
+        <div className="relative mx-auto mt-14 max-w-6xl sm:mt-20">
           <RouteDoodle />
           <div ref={tilt} className="tilt tilt-glare relative rounded-2xl">
-            <BrowserFrame url="localhost:5200 — MyTripPlanner">
+            <ShotFrame>
               <img
-                src={shot('hero.png')}
+                src={localizedShot('hero', lang)}
                 width="2200"
                 height="1330"
                 alt={lang === 'it' ? 'Il planner: itinerario, mappa e chat con Ulisse' : 'The planner: itinerary, map and the Ulisse chat'}
                 className="block w-full"
               />
-            </BrowserFrame>
+            </ShotFrame>
           </div>
 
           <FloatChip className="-left-3 -top-7 hidden sm:flex" delay="0s" rot="-3deg">

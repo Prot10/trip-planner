@@ -8,6 +8,10 @@ export const COFFEE = 'https://buymeacoffee.com/prot10'
 export const demoUrl = (lang, extra = '') =>
   `${import.meta.env.BASE_URL}demo/?lang=${lang}${extra}`
 export const shot = (name) => `${import.meta.env.BASE_URL}shots/${name}`
+/* Italian is the default screenshot (no suffix); English variants are named
+   "<base>-en.png". Use for shots whose UI copy would otherwise stay stuck
+   in one language regardless of the site's selected language. */
+export const localizedShot = (base, lang) => shot(lang === 'en' ? `${base}-en.png` : `${base}.png`)
 
 export function Kicker({ children }) {
   return (
@@ -37,33 +41,13 @@ export function MagnetLink({ href, onClick, children, variant = 'primary', class
   )
 }
 
-/* fake browser window around screenshots / the live demo */
-export function BrowserFrame({ children, url = 'localhost:5200', className = '' }) {
+/* plain frame around screenshots / the live demo — no fake browser chrome,
+   just the border and shadow, so the content itself gets to be bigger */
+export function ShotFrame({ children, className = '' }) {
   return (
     <div className={`overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-2xl shadow-ink-900/15 ${className}`}>
-      <div className="flex items-center gap-2 border-b border-ink-100 bg-ink-50 px-4 py-2.5">
-        <span className="flex gap-1.5">
-          <span className="size-3 rounded-full bg-[#ff5f57]" />
-          <span className="size-3 rounded-full bg-[#febc2e]" />
-          <span className="size-3 rounded-full bg-[#28c840]" />
-        </span>
-        <span className="mx-auto flex min-w-0 items-center gap-1.5 rounded-lg bg-white px-3 py-1 text-[11px] font-semibold text-ink-400 ring-1 ring-ink-200">
-          <LockIcon />
-          <span className="truncate">{url}</span>
-        </span>
-        <span className="w-12" />
-      </div>
       {children}
     </div>
-  )
-}
-
-function LockIcon() {
-  return (
-    <svg width="9" height="11" viewBox="0 0 10 12" fill="none" className="shrink-0 text-ink-300">
-      <rect x="1" y="5" width="8" height="6" rx="1.5" fill="currentColor" />
-      <path d="M3 5V3.5a2 2 0 1 1 4 0V5" stroke="currentColor" strokeWidth="1.6" />
-    </svg>
   )
 }
 

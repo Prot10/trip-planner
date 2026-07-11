@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Play, RotateCcw, Maximize2, Lightbulb } from 'lucide-react'
 import { useLang } from '../i18n.jsx'
-import { Kicker, SectionTitle, BrowserFrame, demoUrl, shot } from '../components.jsx'
+import { Kicker, SectionTitle, ShotFrame, demoUrl, localizedShot } from '../components.jsx'
 
 /* The real app, embedded. The iframe mounts on demand (poster first): the
    demo bundle is heavy and must not weigh on the landing page load. */
@@ -36,7 +36,7 @@ export default function Demo() {
         </div>
 
         <div className="rv-scale mt-12" style={{ '--rv-d': '200ms' }}>
-          <BrowserFrame url={`mytripplanner — ${lang === 'it' ? 'demo interattiva' : 'interactive demo'}`} className="mx-auto max-w-5xl">
+          <ShotFrame className="mx-auto max-w-6xl">
             <div className="relative aspect-[4/5] bg-ink-100 sm:aspect-[16/10]">
               {run === 0 ? (
                 <button
@@ -44,7 +44,7 @@ export default function Demo() {
                   className="group absolute inset-0 block w-full cursor-pointer"
                   aria-label={t('demo.start')}
                 >
-                  <img src={shot('poster.png')} alt="" className="h-full w-full object-cover object-top opacity-90" />
+                  <img src={localizedShot('poster', lang)} alt="" className="h-full w-full object-cover object-top opacity-90" />
                   <span className="absolute inset-0 bg-gradient-to-t from-ink-900/50 via-ink-900/10 to-transparent" />
                   <span className="absolute inset-0 grid place-items-center">
                     <span className="flex items-center gap-3 rounded-2xl bg-white px-7 py-4 font-display text-[16px] font-extrabold text-ink-900 shadow-2xl transition-transform duration-300 group-hover:scale-105">
@@ -65,9 +65,9 @@ export default function Demo() {
                 />
               )}
             </div>
-          </BrowserFrame>
+          </ShotFrame>
 
-          <div className="mx-auto mt-5 flex max-w-5xl flex-wrap items-center justify-center gap-x-6 gap-y-3 sm:justify-between">
+          <div className="mx-auto mt-5 flex max-w-6xl flex-wrap items-center justify-center gap-x-6 gap-y-3 sm:justify-between">
             <p className="flex items-center gap-2 text-[12.5px] font-semibold text-ink-300">
               <Lightbulb size={14} className="text-amber-400" />
               {t('demo.tip')}
