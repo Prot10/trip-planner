@@ -3,16 +3,19 @@
 
 import { useEffect, useRef } from 'react'
 
-/* one shared observer: elements with .rv/.rv-scale get .rv-in when visible */
+/* one shared observer: elements with .rv/.rv-scale get .rv-in when visible.
+   Loading the page with a URL hash already set (reload while sitting on an
+   anchor, a shared link with #section) can make the observer's very first
+   callback report every target as non-intersecting, and it never fires
+   again — everything stays stuck at opacity:0. reveal()/isInViewport() below
+   add a scroll/resize fallback that doesn't depend on the observer firing
+   correctly, so nothing can get stuck invisible forever. */
 let observer = null
 const io = () => {
   observer ??= new IntersectionObserver(
     (entries) => {
       for (const e of entries) {
-        if (e.isIntersecting) {
-          e.target.classList.add('rv-in')
-          observer.unobserve(e.target)
-        }
+        if (e.isIntersecting) reveal(e.target)
       }
     },
     { threshold: 0.18, rootMargin: '0px 0px -40px 0px' },
@@ -20,13 +23,40 @@ const io = () => {
   return observer
 }
 
+const reveal = (el) => {
+  if (el.classList.contains('rv-in')) return
+  el.classList.add('rv-in')
+  observer?.unobserve(el)
+}
+
+const isInViewport = (el) => {
+  const r = el.getBoundingClientRect()
+  return r.top < innerHeight * 0.82 && r.bottom > 0
+}
+
 /* observe every .rv/.rv-scale inside the returned ref */
 export function useReveal() {
   const ref = useRef(null)
   useEffect(() => {
-    const els = ref.current?.querySelectorAll('.rv, .rv-scale') ?? []
-    els.forEach((el) => io().observe(el))
-    return () => els.forEach((el) => observer?.unobserve(el))
+    const els = [...(ref.current?.querySelectorAll('.rv, .rv-scale') ?? [])]
+    els.forEach((el) => (isInViewport(el) ? reveal(el) : io().observe(el)))
+    const sweep = () => els.forEach((el) => { if (isInViewport(el)) reveal(el) })
+    addEventListener('scroll', sweep, { passive: true })
+    addEventListener('resize', sweep)
+    /* belt-and-braces: a layout shift (webfont swap, an image finishing
+       load) can move an element into view without firing scroll/resize at
+       all — a cheap periodic sweep guarantees it still gets revealed. Stops
+       once nothing is left to check. */
+    const timer = setInterval(() => {
+      if (els.every((el) => el.classList.contains('rv-in'))) { clearInterval(timer); return }
+      sweep()
+    }, 500)
+    return () => {
+      els.forEach((el) => observer?.unobserve(el))
+      removeEventListener('scroll', sweep)
+      removeEventListener('resize', sweep)
+      clearInterval(timer)
+    }
   }, [])
   return ref
 }
