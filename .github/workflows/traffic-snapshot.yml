@@ -1,0 +1,94 @@
+# Snapshots the repo's traffic stats (clones, views, stars, forks) once a day
+# into the `traffic-data` branch, because GitHub's Traffic API only keeps the
+# last 14 days. Over time this builds a full history:
+#   traffic-data branch
+#   ├── clones.json / clones.csv   ← per-day clone counts, deduped by date
+#   ├── views.json  / views.csv    ← per-day page views, deduped by date
+#   └── totals.json / totals.csv   ← daily stars/forks totals
+#
+# Setup (one-time): the built-in GITHUB_TOKEN cannot read the Traffic API, so
+# this workflow needs a fine-grained PAT stored as the TRAFFIC_PAT secret:
+#   GitHub → Settings → Developer settings → Fine-grained tokens → Generate:
+#     Repository access: Only select repositories → Prot10/MyTripPlanner
+#     Repository permissions: Administration → Read-only
+#   Then: repo Settings → Secrets and variables → Actions → new secret TRAFFIC_PAT
+#
+# Note: GitHub disables scheduled workflows in public repos after 60 days
+# without repo activity — it emails you first, and any commit re-enables it.
+name: Traffic snapshot
+
+on:
+  schedule:
+    - cron: "23 5 * * *" # daily, 05:23 UTC (off the top of the hour, per GitHub docs)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: traffic-snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Switch to traffic-data branch
+        run: |
+          git fetch origin traffic-data 2>/dev/null \
+            && git switch traffic-data \
+            || git switch --orphan traffic-data
+
+      - name: Fetch traffic and merge into history
+        env:
+          GH_TOKEN: ${{ secrets.TRAFFIC_PAT }}
+        run: |
+          set -euo pipefail
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::TRAFFIC_PAT secret is not set (fine-grained PAT, Administration: read). See workflow header."
+            exit 1
+          fi
+
+          # Merge a fresh 14-day window into the cumulative per-day history.
+          # Keyed by UTC day; newest value wins so partial-day counts get
+          # corrected on later runs.
+          merge_series() { # $1 = clones|views
+            gh api "repos/${GITHUB_REPOSITORY}/traffic/$1" \
+              --jq ".$1 | map({(.timestamp[:10]): {count, uniques}}) | add // {}" \
+              > "/tmp/$1.new.json"
+            [ -f "$1.json" ] || echo '{}' > "$1.json"
+            jq -s '.[0] + .[1]' "$1.json" "/tmp/$1.new.json" > "/tmp/$1.merged.json"
+            mv "/tmp/$1.merged.json" "$1.json"
+            { echo "date,$1,unique"
+              jq -r 'to_entries | sort_by(.key)[] | [.key, .value.count, .value.uniques] | @csv' "$1.json"
+            } > "$1.csv"
+          }
+          merge_series clones
+          merge_series views
+
+          # Daily stars/forks totals (full history, unlike the traffic API).
+          today=$(date -u +%F)
+          gh api "repos/${GITHUB_REPOSITORY}" \
+            --jq "{\"$today\": {stars: .stargazers_count, forks: .forks_count}}" \
+            > /tmp/totals.new.json
+          [ -f totals.json ] || echo '{}' > totals.json
+          jq -s '.[0] + .[1]' totals.json /tmp/totals.new.json > /tmp/totals.merged.json
+          mv /tmp/totals.merged.json totals.json
+          { echo "date,stars,forks"
+            jq -r 'to_entries | sort_by(.key)[] | [.key, .value.stars, .value.forks] | @csv' totals.json
+          } > totals.csv
+
+      - name: Commit and push if changed
+        run: |
+          set -euo pipefail
+          git add clones.json clones.csv views.json views.csv totals.json totals.csv
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Traffic snapshot $(date -u +%F)"
+          git push origin traffic-data
